@@ -1,0 +1,3655 @@
+/* ============================================================================
+   test-journey.css
+   ----------------------------------------------------------------------------
+   Single-page Test layout (no stepper, no 5-step workbench, no optimizer).
+   Visual restraint matches gigPipeline.css / theme.css / shell.css —
+   1px hair borders, 10px radii, no glass, no gradients, mono numerics.
+
+   Sections in this file:
+     1. SIMULATION LOADER          (multi-phase narrated loader styling)
+     2. SENSE ASSET CARD           (used elsewhere; kept as-is)
+     3. TEST JOURNEY page wrapper  (header, two-column split, panels)
+     4. LEVERS                     (lever rows, ranges, scales, advanced)
+     5. LIVE PREVIEW               (preview blocks + KPIs)
+     6. RUN ROW / LOADER ROW
+     7. RESULTS                    (verdict, outcomes table, how-list)
+     8. BUTTONS + EMPTY STATE
+   ========================================================================== */
+
+/* ============================================================================
+   1. SIMULATION LOADER — multi-phase progress as a flat panel with rows.
+   ========================================================================== */
+.sim-loader {
+  background: var(--panel);
+  border: 1px solid var(--hair);
+  border-radius: 10px;
+  padding: 14px 16px;
+  font-family: var(--ui);
+  color: var(--ink);
+  max-width: 760px;
+  margin: 0 auto;
+}
+
+.sim-loader-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding-bottom: 11px;
+  border-bottom: 1px solid var(--hair);
+  margin-bottom: 12px;
+}
+.sim-loader-marker {
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--acc, #ffb15a);
+  font-feature-settings: "tnum";
+}
+.sim-loader-title {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink);
+}
+.sim-loader-pct {
+  margin-left: auto;
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--ink-2);
+  font-feature-settings: "tnum";
+}
+.sim-loader-cancel {
+  font-family: var(--ui);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  background: transparent;
+  color: var(--ink-3);
+  border: 1px solid var(--hair);
+  border-radius: 6px;
+  padding: 4px 10px;
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s;
+}
+.sim-loader-cancel:hover { color: var(--ink); border-color: var(--hair-2); }
+
+.sim-loader-phases {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+.sim-loader-phase {
+  display: grid;
+  grid-template-columns: 14px 1fr;
+  gap: 10px;
+  align-items: flex-start;
+  padding: 2px 0;
+  opacity: 0.7;
+  transition: opacity 0.2s ease;
+}
+.sim-loader-phase-running,
+.sim-loader-phase-done { opacity: 1; }
+
+.sim-loader-glyph {
+  width: 14px;
+  height: 16px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--ink-4);
+  flex-shrink: 0;
+  font-feature-settings: "tnum";
+}
+.sim-loader-phase-running .sim-loader-glyph {
+  color: var(--acc, #ffb15a);
+  animation: sim-loader-blink 1.2s ease-in-out infinite;
+}
+.sim-loader-phase-done .sim-loader-glyph { color: var(--green, #42e08b); }
+html.theme-light .sim-loader-phase-done .sim-loader-glyph { color: var(--green, #15803d); }
+
+@keyframes sim-loader-blink {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0.4; }
+}
+
+.sim-loader-phase-body { min-width: 0; }
+.sim-loader-phase-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.sim-loader-phase-label {
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--ink);
+}
+.sim-loader-phase-queued .sim-loader-phase-label { color: var(--ink-3); font-weight: 600; }
+
+.sim-loader-phase-mini {
+  flex: 1;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--bg-2);
+  border: 1px solid var(--hair);
+  overflow: hidden;
+  max-width: 200px;
+}
+html.theme-light .sim-loader-phase-mini { background: #f1f5f9; border-color: #e2e8f0; }
+.sim-loader-phase-mini-fill {
+  height: 100%;
+  background: var(--acc, #ffb15a);
+  transition: width 0.16s linear;
+}
+
+.sim-loader-phase-caption {
+  margin-top: 3px;
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--ink-3);
+  line-height: 1.4;
+  font-feature-settings: "tnum";
+}
+.sim-loader-phase-running .sim-loader-phase-caption { color: var(--ink-2); }
+
+.sim-loader-overall {
+  margin-top: 14px;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--bg-2);
+  border: 1px solid var(--hair);
+  overflow: hidden;
+}
+html.theme-light .sim-loader-overall { background: #f1f5f9; border-color: #e2e8f0; }
+.sim-loader-overall-fill {
+  height: 100%;
+  background: var(--acc, #ffb15a);
+  transition: width 0.16s linear;
+}
+
+/* ============================================================================
+   2. SENSE ASSET CARD — kept (used outside the Test page).
+   ========================================================================== */
+.sense-asset {
+  font-family: var(--ui);
+  text-align: left;
+  cursor: pointer;
+  background: var(--panel);
+  border: 1px solid var(--hair);
+  border-left: 3px solid var(--acc, #ffb15a);
+  border-radius: 10px;
+  padding: 12px 14px;
+  min-height: 124px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  color: var(--ink);
+  position: relative;
+  transition: border-color 0.15s, box-shadow 0.15s, transform 0.15s;
+}
+button.sense-asset { width: 100%; }
+
+.sense-asset:hover {
+  border-color: var(--hair-2);
+  border-left-color: var(--acc, #ffb15a);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+}
+html.theme-light .sense-asset:hover { box-shadow: 0 2px 8px rgba(15, 23, 42, 0.06); }
+
+.sense-asset-group-data       { border-left-color: var(--acq, #5b9dff); }
+.sense-asset-group-detection  { border-left-color: var(--violet, #b794f6); }
+.sense-asset-group-guardrail  { border-left-color: var(--green, #42e08b); }
+html.theme-light .sense-asset-group-data       { border-left-color: #1d4ed8; }
+html.theme-light .sense-asset-group-detection  { border-left-color: #6d28d9; }
+html.theme-light .sense-asset-group-guardrail  { border-left-color: #15803d; }
+
+.sense-asset-glyph-row { display: flex; align-items: center; }
+.sense-asset-glyph { font-size: 15px; line-height: 1; color: var(--ink-2); }
+.sense-asset-name { font-size: 13px; font-weight: 700; letter-spacing: -0.01em; color: var(--ink); line-height: 1.25; }
+.sense-asset-sub  { font-size: 10.5px; color: var(--ink-3); line-height: 1.4; }
+.sense-asset-quick {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  font-weight: 700;
+  color: var(--ink);
+  margin-top: 2px;
+  font-feature-settings: "tnum";
+}
+.sense-asset-group-data       .sense-asset-quick { color: var(--acq, #5b9dff); }
+.sense-asset-group-detection  .sense-asset-quick { color: var(--violet, #b794f6); }
+.sense-asset-group-guardrail  .sense-asset-quick { color: var(--green, #42e08b); }
+html.theme-light .sense-asset-group-data       .sense-asset-quick { color: #1d4ed8; }
+html.theme-light .sense-asset-group-detection  .sense-asset-quick { color: #6d28d9; }
+html.theme-light .sense-asset-group-guardrail  .sense-asset-quick { color: #15803d; }
+.sense-asset-informs {
+  margin-top: auto;
+  padding-top: 4px;
+  font-family: var(--serif, var(--ui));
+  font-style: italic;
+  font-size: 11px;
+  color: var(--ink-3);
+  line-height: 1.4;
+}
+.sense-asset-expanded { grid-column: 1 / -1; cursor: default; padding: 0; min-height: 0; border-left-width: 3px; }
+.sense-asset-expanded:hover { transform: none; }
+.sense-asset-x-header {
+  display: grid; grid-template-columns: 24px 1fr auto; align-items: flex-start; gap: 12px;
+  padding: 12px 14px; border-bottom: 1px solid var(--hair);
+  background: linear-gradient(180deg, rgba(255, 255, 255, .018), transparent);
+}
+html.theme-light .sense-asset-x-header { background: linear-gradient(180deg, rgba(15, 23, 42, .025), transparent); }
+.sense-asset-x-glyph { font-size: 18px; line-height: 1; align-self: center; color: var(--ink-2); }
+.sense-asset-x-title { min-width: 0; }
+.sense-asset-x-group {
+  font-family: var(--mono); font-size: 8.5px; font-weight: 700;
+  letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-4); margin-bottom: 3px;
+}
+.sense-asset-x-name { font-size: 14px; font-weight: 700; color: var(--ink); letter-spacing: -0.01em; line-height: 1.25; }
+.sense-asset-x-sub {
+  margin-top: 4px; font-family: var(--serif, var(--ui)); font-style: italic;
+  font-size: 12px; color: var(--ink-2); line-height: 1.5;
+}
+.sense-asset-x-close {
+  background: transparent; border: 1px solid var(--hair); color: var(--ink-3);
+  width: 24px; height: 24px; border-radius: 6px; cursor: pointer;
+  font-size: 14px; line-height: 1; font-family: var(--ui);
+}
+.sense-asset-x-close:hover { color: var(--ink); border-color: var(--hair-2); }
+.sense-asset-x-body {
+  padding: 14px; display: flex; flex-direction: column; gap: 14px;
+  opacity: 0; transition: opacity 0.2s ease;
+}
+.sense-asset-x-body-visible { opacity: 1; }
+.sense-asset-x-row { display: grid; gap: 12px; }
+.sense-asset-x-row-2 { grid-template-columns: 1fr 1fr; }
+@media (max-width: 720px) { .sense-asset-x-row-2 { grid-template-columns: 1fr; } }
+.sense-asset-block { background: var(--bg-2); border: 1px solid var(--hair); border-radius: 8px; padding: 11px 12px; }
+html.theme-light .sense-asset-block { background: #f8fafc; border-color: #e2e8f0; }
+.sense-asset-block-h {
+  font-family: var(--mono); font-size: 8.5px; font-weight: 700;
+  letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-4);
+  margin-bottom: 7px; display: flex; align-items: center; gap: 6px;
+}
+.sense-asset-block-n { font-family: var(--mono); font-size: 10px; color: var(--ink-3); font-feature-settings: "tnum"; }
+.sense-asset-kv { display: grid; grid-template-columns: auto 1fr; gap: 4px 12px; margin: 0; }
+.sense-asset-kv dt { font-size: 10.5px; color: var(--ink-3); font-weight: 600; }
+.sense-asset-kv dd { font-family: var(--mono); font-size: 11px; font-weight: 700; color: var(--ink); margin: 0; font-feature-settings: "tnum"; }
+.sense-asset-kv-lg dd { font-size: 12.5px; }
+.sense-asset-viz-title {
+  font-family: var(--mono); font-size: 9px; font-weight: 700;
+  letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-3); margin-bottom: 7px;
+}
+.sense-asset-bars { display: flex; flex-direction: column; gap: 5px; }
+.sense-asset-bar-row {
+  display: grid; grid-template-columns: 90px 1fr 48px; align-items: center; gap: 10px;
+  font-family: var(--mono); font-size: 10.5px; color: var(--ink-2); font-feature-settings: "tnum";
+}
+.sense-asset-bar-label { color: var(--ink-2); }
+.sense-asset-bar-track { height: 4px; border-radius: 2px; background: var(--bg-1); border: 1px solid var(--hair); overflow: hidden; }
+html.theme-light .sense-asset-bar-track { background: #f1f5f9; border-color: #e2e8f0; }
+.sense-asset-bar-fill { height: 100%; background: var(--acq, #5b9dff); transition: width 0.3s ease; }
+html.theme-light .sense-asset-bar-fill { background: #1d4ed8; }
+.sense-asset-bar-val { text-align: right; color: var(--ink); font-weight: 700; }
+.sense-asset-bar-note {
+  grid-column: 2 / -1; font-style: italic; color: var(--ink-3); font-size: 10px;
+  font-family: var(--serif, var(--ui));
+}
+.sense-asset-matrix { display: grid; gap: 4px; font-family: var(--mono); font-size: 10.5px; font-feature-settings: "tnum"; }
+.sense-asset-matrix-corner {}
+.sense-asset-matrix-col,
+.sense-asset-matrix-row-h { color: var(--ink-3); font-weight: 700; padding: 3px 6px; text-align: center; }
+.sense-asset-matrix-row-h { text-align: left; }
+.sense-asset-matrix-cell {
+  padding: 6px 8px; background: var(--bg-1); border: 1px solid var(--hair); border-radius: 5px;
+  color: var(--ink-2); text-align: center;
+}
+html.theme-light .sense-asset-matrix-cell { background: #f8fafc; border-color: #e2e8f0; }
+.sense-asset-matrix-cell-hl {
+  background: var(--acc-soft, rgba(255, 177, 90, 0.13));
+  border-color: var(--acc, #ffb15a); color: var(--ink); font-weight: 800;
+}
+.sense-asset-components { display: flex; flex-direction: column; gap: 6px; }
+.sense-asset-component-row {
+  display: grid; grid-template-columns: 200px 1fr 50px; align-items: center; gap: 10px;
+  font-family: var(--mono); font-size: 10.5px; color: var(--ink-2); font-feature-settings: "tnum";
+}
+.sense-asset-component-label { color: var(--ink-2); }
+.sense-asset-component-track { height: 4px; border-radius: 2px; background: var(--bg-1); border: 1px solid var(--hair); overflow: hidden; }
+html.theme-light .sense-asset-component-track { background: #f1f5f9; border-color: #e2e8f0; }
+.sense-asset-component-fill { height: 100%; background: var(--violet, #b794f6); }
+html.theme-light .sense-asset-component-fill { background: #6d28d9; }
+.sense-asset-component-val { text-align: right; font-weight: 700; color: var(--ink); }
+.sense-asset-component-note {
+  grid-column: 2 / -1; font-style: italic; color: var(--ink-3); font-size: 10px;
+  font-family: var(--serif, var(--ui));
+}
+.sense-asset-viz-foot { margin-top: 6px; font-family: var(--mono); font-size: 9.5px; color: var(--ink-4); font-style: italic; }
+.sense-asset-chain { display: flex; flex-direction: column; gap: 8px; }
+.sense-asset-chain-row { display: grid; grid-template-columns: 14px auto 1fr; align-items: start; gap: 8px; }
+.sense-asset-chain-arrow { font-family: var(--mono); font-size: 12px; font-weight: 700; line-height: 1.2; }
+.sense-asset-chain-up { color: var(--green, #42e08b); }
+html.theme-light .sense-asset-chain-up { color: var(--green, #15803d); }
+.sense-asset-chain-down { color: var(--acq, #5b9dff); }
+html.theme-light .sense-asset-chain-down { color: #1d4ed8; }
+.sense-asset-chain-label {
+  font-family: var(--mono); font-size: 9px; font-weight: 700; color: var(--ink-4);
+  text-transform: uppercase; letter-spacing: 0.14em;
+}
+.sense-asset-chain-list {
+  list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap;
+  gap: 5px 10px; font-size: 10.5px; color: var(--ink);
+}
+.sense-asset-chain-list li {
+  background: var(--bg-1); border: 1px solid var(--hair); border-radius: 5px;
+  padding: 2px 7px; font-family: var(--mono); font-weight: 600; font-size: 10px;
+  font-feature-settings: "tnum";
+}
+html.theme-light .sense-asset-chain-list li { background: #f8fafc; border-color: #e2e8f0; }
+.sense-asset-links { display: flex; flex-wrap: wrap; gap: 6px; }
+.sense-asset-link-chip {
+  display: inline-flex; align-items: center; gap: 4px; padding: 4px 9px;
+  background: var(--bg-1); border: 1px solid var(--hair); border-radius: 6px;
+  color: var(--ink-2); font-size: 10.5px; font-weight: 700; font-family: var(--ui);
+  text-decoration: none; transition: color 0.15s, border-color 0.15s;
+}
+html.theme-light .sense-asset-link-chip { background: #ffffff; border-color: #cbd5e1; }
+a.sense-asset-link-chip:hover { border-color: var(--hair-2); color: var(--ink); }
+
+@media (prefers-reduced-motion: reduce) {
+  .sim-loader-phase-running .sim-loader-glyph { animation: none !important; }
+  .sense-asset { transition: none; }
+}
+
+/* ============================================================================
+   3. SIM WORKSPACE · viewport-fitting 3-mode shell
+   ----------------------------------------------------------------------------
+   The CONFIG view is a header + body + footer column that fills the parent
+   .shell-body's height exactly. The body is a 2-col grid; each column scrolls
+   internally if its content overflows. The page itself does NOT scroll.
+   ========================================================================== */
+.sim-workspace {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-1);
+  min-height: 0;
+}
+
+.sim-ws-header {
+  flex: 0 0 auto;
+  padding: 10px 22px 10px;
+  border-bottom: 1px solid var(--hair);
+  background: var(--bg-1);
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 18px;
+}
+.sim-ws-header-title { min-width: 0; }
+.sim-ws-header-mode {
+  display: flex; flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+}
+
+/* Mode indicator pill — shows which tuning mode is in play. Replaces the
+   old segmented control; the actual mode picker now lives on the test-mode
+   branching screen upstream. The pill is read-only signal here. */
+.sim-mode-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  border-radius: 8px;
+  background: var(--bg-2);
+  border: 1px solid var(--hair);
+}
+html.theme-light .sim-mode-pill { background: #f1f5f9; border-color: #e2e8f0; }
+.sim-mode-pill-l {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  color: var(--ink-2);
+}
+.sim-mode-pill-sub {
+  font-size: 11px;
+  color: var(--ink-3);
+  letter-spacing: 0.01em;
+}
+.sim-mode-pill-autopilot {
+  background: rgba(255, 177, 90, 0.12);
+  border-color: rgba(255, 177, 90, 0.35);
+}
+.sim-mode-pill-autopilot .sim-mode-pill-l { color: var(--acc, #ffb15a); }
+html.theme-light .sim-mode-pill-autopilot {
+  background: rgba(180, 83, 9, 0.08);
+  border-color: rgba(180, 83, 9, 0.25);
+}
+html.theme-light .sim-mode-pill-autopilot .sim-mode-pill-l { color: var(--acc, #b45309); }
+.sim-mode-pill-dot {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: var(--acc, #ffb15a);
+  animation: sim-mode-pulse 1.8s ease-in-out infinite;
+}
+html.theme-light .sim-mode-pill-dot { background: var(--acc, #b45309); }
+@keyframes sim-mode-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%      { opacity: 0.6; transform: scale(1.2); }
+}
+
+/* "Take over" button — surfaces only in Autopilot mode. Lets the user
+   escape the cinematic and fall back to a manually-driven workbench. */
+.sim-mode-takeover {
+  display: inline-flex; align-items: center; gap: 5px;
+  background: transparent;
+  border: 1px solid var(--hair-2);
+  border-radius: 6px;
+  padding: 4px 10px;
+  font-size: 10.5px;
+  font-weight: 600;
+  color: var(--ink-2);
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+.sim-mode-takeover:hover {
+  background: var(--bg-2);
+  color: var(--ink);
+  border-color: var(--ink-3);
+}
+.sim-mode-takeover .icon { display: block; }
+
+/* Pill segmented control for Autopilot vs Guided. Active option gets a
+   solid amber background — high contrast, signals "this mode is in play."
+   Inactive option stays muted; clicking it swaps modes. */
+.sim-mode-toggle {
+  display: inline-flex;
+  background: var(--bg-2);
+  border: 1px solid var(--hair);
+  border-radius: 9px;
+  padding: 3px;
+  gap: 0;
+}
+html.theme-light .sim-mode-toggle { background: #f1f5f9; border-color: #e2e8f0; }
+.sim-mode-opt {
+  appearance: none;
+  background: transparent;
+  border: 0;
+  padding: 6px 14px;
+  cursor: pointer;
+  display: flex; flex-direction: column; align-items: flex-start;
+  gap: 1px;
+  border-radius: 6px;
+  transition: background 0.15s, color 0.15s;
+  color: var(--ink-3);
+  min-width: 110px;
+}
+.sim-mode-opt:hover { color: var(--ink-2); }
+.sim-mode-opt-l {
+  font-family: var(--mono); font-size: 10.5px; font-weight: 800;
+  letter-spacing: 0.14em;
+}
+.sim-mode-opt-d {
+  font-size: 10px; color: var(--ink-4);
+  letter-spacing: 0.01em;
+}
+.sim-mode-opt.active {
+  background: var(--acc, #ffb15a);
+  color: #1a1304;
+}
+.sim-mode-opt.active .sim-mode-opt-d { color: rgba(26, 19, 4, 0.7); }
+html.theme-light .sim-mode-opt.active { background: var(--acc, #b45309); color: #ffffff; }
+html.theme-light .sim-mode-opt.active .sim-mode-opt-d { color: rgba(255, 255, 255, 0.85); }
+
+/* Receipt strip — appears under the toggle in Autopilot mode. Mono, faint,
+   sells the AI compute work. */
+.sim-mode-receipt {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--ink-4);
+  letter-spacing: 0.02em;
+  text-align: right;
+}
+
+/* Reset pill — appears under the toggle in Guided mode. Click to revert all
+   levers to Twin's recommended values. */
+.sim-mode-reset {
+  display: inline-flex; align-items: center; gap: 5px;
+  background: transparent;
+  border: 1px solid var(--hair-2);
+  border-radius: 6px;
+  padding: 4px 10px;
+  font-size: 10.5px;
+  font-weight: 600;
+  color: var(--ink-2);
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+.sim-mode-reset:hover {
+  background: var(--bg-2);
+  color: var(--ink);
+  border-color: var(--ink-3);
+}
+.sim-mode-reset .icon { display: block; color: var(--acc, #ffb15a); }
+html.theme-light .sim-mode-reset .icon { color: var(--acc, #b45309); }
+
+@media (max-width: 800px) {
+  .sim-ws-header { grid-template-columns: 1fr; }
+  .sim-ws-header-mode { align-items: flex-start; }
+  .sim-mode-receipt, .sim-mode-reset { text-align: left; }
+}
+html.theme-light .sim-ws-header { background: #ffffff; border-bottom-color: #e2e8f0; }
+
+.sim-ws-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  padding: 10px 18px;
+  overflow: hidden;
+}
+
+/* ----------------------------------------------------------------------------
+   Configuration pages — cap the OUTERMOST container of each config flow
+   to a readable 1240px (matches cards/results pages). Applied to whichever
+   wrapper sits at the root of the configuration view in each variant:
+     - retention What-If / If-What : .sim-ws-single is the root
+     - gig What-If                 : .sim-ws-body.sim-ws-single is the body
+     - gig If-What                 : .sim-ws-body is the body
+   Centering on the outer container cascades to everything inside, so all
+   four configuration views match the cards page geometry.
+---------------------------------------------------------------------------- */
+.sim-ws-single,
+.sim-ws-body {
+  max-width: 1240px;
+  width: 100%;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.sim-ws-col {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  min-width: 0;
+}
+.sim-ws-col-scroll {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+}
+.sim-ws-levers-full {
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+/* ----------------------------------------------------------------------------
+   STICKY CONFIG STRIP — selected cohort summary + fair-lending guardrail +
+   Run button. Lives at the top of the lever panel and is the only "live"
+   feedback during config (everything else is for setting inputs).
+---------------------------------------------------------------------------- */
+.sim-config-strip {
+  flex: 0 0 auto;
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  gap: 18px;
+  align-items: center;
+  padding: 12px 18px;
+  border: 1px solid var(--hair);
+  border-radius: 10px;
+  background: var(--bg-2, rgba(255,255,255,0.04));
+  margin-bottom: 12px;
+}
+html.theme-light .sim-config-strip { background: #ffffff; border-color: #e2e8f0; }
+
+.sim-config-strip-cohort { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.sim-config-strip-cohort-h { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+.sim-config-strip-l {
+  font-family: var(--mono);
+  font-size: 9.5px;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  color: var(--ink-3);
+  text-transform: uppercase;
+}
+.sim-config-strip-chips { display: inline-flex; flex-wrap: wrap; gap: 6px; }
+.sim-config-strip-chip {
+  font-family: var(--ui);
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 10px;
+  background: rgba(183, 148, 246, 0.12);
+  color: var(--violet, #b794f6);
+  border: 1px solid rgba(183, 148, 246, 0.30);
+}
+.sim-config-strip-chip-custom {
+  background: rgba(255, 177, 90, 0.12);
+  color: var(--acc, #ffb15a);
+  border-color: rgba(255, 177, 90, 0.30);
+}
+html.theme-light .sim-config-strip-chip {
+  background: rgba(124, 58, 237, 0.08);
+  color: #7c3aed;
+  border-color: rgba(124, 58, 237, 0.25);
+}
+html.theme-light .sim-config-strip-chip-custom {
+  background: rgba(180, 83, 9, 0.08);
+  color: #b45309;
+  border-color: rgba(180, 83, 9, 0.25);
+}
+.sim-config-strip-counts {
+  font-family: var(--ui);
+  font-size: 13px;
+  color: var(--ink-2);
+  display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap;
+}
+.sim-config-strip-counts b {
+  font-family: var(--mono);
+  font-weight: 700;
+  font-feature-settings: "tnum";
+  color: var(--ink);
+}
+.sim-config-strip-sep { color: var(--ink-4); }
+.sim-config-strip-verified {
+  border-bottom: 1px dotted var(--ink-4);
+  cursor: help;
+}
+
+/* Fair-lending guardrail pill. */
+.sim-config-strip-guard {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid;
+  font-family: var(--mono);
+}
+.sim-config-strip-guard.is-safe {
+  background: rgba(66, 224, 139, 0.08);
+  border-color: rgba(66, 224, 139, 0.35);
+  color: var(--green, #42e08b);
+}
+.sim-config-strip-guard.is-breach {
+  background: rgba(239, 68, 68, 0.08);
+  border-color: rgba(239, 68, 68, 0.40);
+  color: var(--red, #ef4444);
+}
+html.theme-light .sim-config-strip-guard.is-safe {
+  background: rgba(21, 128, 61, 0.08);
+  border-color: rgba(21, 128, 61, 0.30);
+  color: var(--green, #15803d);
+}
+html.theme-light .sim-config-strip-guard.is-breach {
+  background: rgba(185, 28, 28, 0.08);
+  border-color: rgba(185, 28, 28, 0.35);
+  color: var(--red, #b91c1c);
+}
+.sim-config-strip-guard-dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: currentColor;
+  flex: 0 0 8px;
+}
+.sim-config-strip-guard-l {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  opacity: 0.9;
+}
+.sim-config-strip-guard-v {
+  font-size: 18px;
+  font-weight: 700;
+  font-feature-settings: "tnum";
+}
+.sim-config-strip-guard-vs {
+  font-size: 10px;
+  color: var(--ink-3);
+  opacity: 0.85;
+}
+.sim-config-strip-run {
+  white-space: nowrap;
+}
+@media (max-width: 880px) {
+  .sim-config-strip { grid-template-columns: 1fr; gap: 12px; }
+}
+
+/* ----------------------------------------------------------------------------
+   COHORT PRESET CARDS — replaces the old "lever-cluster-chip" mini-tiles.
+   Each card surfaces: name, count, verified-eligible, share of book, signature,
+   drift. The primary cluster (gig) is locked-on; others are toggle-able to
+   widen scope. No outcome predictions here.
+---------------------------------------------------------------------------- */
+.sim-cohort-presets {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 10px;
+}
+.sim-cohort-card {
+  position: relative;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  grid-template-rows: auto auto auto auto;
+  column-gap: 10px;
+  row-gap: 4px;
+  padding: 12px 14px;
+  border: 1px solid var(--hair);
+  border-radius: 8px;
+  background: var(--bg-1, rgba(0,0,0,0.10));
+  cursor: pointer;
+  transition: border-color 0.12s ease, background 0.12s ease, transform 0.06s ease;
+}
+.sim-cohort-card:hover:not(.is-primary) {
+  border-color: var(--acc, #ffb15a);
+  transform: translateY(-1px);
+}
+.sim-cohort-card.is-on:not(.is-primary) {
+  border-color: var(--acc, #ffb15a);
+  background: var(--acc-soft, rgba(255, 177, 90, 0.05));
+}
+.sim-cohort-card.is-primary {
+  border-color: var(--violet, #b794f6);
+  background: rgba(183, 148, 246, 0.06);
+  cursor: default;
+}
+html.theme-light .sim-cohort-card { background: #ffffff; }
+html.theme-light .sim-cohort-card.is-primary {
+  border-color: #7c3aed;
+  background: rgba(124, 58, 237, 0.04);
+}
+.sim-cohort-card input {
+  grid-row: 1; grid-column: 1;
+  margin: 0;
+  accent-color: var(--acc, #ffb15a);
+}
+.sim-cohort-card.is-primary input { accent-color: var(--violet, #b794f6); }
+.sim-cohort-card-h {
+  grid-row: 1; grid-column: 2;
+  display: flex; align-items: center; gap: 8px;
+}
+.sim-cohort-card-n {
+  font-family: var(--ui);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink);
+}
+.sim-cohort-card-tag {
+  font-family: var(--mono);
+  font-size: 8.5px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 2px 6px;
+  border-radius: 3px;
+  color: var(--violet, #b794f6);
+  background: rgba(183, 148, 246, 0.10);
+}
+html.theme-light .sim-cohort-card-tag {
+  color: #7c3aed;
+  background: rgba(124, 58, 237, 0.08);
+}
+.sim-cohort-card-counts {
+  grid-row: 2; grid-column: 2;
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--ink-3);
+  display: flex; flex-wrap: wrap; gap: 4px 6px;
+}
+.sim-cohort-card-counts b {
+  color: var(--ink);
+  font-weight: 700;
+  font-feature-settings: "tnum";
+}
+.sim-cohort-card-sep { color: var(--ink-4); }
+.sim-cohort-card-sig {
+  grid-row: 3; grid-column: 2;
+  font-family: var(--ui);
+  font-size: 11.5px;
+  color: var(--ink-3);
+  line-height: 1.45;
+}
+.sim-cohort-card-drift {
+  grid-row: 4; grid-column: 2;
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--ink-4);
+  letter-spacing: 0.08em;
+}
+
+/* Composition strip — shows pattern-of-use subgroups inside the cluster.
+   Descriptive, NOT selectable. To target a subgroup the user goes to the
+   custom rule builder. */
+.sim-cohort-card-composition {
+  grid-column: 1 / 3;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px dashed var(--hair);
+  display: flex; flex-direction: column;
+  gap: 6px;
+}
+.sim-cohort-card-comp-l {
+  font-family: var(--mono);
+  font-size: 9.5px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+.sim-cohort-card-comp-rows {
+  display: flex; flex-direction: column;
+  gap: 4px;
+}
+.sim-cohort-card-comp-row {
+  display: grid;
+  grid-template-columns: 56px 1fr auto;
+  gap: 8px;
+  align-items: center;
+  font-family: var(--ui);
+  font-size: 11.5px;
+  color: var(--ink-2);
+}
+.sim-cohort-card-comp-bar-wrap {
+  height: 6px;
+  background: var(--bg-2, rgba(255,255,255,0.06));
+  border-radius: 3px;
+  overflow: hidden;
+}
+.sim-cohort-card-comp-bar {
+  display: block;
+  height: 100%;
+  background: var(--violet, #b794f6);
+  border-radius: 3px;
+}
+html.theme-light .sim-cohort-card-comp-bar { background: #7c3aed; }
+.sim-cohort-card-comp-label {
+  color: var(--ink-2);
+}
+.sim-cohort-card-comp-pct {
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 600;
+  font-feature-settings: "tnum";
+  color: var(--ink);
+}
+.sim-cohort-card-comp-hint {
+  font-family: var(--ui);
+  font-size: 10.5px;
+  font-style: italic;
+  color: var(--ink-4);
+  margin-top: 2px;
+}
+
+/* Include-in-test checkbox at the top of the Follow-on Offer section. */
+.sim-lever-include {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 12px;
+  margin-bottom: 4px;
+  border: 1px solid var(--hair);
+  border-radius: 6px;
+  background: var(--bg-2, rgba(255,255,255,0.03));
+  cursor: pointer;
+  font-family: var(--ui);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink);
+}
+.sim-lever-include input {
+  accent-color: var(--green, #42e08b);
+  margin: 0;
+}
+.sim-lever-include-l { flex: 1; }
+.sim-lever-include-tag {
+  font-family: var(--mono);
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 2px 7px;
+  border-radius: 3px;
+  color: var(--ink-3);
+  background: var(--bg-1, rgba(255,255,255,0.04));
+  border: 1px solid var(--hair);
+}
+.sim-lever-include-tag-on {
+  color: var(--green, #42e08b);
+  background: rgba(66, 224, 139, 0.10);
+  border-color: rgba(66, 224, 139, 0.35);
+}
+html.theme-light .sim-lever-include-tag-on {
+  color: #15803d;
+  background: rgba(21, 128, 61, 0.08);
+  border-color: rgba(21, 128, 61, 0.30);
+}
+.sim-lever-deepening {
+  border: 0; padding: 0; margin: 0;
+  transition: opacity 0.18s ease, filter 0.18s ease;
+}
+.sim-lever-deepening.is-excluded {
+  opacity: 0.55;
+  filter: grayscale(0.4);
+  pointer-events: none;
+}
+
+/* Headline value row — big number + unit cap + delta chip on one line.
+   Delta is the impact, so it sits visually paired with the value rather
+   than buried in a comparison row below. flex-wrap handles narrow widths. */
+.proof-kpi-v-row {
+  display: flex;
+  align-items: baseline;
+  gap: 8px 10px;
+  flex-wrap: wrap;
+}
+.proof-kpi-v-cap {
+  font-family: var(--ui);
+  font-size: 11.5px;
+  font-weight: 500;
+  color: var(--ink-3);
+}
+
+/* Delta chip — colored pill adjacent to the headline number. Green for
+   good direction (reductions in blocked/complaints, margin above floor),
+   red when the policy moves the metric the wrong way. */
+.proof-kpi-delta-chip {
+  display: inline-flex;
+  align-items: center;
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 700;
+  font-feature-settings: "tnum";
+  letter-spacing: 0;
+  padding: 3px 9px;
+  border-radius: 12px;
+  border: 1px solid;
+  white-space: nowrap;
+  margin-left: auto;          /* push chip to the right edge of the row */
+  align-self: center;
+  line-height: 1.2;
+}
+.proof-kpi-delta-chip-good {
+  color: var(--green, #42e08b);
+  background: rgba(66, 224, 139, 0.10);
+  border-color: rgba(66, 224, 139, 0.35);
+}
+.proof-kpi-delta-chip-bad {
+  color: var(--red, #ef4444);
+  background: rgba(239, 68, 68, 0.10);
+  border-color: rgba(239, 68, 68, 0.35);
+}
+html.theme-light .proof-kpi-delta-chip-good {
+  color: var(--green, #15803d);
+  background: rgba(21, 128, 61, 0.08);
+  border-color: rgba(21, 128, 61, 0.30);
+}
+html.theme-light .proof-kpi-delta-chip-bad {
+  color: var(--red, #b91c1c);
+  background: rgba(185, 28, 28, 0.08);
+  border-color: rgba(185, 28, 28, 0.30);
+}
+
+/* Baseline row — a single small line of context under the headline.
+   No longer needs a column structure since it's the only row in the
+   compare block now (delta is up in the chip). */
+.proof-kpi-compare {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px dashed var(--hair);
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.proof-kpi-compare-k {
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.10em;
+  text-transform: uppercase;
+  color: var(--ink-4);
+}
+.proof-kpi-compare-v {
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 600;
+  font-feature-settings: "tnum";
+  color: var(--ink-2);
+}
+.proof-kpi-compare-cap {
+  font-family: var(--ui);
+  font-size: 11px;
+  font-style: italic;
+  color: var(--ink-4);
+}
+
+/* ----------------------------------------------------------------------------
+   CUSTOM COHORT RULE BUILDER — collapsed by default; user opens to combine
+   feature predicates into a custom cohort scoped only to this experiment.
+---------------------------------------------------------------------------- */
+.sim-cohort-custom {
+  border-top: 1px dashed var(--hair);
+  padding-top: 10px;
+  margin-top: 4px;
+}
+.sim-cohort-custom-toggle {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-family: var(--ui);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--acq, #5b9dff);
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  padding: 4px 0;
+}
+html.theme-light .sim-cohort-custom-toggle { color: #2563eb; }
+.sim-cohort-custom-toggle:hover { text-decoration: underline; }
+.sim-cohort-custom-count {
+  margin-left: 4px;
+  font-family: var(--mono);
+  font-size: 10.5px;
+  font-weight: 500;
+  color: var(--ink-3);
+}
+.sim-cohort-custom-body {
+  margin-top: 10px;
+  padding: 12px 14px;
+  background: var(--bg-2, rgba(255,255,255,0.03));
+  border: 1px solid var(--hair);
+  border-radius: 6px;
+}
+.sim-cohort-custom-model {
+  font-family: var(--ui);
+  font-size: 12px;
+  color: var(--ink-2);
+  line-height: 1.55;
+  padding: 10px 12px;
+  margin-bottom: 12px;
+  background: rgba(91, 157, 255, 0.06);
+  border: 1px solid rgba(91, 157, 255, 0.25);
+  border-radius: 5px;
+}
+html.theme-light .sim-cohort-custom-model {
+  background: rgba(37, 99, 235, 0.05);
+  border-color: rgba(37, 99, 235, 0.20);
+}
+.sim-cohort-custom-model b {
+  font-weight: 700;
+  color: var(--ink);
+}
+.sim-cohort-custom-model em {
+  font-style: italic;
+  color: var(--acc, #ffb15a);
+  font-weight: 600;
+}
+html.theme-light .sim-cohort-custom-body { background: #f8fafc; }
+.sim-cohort-custom-empty {
+  font-family: var(--ui);
+  font-size: 12px;
+  color: var(--ink-3);
+  line-height: 1.5;
+}
+.sim-cohort-custom-rules {
+  display: flex; flex-direction: column;
+  gap: 8px;
+}
+.sim-cohort-custom-rule {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr auto;
+  gap: 8px;
+  align-items: center;
+}
+.sim-cohort-custom-rule select,
+.sim-cohort-custom-rule input {
+  font-family: var(--ui);
+  font-size: 12px;
+  padding: 6px 8px;
+  border: 1px solid var(--hair);
+  border-radius: 5px;
+  background: var(--bg-1);
+  color: var(--ink);
+}
+html.theme-light .sim-cohort-custom-rule select,
+html.theme-light .sim-cohort-custom-rule input {
+  background: #ffffff;
+  border-color: #e2e8f0;
+}
+.sim-cohort-custom-rm {
+  width: 26px; height: 26px;
+  border: 1px solid var(--hair);
+  border-radius: 4px;
+  background: transparent;
+  color: var(--ink-3);
+  font-size: 14px;
+  line-height: 1;
+  cursor: pointer;
+}
+.sim-cohort-custom-rm:hover {
+  color: var(--red, #ef4444);
+  border-color: var(--red, #ef4444);
+}
+.sim-cohort-custom-add {
+  margin-top: 10px;
+  font-family: var(--ui);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--acq, #5b9dff);
+  background: transparent;
+  border: 1px dashed var(--hair);
+  border-radius: 5px;
+  padding: 6px 10px;
+  cursor: pointer;
+}
+.sim-cohort-custom-add:hover {
+  border-color: var(--acq, #5b9dff);
+  background: rgba(91, 157, 255, 0.06);
+}
+html.theme-light .sim-cohort-custom-add { color: #2563eb; }
+
+.sim-ws-footer {
+  flex: 0 0 auto;
+  padding: 8px 22px 10px;
+  border-top: 1px solid var(--hair);
+  background: var(--bg-1);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+html.theme-light .sim-ws-footer { background: #ffffff; border-top-color: #e2e8f0; }
+.sim-ws-footer-hint {
+  font-size: 11px;
+  color: var(--ink-4);
+  letter-spacing: 0.01em;
+}
+@media (max-width: 720px) {
+  .sim-ws-footer { flex-direction: column; align-items: stretch; }
+  .sim-ws-footer-hint { text-align: center; }
+}
+
+/* Hero heatmap container — fills majority of the right column. Tighter
+   padding + slightly smaller min-height so all three contextual charts
+   (hero + 2 sub) comfortably fit in the right-col scroll viewport without
+   feeling cramped. */
+.sim-hero {
+  background: var(--bg-2);
+  border: 1px solid var(--hair);
+  border-radius: 8px;
+  padding: 8px 10px 10px;
+  margin-bottom: 8px;
+}
+html.theme-light .sim-hero { background: #f8fafc; border-color: #e2e8f0; }
+.sim-hero-h {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-2);
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+.sim-hero-chart {
+  width: 100%;
+  min-height: 230px;
+}
+.sim-hero-chart .chart-fairness-safezone svg {
+  width: 100%;
+  height: auto;
+  display: block;
+  max-height: 260px;
+}
+
+/* Live KPI strip — 3 cards in a row, mono numerics */
+.sim-kpi-strip {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1px;
+  background: var(--hair);
+  border: 1px solid var(--hair);
+  border-radius: 8px;
+  overflow: hidden;
+  margin-bottom: 12px;
+}
+@media (max-width: 720px) { .sim-kpi-strip { grid-template-columns: 1fr; } }
+
+/* Cohort in scope — compact waterfall */
+.sim-cohort {
+  background: var(--bg-2);
+  border: 1px solid var(--hair);
+  border-radius: 8px;
+  padding: 10px 12px;
+}
+html.theme-light .sim-cohort { background: #f8fafc; border-color: #e2e8f0; }
+.sim-cohort-h {
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+.sim-cohort-chart .chart-cohort-waterfall svg {
+  width: 100%;
+  height: auto;
+  display: block;
+  max-height: 160px;
+}
+.sim-cohort-chart .chart-commentary {
+  font-size: 10.5px;
+  margin-top: 4px;
+}
+
+.sim-ws-map-body { padding: 10px 12px 12px; }
+
+/* ============================================================================
+   RIGHT RAIL v3 — three contextual blocks that earn their real estate:
+     1. Decision context (baseline → proposed deltas)
+     2. Fair-lending safe zone (the central guardrail)
+     3. Twin considered N policies (ranked alternatives)
+   + sticky Run button at the bottom.
+   ========================================================================= */
+
+/* Each right-rail chart sits in a flat panel with a quiet block header.
+   Two of these stack in the right column: cohort funnel + fair-lending
+   safe zone. No KPI numerics or predicted-outcome strips on the config
+   screen — those belong on the Results page. */
+.sim-rail-chart {
+  border: 1px solid var(--hair);
+  border-radius: 8px;
+  background: var(--panel);
+  padding: 10px 12px 12px;
+}
+html.theme-light .sim-rail-chart { background: #ffffff; border-color: #e2e8f0; }
+.sim-rail-chart svg {
+  width: 100%;
+  height: auto;
+  display: block;
+  max-height: 220px;
+}
+
+/* Shared block header inside the right rail */
+.sim-block-h {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 8px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--hair);
+}
+.sim-block-h .stag {
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  color: var(--ink-2);
+}
+.sim-block-h .stt {
+  font-size: 10.5px;
+  color: var(--ink-4);
+}
+
+/* BLOCK 1 — Decision Context card */
+.sim-context-card {
+  border: 1px solid var(--hair);
+  border-radius: 8px;
+  background: var(--panel);
+  padding: 10px 12px;
+}
+html.theme-light .sim-context-card { background: #ffffff; border-color: #e2e8f0; }
+.sim-context-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px 14px;
+}
+.sim-context-cell {
+  display: flex; flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+.sim-context-cell-l {
+  font-family: var(--mono);
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  color: var(--ink-3);
+  text-transform: uppercase;
+}
+.sim-context-cell-v {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--ink);
+  font-feature-settings: "tnum";
+}
+.sim-context-cell-v .icon {
+  display: block;
+  color: var(--ink-4);
+}
+.sim-ctx-from { color: var(--ink-4); text-decoration: line-through; }
+.sim-ctx-to {
+  font-weight: 700;
+  color: var(--ink);
+}
+.sim-ctx-delta {
+  font-size: 10.5px;
+  padding: 1px 6px;
+  border-radius: 4px;
+  background: rgba(255, 177, 90, 0.14);
+  color: var(--acc, #ffb15a);
+  font-weight: 700;
+  letter-spacing: 0;
+}
+html.theme-light .sim-ctx-delta {
+  background: rgba(180, 83, 9, 0.10);
+  color: var(--acc, #b45309);
+}
+
+/* BLOCK 3 — Twin considered N policies (ranked table) */
+.sim-alternatives {
+  border: 1px solid var(--hair);
+  border-radius: 8px;
+  background: var(--panel);
+  padding: 10px 12px;
+}
+html.theme-light .sim-alternatives { background: #ffffff; border-color: #e2e8f0; }
+.sim-alt-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 11.5px;
+}
+.sim-alt-table th {
+  font-family: var(--mono);
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  color: var(--ink-4);
+  text-transform: uppercase;
+  text-align: left;
+  padding: 4px 6px 6px;
+  border-bottom: 1px solid var(--hair);
+}
+.sim-alt-table th:first-child { width: 32px; }
+.sim-alt-table td {
+  padding: 7px 6px;
+  border-bottom: 1px solid var(--hair);
+  vertical-align: top;
+}
+.sim-alt-row:last-child td { border-bottom: 0; }
+.sim-alt-rank {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 20px; height: 20px;
+  border-radius: 4px;
+  font-family: var(--mono);
+  font-size: 10.5px;
+  font-weight: 700;
+  background: var(--bg-2);
+  color: var(--ink-3);
+}
+html.theme-light .sim-alt-rank { background: #f1f5f9; }
+.sim-alt-row-chosen .sim-alt-rank {
+  background: var(--acc, #ffb15a);
+  color: #1a1304;
+}
+html.theme-light .sim-alt-row-chosen .sim-alt-rank {
+  background: var(--acc, #b45309);
+  color: #ffffff;
+}
+.sim-alt-name {
+  font-size: 12px;
+  color: var(--ink);
+  font-weight: 500;
+  line-height: 1.35;
+}
+.sim-alt-row-chosen .sim-alt-name { font-weight: 700; }
+.sim-alt-win {
+  font-size: 11px;
+  color: var(--ink-3);
+  font-style: normal;
+}
+.sim-alt-footnote {
+  font-size: 10.5px;
+  color: var(--ink-4);
+  margin-top: 6px;
+  padding-top: 6px;
+  border-top: 1px dashed var(--hair);
+  font-style: normal;
+}
+
+/* ============================================================================
+   RIGHT RAIL v2 (post-redesign) — single Fairness chart + Twin's reasoning
+   + sticky Run button at the bottom. Replaces the old chart-swap stack.
+   ========================================================================= */
+.sim-ws-context {
+  display: flex; flex-direction: column;
+  min-height: 0;
+}
+.sim-ws-context-body {
+  padding: 12px 14px;
+  display: flex; flex-direction: column;
+  gap: 12px;
+}
+.sim-fairness {
+  width: 100%;
+  border: 1px solid var(--hair);
+  border-radius: 8px;
+  background: var(--bg-2);
+  padding: 10px 12px;
+}
+html.theme-light .sim-fairness { background: #f8fafc; border-color: #e2e8f0; }
+.sim-fairness .chart-fairness-safezone svg {
+  width: 100%;
+  height: auto;
+  display: block;
+  max-height: 240px;
+}
+
+/* Twin's reasoning card — 3 bullets explaining why Twin picked these
+   settings. Each bullet has a bold lead phrase (the lever / value) +
+   prose explanation. In Guided mode, a small "Overridden" pill warns
+   that the levers no longer match the reasoning below. */
+.sim-reasoning {
+  border: 1px solid var(--hair);
+  border-radius: 8px;
+  background: var(--panel);
+  padding: 10px 12px 12px;
+}
+html.theme-light .sim-reasoning { background: #ffffff; border-color: #e2e8f0; }
+.sim-reasoning-h {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding-bottom: 6px;
+  margin-bottom: 8px;
+  border-bottom: 1px solid var(--hair);
+}
+.sim-reasoning-h .stag {
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.18em;
+  color: var(--ink-2);
+}
+.sim-reasoning-pill {
+  font-family: var(--mono);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  padding: 2px 7px;
+  border-radius: 4px;
+  background: rgba(255, 177, 90, 0.16);
+  color: var(--acc, #ffb15a);
+  border: 1px solid rgba(255, 177, 90, 0.35);
+  text-transform: uppercase;
+}
+html.theme-light .sim-reasoning-pill {
+  background: rgba(180, 83, 9, 0.10);
+  color: var(--acc, #b45309);
+  border-color: rgba(180, 83, 9, 0.25);
+}
+.sim-reasoning-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex; flex-direction: column;
+  gap: 8px;
+}
+.sim-reasoning-list li {
+  position: relative;
+  padding-left: 14px;
+  font-size: 11.5px;
+  color: var(--ink-2);
+  line-height: 1.45;
+}
+.sim-reasoning-list li::before {
+  content: "";
+  position: absolute;
+  left: 0; top: 7px;
+  width: 5px; height: 5px;
+  border-radius: 50%;
+  background: var(--acc, #ffb15a);
+}
+.sim-reason-k {
+  display: inline;
+  font-weight: 700;
+  color: var(--ink);
+  margin-right: 4px;
+}
+
+/* Sticky Run footer inside the right panel. Pinned + high-contrast in both
+   themes — earlier attempts let the footer blend with the panel body in
+   light mode; this version draws an explicit dark/light contrast band with
+   a top hairline and a slight upward shadow so the user always sees where
+   the action lives. */
+.sim-context-footer {
+  flex: 0 0 auto;
+  padding: 12px 14px 14px;
+  background: var(--bg-2);
+  border-top: 1px solid var(--hair);
+  box-shadow: 0 -4px 12px -8px rgba(0, 0, 0, 0.35);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+html.theme-light .sim-context-footer {
+  background: #eef2f8;
+  border-top-color: #cbd5e1;
+  box-shadow: 0 -4px 12px -8px rgba(15, 23, 42, 0.18);
+}
+/* Run button — explicit colour values per theme (don't rely on the parent
+   .tj-btn-primary defaults which weren't reading correctly in light mode).
+   Strong shadow + bold weight so the button is unmissable on the band. */
+.sim-run-btn {
+  width: 100%;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  padding: 12px 18px;
+  background: var(--acc, #ffb15a);
+  border: 1px solid var(--acc, #ffb15a);
+  color: #1c1304;
+  box-shadow: 0 4px 14px -4px rgba(255, 177, 90, 0.45);
+}
+.sim-run-btn:hover {
+  filter: brightness(1.06);
+  box-shadow: 0 6px 18px -4px rgba(255, 177, 90, 0.55);
+}
+html.theme-light .sim-run-btn {
+  background: #d97706;
+  border-color: #d97706;
+  color: #ffffff;
+  box-shadow: 0 4px 14px -4px rgba(217, 119, 6, 0.50), 0 1px 0 rgba(15, 23, 42, 0.05);
+}
+html.theme-light .sim-run-btn:hover {
+  background: #b45309;
+  border-color: #b45309;
+  box-shadow: 0 6px 18px -4px rgba(180, 83, 9, 0.55);
+}
+.sim-context-footer-note {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--ink-4);
+  text-align: center;
+  letter-spacing: 0.02em;
+}
+
+/* ============================================================================
+   3b. RUNNING overlay — dimmed config + centred loader modal
+   ========================================================================== */
+.sim-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.sim-overlay-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+}
+html.theme-light .sim-overlay-backdrop { background: rgba(15, 23, 42, 0.45); }
+.sim-overlay-card {
+  position: relative;
+  width: min(560px, calc(100vw - 32px));
+  background: var(--panel);
+  border: 1px solid var(--hair);
+  border-radius: 12px;
+  padding: 18px 20px;
+  box-shadow: 0 24px 60px -16px rgba(0, 0, 0, 0.55);
+}
+html.theme-light .sim-overlay-card {
+  box-shadow: 0 24px 60px -18px rgba(15, 23, 42, 0.30);
+  border-color: #e2e8f0;
+}
+.sim-overlay-card .sim-loader { border: none; padding: 0; max-width: none; }
+
+/* ============================================================================
+   3c. RESULTS page mode — replaces config; can scroll
+   ========================================================================== */
+.results-page {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-1);
+  min-height: 0;
+}
+.results-page-header {
+  flex: 0 0 auto;
+  padding: 12px 22px;
+  border-bottom: 1px solid var(--hair);
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 16px;
+  background: var(--bg-1);
+}
+html.theme-light .results-page-header { background: #ffffff; border-bottom-color: #e2e8f0; }
+.results-page-header .tj-btn-ghost { justify-self: start; }
+.results-page-title { text-align: center; }
+.results-page-title .test-journey-title { margin-top: 2px; }
+.results-page-spacer { }
+.results-page-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 18px 22px 36px;
+}
+.results-content {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  max-width: 1240px;
+  margin: 0 auto;
+}
+
+/* ============================================================================
+   RESULTS HEADER — Verdict callout + Proof KPI grid as one panel. This is
+   "the answer" — verdict on the left, proof numerics on the right. Sits
+   at the top of the results page so the headline lands first.
+   ========================================================================= */
+.results-header {
+  padding: 14px 16px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.proof-kpis-h {
+  display: flex; align-items: baseline; gap: 10px;
+  margin-bottom: 2px;
+}
+.proof-kpis-h .stag {
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.18em;
+  color: var(--ink-2);
+}
+.proof-kpis-h .stt {
+  font-size: 11px;
+  color: var(--ink-4);
+}
+/* 3-up after fair-lending moved to the Guardrails strip. Each card gets
+   ~33% of the row so the values + baseline rows can breathe horizontally
+   instead of squeezing into a narrow ~25% column. */
+.proof-kpis-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+@media (max-width: 920px) {
+  .proof-kpis-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 520px) {
+  .proof-kpis-grid { grid-template-columns: 1fr; }
+}
+
+.proof-kpi {
+  border: 1px solid var(--hair);
+  border-radius: 10px;
+  background: var(--bg-2);
+  padding: 14px 16px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+html.theme-light .proof-kpi { background: #f8fafc; border-color: #e2e8f0; }
+.proof-kpi-h {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 8px;
+}
+.proof-kpi-l {
+  font-family: var(--ui);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--ink-2);
+  text-transform: none;
+}
+.proof-kpi-chip {
+  display: inline-flex; align-items: center; gap: 4px;
+  font-family: var(--mono);
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  padding: 2px 6px;
+  border-radius: 4px;
+  text-transform: lowercase;
+}
+.proof-kpi-chip .icon { display: block; }
+.proof-kpi-ok .proof-kpi-chip {
+  background: rgba(66, 224, 139, 0.14);
+  color: var(--green, #42e08b);
+}
+html.theme-light .proof-kpi-ok .proof-kpi-chip {
+  background: rgba(21, 128, 61, 0.10);
+  color: var(--green, #15803d);
+}
+.proof-kpi-warn .proof-kpi-chip {
+  background: rgba(255, 177, 90, 0.16);
+  color: var(--acc, #ffb15a);
+}
+html.theme-light .proof-kpi-warn .proof-kpi-chip {
+  background: rgba(180, 83, 9, 0.10);
+  color: var(--acc, #b45309);
+}
+.proof-kpi-miss .proof-kpi-chip {
+  background: rgba(239, 68, 68, 0.14);
+  color: var(--red, #ef4444);
+}
+html.theme-light .proof-kpi-miss .proof-kpi-chip {
+  background: rgba(185, 28, 28, 0.10);
+  color: var(--red, #b91c1c);
+}
+.proof-kpi-v {
+  font-family: var(--mono);
+  font-size: 30px;
+  font-weight: 700;
+  color: var(--ink);
+  letter-spacing: -0.015em;
+  font-feature-settings: "tnum";
+  line-height: 1.05;
+  margin-top: 2px;
+}
+.proof-kpi-ok .proof-kpi-v { color: var(--green, #42e08b); }
+html.theme-light .proof-kpi-ok .proof-kpi-v { color: var(--green, #15803d); }
+.proof-kpi-warn .proof-kpi-v { color: var(--acc, #ffb15a); }
+html.theme-light .proof-kpi-warn .proof-kpi-v { color: var(--acc, #b45309); }
+.proof-kpi-miss .proof-kpi-v { color: var(--red, #ef4444); }
+html.theme-light .proof-kpi-miss .proof-kpi-v { color: var(--red, #b91c1c); }
+.proof-kpi-vs {
+  font-size: 11px;
+  color: var(--ink-3);
+  font-feature-settings: "tnum";
+  font-family: var(--mono);
+}
+
+/* ============================================================================
+   3d. LEGACY · page wrapper + header (kept for tj-empty fallback)
+   ========================================================================== */
+.test-journey {
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-1);
+}
+
+.test-journey-header {
+  flex: 0 0 auto;
+  padding: 14px 22px 12px;
+  border-bottom: 1px solid var(--hair);
+  background: var(--bg-1);
+}
+html.theme-light .test-journey-header { background: #ffffff; border-bottom-color: #e2e8f0; }
+
+/* Workspace headers — the eyebrow ("OPERATIONS · LEARN") duplicates what
+   the topbar row-2 page name says, so it's hidden globally. The title
+   loses its serif/italic styling and becomes a plain sub-heading; the
+   sub stays as descriptive context. */
+.test-journey-eyebrow { display: none; }
+.test-journey-title {
+  font-family: var(--ui);
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--ink);
+  margin: 0;
+  letter-spacing: -0.01em;
+}
+.test-journey-sub {
+  font-size: 12.5px;
+  color: var(--ink-3);
+  margin: 4px 0 0;
+  line-height: 1.5;
+}
+
+/* Page wrappers */
+.tj-page {
+  padding: 18px 22px 36px;
+}
+.tj-page-narrow { max-width: 980px; margin: 0 auto; }
+.tj-page-wide   { max-width: 1240px; margin: 0 auto; }
+
+/* Two-column split (legacy, kept for any consumer) */
+.test-split {
+  display: grid;
+  grid-template-columns: minmax(320px, 1fr) 1.4fr;
+  gap: 16px;
+  align-items: start;
+}
+@media (max-width: 960px) {
+  .test-split { grid-template-columns: 1fr; }
+}
+
+/* Local .panel pattern (mirrors gigPipeline.css, scoped to test pages) */
+.test-journey .panel,
+.sim-workspace .panel,
+.results-page .panel {
+  background: var(--panel);
+  border: 1px solid var(--hair);
+  border-radius: 10px;
+  margin: 0;
+  overflow: hidden;
+}
+.sim-workspace .panel { display: flex; flex-direction: column; min-height: 0; }
+.test-journey .panel-h,
+.sim-workspace .panel-h,
+.results-page .panel-h {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--hair);
+  background: linear-gradient(180deg, rgba(255, 255, 255, .018), transparent);
+}
+html.theme-light .test-journey .panel-h,
+html.theme-light .sim-workspace .panel-h,
+html.theme-light .results-page .panel-h {
+  background: linear-gradient(180deg, rgba(15, 23, 42, .025), transparent);
+}
+.test-journey .panel-h .stag,
+.sim-workspace .panel-h .stag,
+.results-page .panel-h .stag {
+  font-family: var(--mono);
+  font-size: 8.5px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-4);
+  background: var(--bg-2);
+  border-radius: 4px;
+  padding: 2px 6px;
+  font-weight: 700;
+}
+html.theme-light .test-journey .panel-h .stag,
+html.theme-light .sim-workspace .panel-h .stag,
+html.theme-light .results-page .panel-h .stag { background: #f1f5f9; }
+.test-journey .panel-h .stt,
+.sim-workspace .panel-h .stt,
+.results-page .panel-h .stt {
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: var(--ink);
+}
+.test-journey .panel-body,
+.sim-workspace .panel-body,
+.results-page .panel-body { padding: 14px 16px; }
+.test-journey .panel-body.np,
+.sim-workspace .panel-body.np,
+.results-page .panel-body.np { padding: 0; }
+
+/* ============================================================================
+   4. LEVERS
+   ========================================================================== */
+/* ----------------------------------------------------------------------------
+   LEVER FIELDSET — outer container that disables every input at once when
+   Autopilot mode is on. Browsers automatically disable any input/select/
+   button inside a disabled fieldset, so we get the "lock" behavior for free
+   and only need to style the visual dimming.
+---------------------------------------------------------------------------- */
+.sim-lever-fieldset {
+  border: 0;
+  padding: 14px 4px;
+  margin: 0;
+  display: flex; flex-direction: column;
+  gap: 14px;
+}
+.sim-lever-fieldset.is-autopilot {
+  opacity: 0.78;
+}
+.sim-lever-fieldset.is-autopilot .lever-control {
+  pointer-events: none;
+  filter: saturate(0.5);
+}
+
+/* Section bands — visual grouping with a sectioned header + soft divider.
+   Not interactive (no toggle) — just gives visual rhythm. */
+.sim-lever-section {
+  display: flex; flex-direction: column;
+  gap: 14px;
+  padding: 16px 18px 18px;
+  border-radius: 10px;
+  background: var(--bg-2, rgba(255,255,255,0.02));
+  border: 1px solid var(--hair);
+}
+html.theme-light .sim-lever-section { background: #ffffff; border-color: #e2e8f0; }
+.sim-lever-section-h {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  font-weight: 800;
+  letter-spacing: 0.18em;
+  color: var(--ink-3);
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--hair);
+}
+
+/* New visual band header — large number + name + meta on one line.
+   Each section type carries a colored left-border accent so the type is
+   identifiable at a glance even without reading the label. */
+.sim-lever-section-band {
+  display: flex; align-items: baseline; gap: 12px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--hair);
+  margin-bottom: 4px;
+}
+.sim-lever-section-num {
+  font-family: var(--mono);
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--ink-3);
+  line-height: 1;
+  min-width: 22px;
+}
+.sim-lever-section-name {
+  font-family: var(--ui);
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--ink);
+  letter-spacing: 0.01em;
+  flex: 0 0 auto;
+}
+.sim-lever-section-meta {
+  font-family: var(--ui);
+  font-size: 12px;
+  color: var(--ink-3);
+  flex: 1;
+}
+/* Colored left-border accent per section type. */
+.sim-lever-section-cohort   { border-left: 3px solid var(--violet, #b794f6); }
+.sim-lever-section-products { border-left: 3px solid var(--acq, #5b9dff); }
+.sim-lever-section-policy   { border-left: 3px solid var(--acc, #ffb15a); }
+.sim-lever-section-comms    { border-left: 3px solid var(--green, #42e08b); }
+/* Accent rail — for a section whose selectable cards use the use-case accent
+   (e.g. the wealth CUSTOMER cohort cards), so the rail matches the cards. */
+.sim-lever-section-accent   { border-left: 3px solid var(--acc, #ffb15a); }
+html.theme-light .sim-lever-section-cohort   { border-left-color: #7c3aed; }
+html.theme-light .sim-lever-section-products { border-left-color: #2563eb; }
+html.theme-light .sim-lever-section-policy   { border-left-color: #b45309; }
+html.theme-light .sim-lever-section-comms    { border-left-color: #15803d; }
+
+/* Products · Rails uses an inline horizontal layout because it carries only
+   one lever (the rail picker). No 2-col split with Policy — that left half
+   the Products column empty. Each section is full-width and stacks vertically. */
+
+/* Advanced (collapsed) lever section — uses native <details>/<summary>. */
+.sim-lever-advanced[open] { gap: 14px; }
+.sim-lever-section-h-advanced {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 10px;
+  cursor: pointer;
+  list-style: none;
+  user-select: none;
+  position: relative;
+  padding-left: 16px;
+}
+.sim-lever-section-h-advanced::-webkit-details-marker { display: none; }
+.sim-lever-section-h-advanced::before {
+  content: "▸";
+  position: absolute; left: 0; top: 50%;
+  transform: translateY(-60%);
+  font-size: 9px;
+  color: var(--ink-4);
+  transition: transform 0.16s ease;
+}
+.sim-lever-advanced[open] .sim-lever-section-h-advanced::before {
+  transform: translateY(-50%) rotate(90deg);
+}
+.sim-lever-advanced-tag {
+  font-family: var(--mono);
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.10em;
+  text-transform: uppercase;
+  color: var(--ink-4);
+  background: var(--bg-2, rgba(255,255,255,0.04));
+  border: 1px solid var(--hair);
+  border-radius: 3px;
+  padding: 2px 6px;
+}
+.sim-lever-advanced-note {
+  font-size: 12px;
+  color: var(--ink-3);
+  line-height: 1.5;
+  padding: 8px 12px;
+  background: var(--bg-2, rgba(255,255,255,0.03));
+  border-left: 2px solid var(--hair-2, rgba(255,255,255,0.08));
+  border-radius: 3px;
+}
+
+/* Cluster picker grid (cohort lever) */
+.lever-cluster-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 8px;
+}
+.lever-cluster-chip {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  grid-template-rows: auto auto;
+  column-gap: 10px;
+  row-gap: 2px;
+  align-items: center;
+  padding: 10px 12px;
+  border: 1px solid var(--hair);
+  border-radius: 6px;
+  background: var(--bg-2, rgba(255,255,255,0.03));
+  cursor: pointer;
+  font-family: var(--ui);
+  transition: border-color 0.12s ease, background 0.12s ease;
+}
+.lever-cluster-chip:hover:not(.locked) {
+  border-color: var(--acc, #ffb15a);
+}
+.lever-cluster-chip.on {
+  border-color: var(--acc, #ffb15a);
+  background: rgba(255, 177, 90, 0.06);
+}
+.lever-cluster-chip.locked {
+  cursor: default;
+  border-color: var(--green, #42e08b);
+  background: rgba(66, 224, 139, 0.05);
+}
+.lever-cluster-chip input {
+  grid-row: 1 / 3;
+  margin: 0;
+  accent-color: var(--acc, #ffb15a);
+}
+.lever-cluster-chip.locked input { accent-color: var(--green, #42e08b); }
+.lever-cluster-n {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--ink);
+  grid-column: 2;
+  grid-row: 1;
+}
+.lever-cluster-meta {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  color: var(--ink-3);
+  grid-column: 2;
+  grid-row: 2;
+}
+.lever-cluster-tag {
+  grid-column: 3; grid-row: 1 / 3;
+  align-self: center;
+  font-family: var(--mono);
+  font-size: 8.5px;
+  font-weight: 700;
+  letter-spacing: 0.10em;
+  text-transform: uppercase;
+  color: var(--green, #42e08b);
+  background: rgba(66, 224, 139, 0.10);
+  padding: 2px 6px;
+  border-radius: 3px;
+}
+html.theme-light .lever-cluster-chip.locked {
+  border-color: var(--green, #15803d);
+  background: rgba(21, 128, 61, 0.05);
+}
+html.theme-light .lever-cluster-chip.locked input { accent-color: var(--green, #15803d); }
+html.theme-light .lever-cluster-tag {
+  color: var(--green, #15803d);
+  background: rgba(21, 128, 61, 0.10);
+}
+.sim-lever-list {
+  display: flex; flex-direction: column;
+  gap: 16px;
+}
+
+/* ----------------------------------------------------------------------------
+   LEVER ROW v2 — name (sans 13px) + plain-English caption + value badge.
+   The caption is the readability upgrade: every lever explains what it does
+   in business language, so the user isn't decoding jargon.
+---------------------------------------------------------------------------- */
+.lever-row {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.lever-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+.lever-name {
+  font-family: var(--ui);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink);
+  letter-spacing: -0.005em;
+}
+.lever-caption {
+  font-size: 11.5px;
+  color: var(--ink-3);
+  line-height: 1.4;
+  margin-bottom: 2px;
+}
+.lever-market{display:inline-flex;align-items:baseline;gap:6px;margin-bottom:6px;padding:3px 9px;border:1px solid var(--hair);border-radius:7px;background:var(--bg-1);}
+.lever-market-l{font:500 10.5px/1.2 var(--ui);text-transform:uppercase;letter-spacing:.04em;color:var(--ink-4);}
+.lever-market-v{font:700 13px/1 var(--mono);color:var(--ink);}
+/* Structured rate-reference strip (replaces the faint caption sentence) */
+.rate-ref{display:flex;gap:7px;flex-wrap:wrap;margin-top:3px;}
+.rate-ref-item{display:inline-flex;flex-direction:column;gap:2px;padding:5px 10px;border:1px solid var(--hair);border-radius:7px;background:var(--bg-1);}
+.rate-ref-l{font:600 9px/1.2 var(--ui);letter-spacing:.05em;text-transform:uppercase;color:var(--ink-4);}
+.rate-ref-v{font:700 13px/1 var(--mono);color:var(--ink);font-variant-numeric:tabular-nums;}
+.rate-ref-item.is-market{border-color:color-mix(in srgb, var(--acc,#5b9dff) 45%, var(--hair));background:color-mix(in srgb, var(--acc,#5b9dff) 8%, var(--bg-1));}
+.rate-ref-item.is-market .rate-ref-v{color:var(--acc,#5b9dff);}
+
+/* Product × Offer — per-product cards; the offer slider reveals on selection */
+.px-offer-list{display:flex;flex-direction:column;gap:8px;}
+.px-offer-card{border:1px solid var(--hair);border-radius:10px;padding:10px 12px;background:var(--bg-1);transition:border-color .15s,background .15s;}
+.px-offer-card.is-selected{border-color:var(--acc,#ffb15a);background:color-mix(in srgb, var(--acc,#ffb15a) 7%, var(--bg-1));}
+.px-offer-head{display:flex;align-items:center;gap:10px;cursor:pointer;}
+.px-offer-head input{width:16px;height:16px;flex:0 0 auto;accent-color:var(--acc,#ffb15a);cursor:pointer;}
+.px-offer-name{display:flex;flex-direction:column;gap:1px;flex:1 1 auto;min-width:0;}
+.px-offer-l{font-size:13.5px;font-weight:700;color:var(--ink);}
+.px-offer-sub{font-size:11px;color:var(--ink-3);line-height:1.35;}
+.px-offer-mkt{font:700 11.5px/1 var(--mono);color:var(--ink-2);white-space:nowrap;font-variant-numeric:tabular-nums;}
+.px-offer-body{margin-top:10px;padding-top:10px;border-top:1px dashed var(--hair);}
+.px-offer-eff{display:flex;align-items:center;gap:10px;margin-top:8px;}
+.px-offer-arrow{color:var(--ink-3);font-weight:700;}
+.lever-control {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  margin-top: 2px;
+}
+
+/* Live eligibility count — small prominent stat tile (replaces the old muted
+   caption). The number leads; the label is supporting. */
+.elig-tile{display:inline-flex;align-items:baseline;gap:8px;margin-top:8px;padding:8px 12px;border:1px solid var(--hair);border-radius:9px;background:var(--bg-1);}
+.elig-tile-v{font:700 18px/1 var(--mono);color:var(--acc,#5b9dff);font-variant-numeric:tabular-nums;}
+.elig-tile-l{font:500 11px/1.2 var(--ui);color:var(--ink-3);}
+
+/* Value badge — mono pill on the right side. Amber when the value has
+   been moved away from Twin's default; signals "you changed this." */
+.lever-value {
+  font-family: var(--mono);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--ink);
+  background: var(--bg-2);
+  border: 1px solid var(--hair);
+  border-radius: 5px;
+  padding: 3px 10px;
+  font-feature-settings: "tnum";
+  letter-spacing: 0;
+  white-space: nowrap;
+}
+html.theme-light .lever-value { background: #f1f5f9; border-color: #e2e8f0; }
+.lever-value.off-default {
+  background: rgba(255, 177, 90, 0.14);
+  border-color: rgba(255, 177, 90, 0.45);
+  color: var(--acc, #ffb15a);
+}
+html.theme-light .lever-value.off-default {
+  background: rgba(180, 83, 9, 0.10);
+  border-color: rgba(180, 83, 9, 0.30);
+  color: var(--acc, #b45309);
+}
+
+/* Channel-mix sub-grid — name, slider, value as a 3-column row */
+.lever-channel-mix {
+  display: flex; flex-direction: column;
+  gap: 6px;
+  background: var(--bg-2);
+  border: 1px solid var(--hair);
+  border-radius: 7px;
+  padding: 8px 10px;
+}
+html.theme-light .lever-channel-mix { background: #f8fafc; border-color: #e2e8f0; }
+.lever-channel-row {
+  display: grid;
+  grid-template-columns: 56px 1fr 44px;
+  align-items: center;
+  gap: 10px;
+}
+.lever-channel-lbl {
+  font-family: var(--ui);
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--ink-2);
+}
+.lever-channel-val {
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ink);
+  font-feature-settings: "tnum";
+  text-align: right;
+}
+.lever-row input[type="range"] {
+  width: 100%;
+  height: 22px;            /* big hit area for easy dragging */
+  padding: 0;
+  -webkit-appearance: none;
+  appearance: none;
+  background: transparent; /* track is drawn by the per-engine track pseudo */
+  border: 0;
+  accent-color: var(--acc, #ffb15a);
+  cursor: pointer;
+}
+.lever-row input[type="range"]:focus { outline: none; }
+
+/* WebKit / Chromium / Safari */
+.lever-row input[type="range"]::-webkit-slider-runnable-track {
+  height: 4px;
+  background: var(--bg-2);
+  border: 1px solid var(--hair);
+  border-radius: 3px;
+}
+html.theme-light .lever-row input[type="range"]::-webkit-slider-runnable-track {
+  background: #f1f5f9;
+  border-color: #e2e8f0;
+}
+.lever-row input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 14px; height: 14px;
+  margin-top: -6px;        /* centre the 14px thumb on the 4px track */
+  border-radius: 50%;
+  background: var(--acc, #ffb15a);
+  border: 2px solid var(--panel);
+  box-shadow: 0 0 0 1px var(--acc, #ffb15a);
+  cursor: pointer;
+}
+
+/* Firefox */
+.lever-row input[type="range"]::-moz-range-track {
+  height: 4px;
+  background: var(--bg-2);
+  border: 1px solid var(--hair);
+  border-radius: 3px;
+}
+html.theme-light .lever-row input[type="range"]::-moz-range-track {
+  background: #f1f5f9;
+  border-color: #e2e8f0;
+}
+.lever-row input[type="range"]::-moz-range-thumb {
+  width: 14px; height: 14px;
+  border-radius: 50%;
+  background: var(--acc, #ffb15a);
+  border: 2px solid var(--panel);
+  cursor: pointer;
+}
+.range-scale {
+  display: flex;
+  justify-content: space-between;
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--ink-3);
+  padding: 4px 2px 0;
+  font-feature-settings: "tnum";
+}
+
+.lever-row select {
+  width: 100%;
+  padding: 6px 10px;
+  background: var(--bg-2);
+  color: var(--ink);
+  border: 1px solid var(--hair);
+  border-radius: 6px;
+  font: 600 12px var(--ui);
+  cursor: pointer;
+}
+html.theme-light .lever-row select { background: #ffffff; border-color: #e2e8f0; }
+
+.lever-checks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.lever-check {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px;
+  border: 1px solid var(--hair);
+  border-radius: 6px;
+  background: var(--bg-2);
+  font: 600 11px var(--ui);
+  color: var(--ink-2);
+  cursor: pointer;
+  user-select: none;
+}
+html.theme-light .lever-check { background: #ffffff; border-color: #e2e8f0; }
+.lever-check input { accent-color: var(--acc, #ffb15a); margin: 0; }
+.lever-check.on {
+  color: var(--ink);
+  border-color: var(--acc, #ffb15a);
+  background: var(--acc-soft, rgba(255, 177, 90, 0.13));
+}
+
+.lever-section-title {
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-4);
+  font-weight: 700;
+  margin: 2px 0 -4px;
+}
+.lever-group > .lever-section-title:not(:first-child) {
+  padding-top: 10px;
+  margin-top: 6px;
+  border-top: 1px solid var(--hair);
+}
+
+/* ----------------------------------------------------------------------------
+   Accordion · 3 lever sections, only one open. Header mirrors .panel-h style.
+---------------------------------------------------------------------------- */
+.sim-workspace .panel-body.sim-ws-accordion {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px;
+}
+.accordion-section {
+  border: 1px solid var(--hair);
+  border-radius: 8px;
+  background: var(--bg-2);
+  overflow: hidden;
+  transition: border-color .15s, background .15s;
+}
+html.theme-light .accordion-section { background: #f8fafc; border-color: #e2e8f0; }
+.accordion-section.is-open {
+  background: var(--panel);
+  border-color: var(--acc, #ffb15a);
+  border-left-width: 2px;
+}
+html.theme-light .accordion-section.is-open { background: #ffffff; }
+
+.accordion-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 8px 12px;
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid transparent;
+  text-align: left;
+  cursor: pointer;
+  color: inherit;
+  font: inherit;
+}
+.accordion-section.is-open .accordion-header {
+  border-bottom-color: var(--hair);
+  background: linear-gradient(180deg, rgba(255, 255, 255, .018), transparent);
+}
+html.theme-light .accordion-section.is-open .accordion-header {
+  background: linear-gradient(180deg, rgba(15, 23, 42, .025), transparent);
+}
+.accordion-header:hover { background: rgba(255, 255, 255, .015); }
+html.theme-light .accordion-header:hover { background: rgba(15, 23, 42, .025); }
+
+.accordion-caret {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--acc, #ffb15a);
+  width: 14px; height: 14px;
+  flex: 0 0 auto;
+}
+.accordion-caret .icon { display: block; }
+.accordion-header .stag {
+  font-family: var(--mono);
+  font-size: 8.5px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-4);
+  background: var(--bg-2);
+  border-radius: 4px;
+  padding: 2px 6px;
+  font-weight: 700;
+}
+html.theme-light .accordion-header .stag { background: #f1f5f9; }
+.accordion-section.is-open .accordion-header .stag {
+  color: var(--ink-3);
+}
+.accordion-header .stt {
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: var(--ink-2);
+}
+.accordion-section.is-open .accordion-header .stt { color: var(--ink); }
+
+.accordion-body { padding: 10px 12px 12px; }
+
+.lever-sum {
+  margin-left: auto;
+  font-family: var(--mono);
+  font-size: 9.5px;
+  color: var(--ink-3);
+  font-weight: 700;
+  font-feature-settings: "tnum";
+  letter-spacing: 0.05em;
+}
+.lever-section-title { display: flex; align-items: center; }
+
+/* ----------------------------------------------------------------------------
+   Sub-charts in the right contextual column (under the .sim-hero)
+---------------------------------------------------------------------------- */
+.sim-sub {
+  background: var(--bg-2);
+  border: 1px solid var(--hair);
+  border-radius: 8px;
+  padding: 8px 10px 9px;
+  margin-bottom: 8px;
+}
+html.theme-light .sim-sub { background: #f8fafc; border-color: #e2e8f0; }
+.sim-sub:last-child { margin-bottom: 0; }
+.sim-sub-h {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-2);
+  font-weight: 700;
+  margin-bottom: 5px;
+}
+.sim-sub-chart { width: 100%; min-width: 0; }
+.sim-sub-chart svg { width: 100%; height: auto; display: block; }
+.sim-sub-chart-md svg { max-height: 150px; }
+.sim-sub-chart-sm svg { max-height: 115px; }
+
+/* ============================================================================
+   5. LIVE PREVIEW
+   ========================================================================== */
+.preview-block {
+  background: var(--bg-2);
+  border: 1px solid var(--hair);
+  border-radius: 8px;
+  padding: 11px 13px;
+  margin-bottom: 12px;
+}
+html.theme-light .preview-block { background: #f8fafc; border-color: #e2e8f0; }
+.preview-block:last-of-type { margin-bottom: 0; }
+.preview-block-h {
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+.preview-block-cap {
+  margin-top: 6px;
+  font-size: 10.5px;
+  color: var(--ink-3);
+  font-style: italic;
+  font-family: var(--serif, var(--ui));
+  line-height: 1.45;
+}
+
+.preview-kpis {
+  margin-top: 12px;
+  padding: 12px 13px;
+  background: var(--panel);
+  border: 1px solid var(--hair);
+  border-radius: 8px;
+}
+.preview-kpi-h {
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-4);
+  font-weight: 700;
+  margin-bottom: 9px;
+}
+.preview-kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1px;
+  background: var(--hair);
+  border: 1px solid var(--hair);
+  border-radius: 7px;
+  overflow: hidden;
+}
+@media (max-width: 720px) { .preview-kpi-grid { grid-template-columns: 1fr; } }
+.preview-kpi {
+  background: var(--panel);
+  padding: 10px 12px;
+}
+.preview-kpi-label {
+  font-family: var(--mono);
+  font-size: 8.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--ink-4);
+  font-weight: 700;
+}
+.preview-kpi-value {
+  font-family: var(--mono);
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--ink);
+  margin-top: 4px;
+  font-feature-settings: "tnum";
+  line-height: 1.05;
+}
+.preview-kpi-note {
+  font-family: var(--mono);
+  font-size: 9.5px;
+  color: var(--ink-3);
+  margin-top: 4px;
+  font-feature-settings: "tnum";
+}
+.preview-kpi-good  .preview-kpi-value { color: var(--green, #42e08b); }
+.preview-kpi-amber .preview-kpi-value { color: var(--acc, #ffb15a); }
+.preview-kpi-red   .preview-kpi-value { color: var(--red, #ff7a7a); }
+html.theme-light .preview-kpi-good  .preview-kpi-value { color: var(--green, #15803d); }
+html.theme-light .preview-kpi-amber .preview-kpi-value { color: var(--acc, #b45309); }
+html.theme-light .preview-kpi-red   .preview-kpi-value { color: var(--red, #b91c1c); }
+
+/* ============================================================================
+   6. RUN ROW / LOADER ROW
+   ========================================================================== */
+.run-row {
+  display: flex;
+  justify-content: center;
+  margin: 22px 0 8px;
+}
+.loader-row {
+  margin: 22px 0 8px;
+}
+
+/* ============================================================================
+   7. RESULTS
+   ========================================================================== */
+.results-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-top: 22px;
+}
+
+/* Verdict callout */
+.verdict-callout {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 18px;
+  border-radius: 10px;
+  border: 1px solid var(--hair);
+  background: var(--panel);
+}
+.verdict-glyph {
+  width: 32px; height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  flex: 0 0 32px;
+}
+.verdict-glyph .icon { display: block; }
+.verdict-body { display: flex; flex-direction: column; gap: 2px; }
+.verdict-title {
+  font-family: var(--ui);
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+}
+.verdict-sub {
+  font-size: 11.5px;
+  color: var(--ink-2);
+}
+
+.verdict-proven {
+  border-color: rgba(66, 224, 139, 0.45);
+  background: rgba(66, 224, 139, 0.08);
+}
+.verdict-proven .verdict-glyph {
+  background: rgba(66, 224, 139, 0.18);
+  color: var(--green, #42e08b);
+}
+.verdict-proven .verdict-title { color: var(--green, #42e08b); }
+html.theme-light .verdict-proven {
+  border-color: rgba(21, 128, 61, 0.35);
+  background: rgba(21, 128, 61, 0.08);
+}
+html.theme-light .verdict-proven .verdict-glyph { color: var(--green, #15803d); background: rgba(21, 128, 61, 0.15); }
+html.theme-light .verdict-proven .verdict-title { color: var(--green, #15803d); }
+
+.verdict-mixed {
+  border-color: rgba(255, 177, 90, 0.45);
+  background: rgba(255, 177, 90, 0.10);
+}
+.verdict-mixed .verdict-glyph {
+  background: rgba(255, 177, 90, 0.18);
+  color: var(--acc, #ffb15a);
+}
+.verdict-mixed .verdict-title { color: var(--acc, #ffb15a); }
+html.theme-light .verdict-mixed .verdict-title { color: var(--acc, #b45309); }
+html.theme-light .verdict-mixed .verdict-glyph { color: var(--acc, #b45309); }
+
+.verdict-disproven {
+  border-color: rgba(255, 122, 122, 0.45);
+  background: rgba(255, 122, 122, 0.08);
+}
+.verdict-disproven .verdict-glyph {
+  background: rgba(255, 122, 122, 0.18);
+  color: var(--red, #ff7a7a);
+}
+.verdict-disproven .verdict-title { color: var(--red, #ff7a7a); }
+html.theme-light .verdict-disproven .verdict-title { color: var(--red, #b91c1c); }
+html.theme-light .verdict-disproven .verdict-glyph { color: var(--red, #b91c1c); }
+
+/* Final outcomes table */
+.outcomes-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+  font-family: var(--ui);
+}
+.outcomes-table th,
+.outcomes-table td {
+  text-align: left;
+  padding: 9px 14px;
+  border-bottom: 1px solid var(--hair);
+}
+.outcomes-table tr:last-child td { border-bottom: none; }
+.outcomes-table th {
+  font-family: var(--mono);
+  color: var(--ink-4);
+  font-weight: 700;
+  font-size: 9px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+.outcomes-table td.val {
+  font-family: var(--mono);
+  font-weight: 700;
+  color: var(--ink);
+  font-feature-settings: "tnum";
+}
+.outcomes-table td.status-ok {
+  color: var(--green, #42e08b);
+  font-weight: 700;
+  text-align: center;
+}
+.outcomes-table td.status-neutral {
+  color: var(--ink-3);
+  text-align: center;
+}
+html.theme-light .outcomes-table td.status-ok { color: var(--green, #15803d); }
+
+/* How-it-got-there list */
+.how-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.how-list li {
+  display: grid;
+  grid-template-columns: 110px 1fr;
+  gap: 12px;
+  font-size: 12px;
+  color: var(--ink-2);
+  line-height: 1.55;
+}
+.how-week {
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--acc, #ffb15a);
+  font-feature-settings: "tnum";
+}
+.how-caption {
+  margin: 8px 0 0;
+  padding: 9px 12px;
+  background: var(--bg-2);
+  border-left: 2px solid var(--acc, #ffb15a);
+  border-radius: 0 6px 6px 0;
+  font-family: var(--serif, var(--ui));
+  font-style: italic;
+  font-size: 12px;
+  color: var(--ink-2);
+  line-height: 1.55;
+}
+html.theme-light .how-caption { background: #f8fafc; }
+
+/* ============================================================================
+   GUARDRAILS STRIP — fair-lending / fraud / MRM / ECOA as small pass pills.
+   Replaces the fair-lending hero KPI card (constraints aren't outcomes).
+   ========================================================================== */
+.sim-guardrails-strip {
+  padding: 12px 14px;
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  flex-wrap: wrap;
+  border-radius: 6px;
+  background: rgba(66, 224, 139, 0.05);
+  border: 1px solid rgba(66, 224, 139, 0.25);
+}
+html.theme-light .sim-guardrails-strip {
+  background: rgba(22, 163, 74, 0.04);
+  border-color: rgba(22, 163, 74, 0.20);
+}
+.sim-guardrails-h {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-family: var(--mono);
+  font-size: 10.5px;
+  font-weight: 800;
+  letter-spacing: 0.10em;
+  text-transform: uppercase;
+  color: var(--green, #42e08b);
+}
+html.theme-light .sim-guardrails-h { color: var(--green, #15803d); }
+.sim-guardrails-pills {
+  display: flex; flex-wrap: wrap; gap: 8px 14px;
+  flex: 1;
+}
+.sim-guardrail-pill {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-family: var(--ui);
+  font-size: 11.5px;
+  color: var(--ink-2);
+}
+.sim-guardrail-pill-dot {
+  width: 7px; height: 7px; border-radius: 50%;
+  flex: 0 0 7px;
+}
+.sim-guardrail-pass .sim-guardrail-pill-dot { background: var(--green, #42e08b); }
+.sim-guardrail-fail .sim-guardrail-pill-dot { background: var(--red, #ef4444); }
+.sim-guardrail-pill-l {
+  font-weight: 600;
+  color: var(--ink);
+}
+.sim-guardrail-pill-d {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  color: var(--ink-3);
+}
+
+/* ============================================================================
+   SIMULATED OUTCOMES — 2×2 grid of result tiles. Each tile has a header,
+   an SVG chart, a numeric caption, and an insight line.
+   ========================================================================== */
+.sim-result-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+@media (max-width: 900px) {
+  .sim-result-grid { grid-template-columns: 1fr; }
+}
+.sim-result-tile {
+  display: flex; flex-direction: column;
+  gap: 10px;
+  padding: 16px 18px 14px;
+  border: 1px solid var(--hair);
+  border-radius: 10px;
+  background: var(--panel);
+}
+html.theme-light .sim-result-tile {
+  background: #ffffff;
+  border-color: #e2e8f0;
+}
+.sim-result-tile-h {
+  display: flex; flex-direction: column;
+  gap: 3px;
+}
+.sim-result-tile-title {
+  font-family: var(--ui);
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--ink);
+}
+.sim-result-tile-sub {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  font-weight: 500;
+  color: var(--ink-3);
+}
+.sim-result-svg-wrap {
+  position: relative;
+  width: 100%;
+}
+.sim-result-svg {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+/* Floating tooltip rendered absolutely above the svg. `left` is set inline
+   as a % of the wrapper width so the tip tracks the hovered week without
+   needing a chart-coordinate-aware layer. translate(-50%) keeps it
+   horizontally centred on the bar; max-width and clamp prevent overflow
+   on the edge weeks. */
+.sim-result-tile-tip {
+  position: absolute;
+  top: -8px;
+  transform: translate(-50%, -100%);
+  background: var(--bg-2);
+  border: 1px solid var(--hair-2, var(--hair));
+  border-radius: 6px;
+  padding: 7px 10px;
+  min-width: 130px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.25);
+  font-family: var(--ui);
+  font-size: 11px;
+  color: var(--ink);
+  pointer-events: none;
+  z-index: 3;
+  white-space: nowrap;
+}
+html.theme-light .sim-result-tile-tip {
+  background: #ffffff;
+  border-color: #cbd5e1;
+  box-shadow: 0 4px 16px rgba(15,23,42,0.12);
+}
+.sim-result-tile-tip-h {
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--ink-3);
+  letter-spacing: 0.04em;
+  margin-bottom: 4px;
+  text-transform: uppercase;
+}
+.sim-result-tile-tip-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 14px;
+  margin-top: 2px;
+}
+.sim-result-tile-tip-k {
+  color: var(--ink-3);
+  font-size: 10.5px;
+}
+.sim-result-tile-tip-v {
+  font-family: var(--mono);
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--ink);
+  font-feature-settings: "tnum";
+}
+/* Structured numeric caption — replaces the old single-string `caption`
+   prop. 3 evenly-spaced k/v pairs sit below the chart in a divider-
+   separated row, so the reader picks up "steady / wk-1 / 8-wk total" in
+   one scan instead of parsing a comma-separated sentence. */
+.sim-result-tile-numbers {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  padding: 10px 0 2px;
+  border-top: 1px dashed var(--hair);
+}
+.sim-result-tile-num {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+.sim-result-tile-num-k {
+  font-family: var(--mono);
+  font-size: 9.5px;
+  font-weight: 600;
+  color: var(--ink-3);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.sim-result-tile-num-v {
+  font-family: var(--mono);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--ink);
+  font-feature-settings: "tnum";
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.sim-result-tile-caption {
+  font-family: var(--mono);
+  font-size: 11.5px;
+  color: var(--ink-2);
+  line-height: 1.5;
+  font-feature-settings: "tnum";
+}
+.sim-result-tile-insight {
+  display: flex; gap: 8px;
+  font-family: var(--ui);
+  font-size: 12px;
+  font-style: italic;
+  color: var(--ink-3);
+  line-height: 1.5;
+  padding-top: 10px;
+  border-top: 1px dashed var(--hair);
+}
+.sim-result-tile-insight-i {
+  flex: 0 0 16px;
+  font-style: normal;
+  color: var(--acc, #ffb15a);
+  font-weight: 700;
+}
+
+/* Cohort composition stacked bar */
+.sim-cohort-stack {
+  display: flex; flex-direction: column;
+  gap: 10px;
+  padding: 8px 0;
+}
+.sim-cohort-bar {
+  display: flex;
+  height: 28px;
+  border-radius: 4px;
+  overflow: hidden;
+  border: 1px solid var(--hair);
+}
+.sim-cohort-bar-seg {
+  height: 100%;
+  transition: filter 0.15s ease;
+}
+.sim-cohort-bar-seg:hover { filter: brightness(1.1); }
+.sim-cohort-labels {
+  display: flex;
+  gap: 4px;
+}
+.sim-cohort-label {
+  display: flex; flex-direction: column;
+  gap: 2px;
+  padding: 4px 0;
+  font-family: var(--ui);
+  font-size: 11px;
+  color: var(--ink-2);
+  min-width: 0;
+}
+.sim-cohort-label-sw {
+  width: 8px; height: 8px; border-radius: 2px;
+  margin-bottom: 2px;
+}
+.sim-cohort-label-pct {
+  font-family: var(--mono);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--ink);
+  font-feature-settings: "tnum";
+}
+.sim-cohort-label-l {
+  font-size: 11px;
+  color: var(--ink-2);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.sim-cohort-label-n {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--ink-3);
+  font-feature-settings: "tnum";
+}
+
+.results-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 6px 0 0;
+}
+
+/* ============================================================================
+   8. BUTTONS + EMPTY STATE
+   ========================================================================== */
+.tj-btn {
+  font-family: var(--ui);
+  font-size: 12px;
+  font-weight: 700;
+  padding: 8px 14px;
+  border-radius: 7px;
+  border: 1px solid var(--hair);
+  background: var(--bg-2);
+  color: var(--ink);
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s, filter 0.15s;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.tj-btn .icon { display: block; }
+html.theme-light .tj-btn { background: #ffffff; border-color: #e2e8f0; }
+.tj-btn:hover { border-color: var(--hair-2); }
+.tj-btn-primary {
+  background: var(--acc, #ffb15a);
+  color: #1c1304;
+  border-color: var(--acc, #ffb15a);
+}
+.tj-btn-primary:hover { filter: brightness(1.06); border-color: var(--acc, #ffb15a); }
+html.theme-light .tj-btn-primary { color: #fff; }
+.tj-btn-ghost {
+  background: transparent;
+  border-color: transparent;
+  color: var(--ink-3);
+}
+.tj-btn-ghost:hover { color: var(--ink); border-color: var(--hair); }
+.tj-btn-lg {
+  font-size: 13px;
+  padding: 12px 28px;
+  letter-spacing: 0.04em;
+}
+
+.tj-empty {
+  margin: 32px auto;
+  max-width: 560px;
+  text-align: center;
+  padding: 32px 24px;
+  background: var(--panel);
+  border: 1px solid var(--hair);
+  border-radius: 10px;
+}
+.tj-empty h2 {
+  font-family: var(--serif, var(--ui));
+  font-size: 18px;
+  margin: 6px 0 6px;
+  color: var(--ink);
+}
+.tj-empty p {
+  color: var(--ink-2);
+  font-size: 12.5px;
+  line-height: 1.6;
+  margin: 0 0 16px;
+}
+
+/* ============================================================================
+   9. RICH RESULTS — animated KPI grid, J-curve, arena cards
+   ========================================================================== */
+
+/* Staged fade-in primitive */
+.reveal {
+  opacity: 0;
+  transform: translateY(6px);
+  transition: opacity 0.35s ease-out, transform 0.35s ease-out;
+}
+.reveal.in {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* --- KPI grid (6 cards) --- */
+.result-kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+@media (max-width: 980px) {
+  .result-kpi-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 620px) {
+  .result-kpi-grid { grid-template-columns: 1fr; }
+}
+
+.result-kpi {
+  background: var(--panel);
+  border: 1px solid var(--hair);
+  border-radius: 10px;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  transition: border-color 0.18s ease, transform 0.18s ease, box-shadow 0.18s ease;
+}
+.result-kpi:hover {
+  border-color: var(--hair-2, var(--ink-4));
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px -10px rgba(0, 0, 0, 0.35);
+}
+html.theme-light .result-kpi:hover {
+  box-shadow: 0 6px 16px -10px rgba(15, 23, 42, 0.18);
+}
+
+.result-kpi-h {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.result-kpi-label {
+  font-family: var(--ui);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  color: var(--ink-3);
+  text-transform: uppercase;
+  font-weight: 700;
+}
+.result-kpi-status {
+  width: 16px; height: 16px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+}
+.result-kpi-status .icon { display: block; }
+.result-kpi-status.ok {
+  background: rgba(66, 224, 139, 0.15);
+  color: var(--green, #42e08b);
+}
+.result-kpi-status.warn {
+  background: rgba(255, 177, 90, 0.18);
+  color: var(--acc, #ffb15a);
+}
+html.theme-light .result-kpi-status.ok {
+  background: rgba(21, 128, 61, 0.13);
+  color: var(--green, #15803d);
+}
+
+.result-kpi-value {
+  font-family: var(--mono);
+  font-size: 19px;
+  font-weight: 700;
+  color: var(--ink);
+  font-feature-settings: "tnum";
+  line-height: 1.15;
+}
+.result-kpi-ci {
+  font-family: var(--ui);
+  font-size: 10.5px;
+  color: var(--ink-3);
+  font-feature-settings: "tnum";
+}
+.result-kpi-spark {
+  margin-top: 6px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+}
+.mini-spark-wrap {
+  position: relative;
+  width: 100%;
+  height: 44px;
+}
+.mini-spark-svg {
+  width: 100%;
+  height: 44px;
+  display: block;
+}
+.mini-spark-tip {
+  position: absolute;
+  top: -4px;
+  right: 0;
+  display: flex; align-items: center; gap: 6px;
+  padding: 2px 6px;
+  background: var(--bg-2);
+  border: 1px solid var(--hair-2);
+  border-radius: 5px;
+  font-family: var(--mono);
+  font-size: 9.5px;
+  color: var(--ink);
+  pointer-events: none;
+  z-index: 4;
+  white-space: nowrap;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.25);
+}
+html.theme-light .mini-spark-tip {
+  background: #ffffff;
+  border-color: #cbd5e1;
+  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.12);
+}
+.mini-spark-tip-wk { color: var(--ink-3); font-weight: 700; }
+.mini-spark-tip-v { color: var(--ink); font-weight: 700; }
+
+/* Results disclosure — collapsible block under the J-Curve. Hides the
+   full 6-KPI small-multiples Trajectory by default so the headline curve
+   isn't competing with the detailed grid. Reader can expand if they want
+   the cross-KPI view. */
+.results-disclosure {
+  margin-top: 14px;
+  border-top: 1px solid var(--hair);
+  padding-top: 10px;
+}
+.results-disclosure summary {
+  list-style: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--ui);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ink-2);
+  padding: 4px 8px;
+  border-radius: 5px;
+  transition: background 0.15s, color 0.15s;
+  user-select: none;
+}
+.results-disclosure summary::-webkit-details-marker { display: none; }
+.results-disclosure summary:hover {
+  background: var(--bg-2);
+  color: var(--ink);
+}
+html.theme-light .results-disclosure summary:hover { background: #f1f5f9; }
+.results-disclosure summary .icon {
+  display: block;
+  transition: transform 0.18s ease;
+}
+.results-disclosure[open] summary .icon { transform: rotate(90deg); }
+.results-disclosure-body {
+  padding-top: 12px;
+  animation: results-disclosure-in 0.22s ease-out;
+}
+@keyframes results-disclosure-in {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ============================================================================
+   Weekly Trajectory — small-multiples grid (6 KPIs × 8 weeks).
+   3-column responsive grid; each tile has a header (label + live value) and
+   an SVG plot that syncs hover across all tiles via the shared parent.
+   ========================================================================= */
+.wt-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin: 4px 0 2px;
+}
+@media (max-width: 980px) {
+  .wt-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 640px) {
+  .wt-grid { grid-template-columns: 1fr; }
+}
+.wt-tile {
+  display: flex; flex-direction: column;
+  gap: 4px;
+  padding: 10px 10px 6px;
+  border: 1px solid var(--hair);
+  border-radius: 8px;
+  background: var(--panel);
+}
+html.theme-light .wt-tile { border-color: #e2e8f0; background: #ffffff; }
+.wt-tile-h {
+  display: flex; align-items: baseline; justify-content: space-between; gap: 8px;
+}
+.wt-tile-label {
+  font-family: var(--mono);
+  font-size: 9.5px; font-weight: 800;
+  letter-spacing: 0.12em;
+  color: var(--ink-3);
+  text-transform: uppercase;
+}
+.wt-tile-val {
+  font-family: var(--mono);
+  font-size: 12px; font-weight: 700;
+  color: var(--ink);
+  font-feature-settings: "tnum";
+}
+.wt-svg {
+  width: 100%;
+  height: 90px;
+  display: block;
+}
+
+/* --- J-curve hero chart --- */
+.jcurve-wrap {
+  width: 100%;
+  margin: 6px 0 8px;
+}
+.jcurve-svg {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* --- Arena breakdown row --- */
+.arena-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+@media (max-width: 900px) {
+  .arena-grid { grid-template-columns: 1fr; }
+}
+
+.arena-card {
+  background: var(--panel);
+  border: 1px solid var(--hair);
+  border-radius: 10px;
+  padding: 12px 14px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+/* When the card is rendered as a <button> (clickable for drill-down) we
+   reset the default button chrome so it stays visually identical to the
+   non-clickable variant, but pick up cursor/transition affordances. */
+.arena-card-button {
+  appearance: none;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+  width: 100%;
+  transition: border-color 0.15s, box-shadow 0.15s, transform 0.1s;
+}
+.arena-card-button:hover {
+  border-color: var(--ink-3);
+  transform: translateY(-1px);
+}
+.arena-card-button.is-open {
+  border-color: var(--ink-2);
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.04);
+}
+html.theme-light .arena-card-button.is-open {
+  border-color: var(--ink-3);
+  box-shadow: 0 0 0 2px rgba(15, 23, 42, 0.04);
+}
+.arena-card-drillchev {
+  margin-top: 4px;
+  padding-top: 6px;
+  border-top: 1px dashed var(--hair);
+  font-family: var(--mono);
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.10em;
+  color: var(--ink-4);
+  text-transform: uppercase;
+}
+.arena-card-button:hover .arena-card-drillchev { color: var(--ink-2); }
+
+/* ----------------------------------------------------------------------------
+   Arena drill-down panel — sits beneath the 3-card grid when one card is
+   expanded. Used by both What-If ResultsReveal and the If-What deep dive,
+   so the visual language is identical across exploration modes.
+---------------------------------------------------------------------------- */
+.arena-drill {
+  margin-top: 14px;
+  padding: 14px 16px;
+  background: var(--bg-2);
+  border: 1px solid var(--hair);
+  border-radius: 9px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+html.theme-light .arena-drill { background: #f8fafc; border-color: #e2e8f0; }
+.arena-drill-h {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  color: var(--ink-2);
+  text-transform: uppercase;
+}
+.arena-drill-bars { display: flex; flex-direction: column; gap: 6px; }
+.arena-drill-row {
+  display: grid;
+  grid-template-columns: 1fr 120px 36px 60px;
+  gap: 10px;
+  align-items: center;
+  font-size: 12px;
+  color: var(--ink-2);
+}
+.arena-drill-row-3col {
+  grid-template-columns: 1fr 200px 120px 36px;
+}
+.arena-drill-seg {
+  font-size: 12px;
+  color: var(--ink-2);
+  line-height: 1.4;
+}
+.arena-drill-best {
+  font-family: var(--ui);
+  font-size: 12px;
+  color: var(--ink);
+  font-weight: 600;
+}
+.arena-drill-best-arrow { color: var(--ink-4); margin-right: 4px; }
+.arena-drill-bar-wrap {
+  position: relative;
+  height: 6px;
+  background: var(--hair);
+  border-radius: 3px;
+  overflow: hidden;
+}
+html.theme-light .arena-drill-bar-wrap { background: #e2e8f0; }
+.arena-drill-bar {
+  position: absolute;
+  inset: 0;
+  width: 0;
+  border-radius: 3px;
+  opacity: 0.7;
+}
+.arena-drill-pct {
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--ink);
+  text-align: right;
+  font-feature-settings: "tnum";
+}
+.arena-drill-n {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--ink-3);
+  text-align: right;
+  font-feature-settings: "tnum";
+}
+.arena-drill-note {
+  font-size: 11.5px;
+  color: var(--ink-3);
+  line-height: 1.5;
+  padding-top: 8px;
+  border-top: 1px dashed var(--hair);
+  max-width: 720px;
+}
+
+/* Comms drill — small table for channel performance */
+.arena-drill-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+.arena-drill-table th {
+  font-family: var(--mono);
+  font-size: 9.5px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  color: var(--ink-4);
+  text-transform: uppercase;
+  text-align: left;
+  padding: 4px 8px 6px 0;
+  border-bottom: 1px solid var(--hair);
+}
+.arena-drill-table td {
+  padding: 6px 8px 6px 0;
+  border-bottom: 1px dotted var(--hair);
+  color: var(--ink-2);
+  vertical-align: middle;
+}
+.arena-drill-table tr:last-child td { border-bottom: 0; }
+.arena-drill-table-ch {
+  font-family: var(--ui);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ink);
+  width: 110px;
+}
+.arena-drill-table-mono {
+  font-family: var(--mono);
+  font-size: 11.5px;
+  color: var(--ink);
+  font-feature-settings: "tnum";
+  width: 90px;
+}
+.arena-drill-table-pct {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--ink);
+  font-feature-settings: "tnum";
+  margin-left: 8px;
+}
+.arena-drill-inline-bar-wrap {
+  display: inline-block;
+  position: relative;
+  width: 90px;
+  height: 6px;
+  background: var(--hair);
+  border-radius: 3px;
+  overflow: hidden;
+  vertical-align: middle;
+}
+html.theme-light .arena-drill-inline-bar-wrap { background: #e2e8f0; }
+.arena-drill-inline-bar {
+  position: absolute;
+  inset: 0;
+  width: 0;
+  border-radius: 3px;
+  opacity: 0.7;
+}
+.arena-card-h {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+.arena-card-title {
+  font-family: var(--ui);
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--ink);
+  letter-spacing: 0.02em;
+}
+.arena-card-range {
+  font-family: var(--mono);
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.10em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  font-feature-settings: "tnum";
+}
+.arena-card-metric {
+  font-family: var(--mono);
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--ink);
+  font-feature-settings: "tnum";
+  line-height: 1.1;
+  margin-top: 2px;
+}
+.arena-tone-ret   .arena-card-metric { color: var(--acc, #ffb15a); }
+.arena-tone-acq   .arena-card-metric { color: var(--acq, #5b9dff); }
+.arena-tone-green .arena-card-metric { color: var(--green, #42e08b); }
+html.theme-light .arena-tone-ret   .arena-card-metric { color: var(--acc, #b45309); }
+html.theme-light .arena-tone-green .arena-card-metric { color: var(--green, #15803d); }
+
+.arena-card-cap {
+  font-family: var(--ui);
+  font-size: 10.5px;
+  color: var(--ink-3);
+  margin-bottom: 4px;
+}
+.arena-card-chart {
+  margin: 2px 0 6px;
+}
+.arena-mini-svg {
+  width: 100%;
+  height: 50px;
+  display: block;
+}
+.arena-card-foot {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  color: var(--ink-2);
+  border-top: 1px solid var(--hair);
+  padding-top: 6px;
+  margin-top: auto;
+  font-feature-settings: "tnum";
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+.arena-card-foot .icon { display: block; color: var(--green, #42e08b); }
+html.theme-light .arena-card-foot .icon { color: var(--green, #15803d); }
+
+/* --- Stage button climax --- */
+.tj-btn-stage {
+  font-size: 13.5px;
+  padding: 11px 22px;
+  letter-spacing: 0.04em;
+  box-shadow: 0 0 0 0 rgba(255, 177, 90, 0.0);
+  transition: box-shadow 0.25s ease, transform 0.18s ease, filter 0.15s;
+}
+.tj-btn-stage:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 0 0 6px rgba(255, 177, 90, 0.18);
+}
+html.theme-light .tj-btn-stage:hover {
+  box-shadow: 0 0 0 6px rgba(180, 83, 9, 0.16);
+}
+
+/* ============================================================================
+   SIMULATE · PRIOR-ANCHOR PILL — surfaces the Learn-side updates the sim
+   is using as its prior. Renders between header and config strip; only
+   visible when the active hypothesis has an anchor pilot with model
+   updates (see PriorAnchorPill in SimulateWorkspace.jsx).
+   ========================================================================== */
+.sim-prior-anchor {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0 24px 12px;
+  padding: 8px 12px;
+  background: linear-gradient(90deg, rgba(91,157,255,0.08), rgba(91,157,255,0.02));
+  border: 1px solid rgba(91,157,255,0.28);
+  border-left: 3px solid var(--acq, #5b9dff);
+  border-radius: 6px;
+  flex-wrap: wrap;
+}
+html.theme-light .sim-prior-anchor {
+  background: linear-gradient(90deg, rgba(37,99,235,0.06), rgba(37,99,235,0.01));
+  border-color: rgba(37,99,235,0.25);
+}
+.sim-prior-anchor-pill {
+  font-family: var(--mono);
+  font-size: 9.5px;
+  font-weight: 800;
+  letter-spacing: 0.18em;
+  color: var(--acq, #5b9dff);
+  padding: 2px 8px;
+  border: 1px solid rgba(91,157,255,0.4);
+  border-radius: 3px;
+  background: rgba(91,157,255,0.08);
+  white-space: nowrap;
+}
+html.theme-light .sim-prior-anchor-pill { color: #1d4ed8; border-color: rgba(37,99,235,0.35); }
+.sim-prior-anchor-text {
+  font-size: 12.5px;
+  color: var(--ink);
+  line-height: 1.4;
+}
+.sim-prior-anchor-text code {
+  font-family: var(--mono);
+  font-size: 11.5px;
+  color: var(--ink-2);
+  background: transparent;
+}
+.sim-prior-anchor-sub {
+  margin-left: auto;
+  font-family: var(--mono);
+  font-size: 10.5px;
+  color: var(--ink-3);
+}

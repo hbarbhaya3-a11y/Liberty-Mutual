@@ -1,0 +1,439 @@
+/* ============================================================================
+   Test charts — Payment Policy (Step 1) SVG visualizations.
+   Scoped, theme-aware, no chart library. Each chart owns a wrapper class.
+   ========================================================================= */
+
+/* Local accent fallback so charts work even outside a workspace that defines --acc */
+.chart-fairness-safezone,
+.chart-rent-histogram,
+.chart-cohort-waterfall,
+.chart-elasticity-reference {
+  --chart-acc: var(--acc, #ffb15a);
+  --chart-green: var(--green, #42e08b);
+  --chart-amber: var(--amber, #ffb15a);
+  --chart-red: var(--red, #ff7a7a);
+  --chart-orange: #ff8a5a;
+  --chart-grid: var(--hair, rgba(255,255,255,0.08));
+  --chart-grid-2: var(--hair-2, rgba(255,255,255,0.16));
+  --chart-ink: var(--ink, #eef1f7);
+  --chart-ink-2: var(--ink-2, #9aa4b8);
+  --chart-ink-3: var(--ink-3, #5e687d);
+  --chart-ink-4: var(--ink-4, #404a5e);
+  --chart-panel: var(--panel, var(--bg-2, #0d121c));
+  font-family: var(--ui, system-ui, sans-serif);
+  color: var(--chart-ink);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+html.theme-light .chart-fairness-safezone,
+html.theme-light .chart-rent-histogram,
+html.theme-light .chart-cohort-waterfall,
+html.theme-light .chart-elasticity-reference {
+  --chart-green: #15803d;
+  --chart-amber: #b45309;
+  --chart-red: #b91c1c;
+  --chart-orange: #c2410c;
+}
+
+/* Shared SVG defaults */
+.chart-fairness-safezone svg,
+.chart-rent-histogram svg,
+.chart-cohort-waterfall svg,
+.chart-elasticity-reference svg {
+  width: 100%;
+  height: auto;
+  display: block;
+  overflow: visible;
+}
+
+/* Shared chart-tooltip wrapper — the SVG sits inside a relative wrap so the
+   hover tooltip can be absolutely positioned in CSS percent space. */
+.chart-svg-wrap {
+  position: relative;
+  width: 100%;
+}
+.chart-tooltip {
+  position: absolute;
+  transform: translate(-50%, -100%);
+  margin-top: -4px;
+  background: var(--chart-panel, var(--panel, #0d121c));
+  color: var(--chart-ink, var(--ink));
+  border: 1px solid var(--hair-2, var(--hair, rgba(255,255,255,0.16)));
+  border-radius: 6px;
+  padding: 6px 9px;
+  font-family: var(--mono, ui-monospace, monospace);
+  font-size: 10px;
+  line-height: 1.35;
+  white-space: nowrap;
+  pointer-events: none;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
+  z-index: 5;
+}
+html.theme-light .chart-tooltip {
+  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.16);
+}
+.chart-tooltip-l {
+  color: var(--ink-3, #5e687d);
+  font-size: 9px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  font-weight: 700;
+}
+.chart-tooltip-v {
+  color: var(--ink, #eef1f7);
+  font-weight: 700;
+  margin-top: 2px;
+}
+
+/* Shared text styles inside SVG */
+.chart-axis-label {
+  font-size: 9px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  fill: var(--chart-ink-3);
+  font-weight: 600;
+}
+.chart-tick {
+  font-size: 9px;
+  fill: var(--chart-ink-3);
+  font-family: var(--mono, ui-monospace, monospace);
+}
+.chart-marker-label {
+  font-size: 9px;
+  fill: var(--chart-ink);
+  font-family: var(--mono, ui-monospace, monospace);
+  font-weight: 700;
+}
+
+/* Commentary block — used by all charts */
+.chart-commentary {
+  font-size: 11px;
+  line-height: 1.5;
+  color: var(--chart-ink-2);
+  border-left: 2px solid var(--chart-acc);
+  padding: 4px 0 4px 10px;
+  font-style: italic;
+}
+.chart-commentary b { color: var(--chart-ink); font-style: normal; font-weight: 700; }
+
+/* Legend rows shared */
+.chart-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 14px;
+  font-size: 9.5px;
+  color: var(--chart-ink-3);
+  font-family: var(--mono, ui-monospace, monospace);
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+.chart-legend .lg-item { display: inline-flex; align-items: center; gap: 5px; }
+.chart-legend .lg-swatch {
+  width: 10px; height: 10px; border-radius: 2px; display: inline-block;
+}
+.chart-legend .lg-swatch.g { background: var(--chart-green); }
+.chart-legend .lg-swatch.y { background: var(--chart-amber); }
+.chart-legend .lg-swatch.o { background: var(--chart-orange); }
+.chart-legend .lg-swatch.r { background: var(--chart-red); }
+.chart-legend .lg-swatch.neutral { background: var(--chart-ink-4); }
+
+/* ----------------------------------------------------------------------------
+   ① Fairness safe-zone heatmap
+   ------------------------------------------------------------------------- */
+.chart-fairness-safezone .heatmap-cell {
+  stroke: var(--chart-grid);
+  stroke-width: 1;
+}
+.chart-fairness-safezone .user-marker {
+  fill: var(--chart-ink);
+  stroke: var(--bg-0, #070a11);
+  stroke-width: 2;
+}
+html.theme-light .chart-fairness-safezone .user-marker { stroke: #ffffff; }
+.chart-fairness-safezone .contour {
+  fill: none;
+  stroke: var(--chart-ink-2);
+  stroke-width: 1.2;
+  stroke-dasharray: 4 3;
+  opacity: 0.85;
+}
+
+/* ----------------------------------------------------------------------------
+   ② Rent histogram
+   ------------------------------------------------------------------------- */
+.chart-rent-histogram .bar { transition: opacity .15s; cursor: pointer; }
+.chart-rent-histogram .bar:hover { opacity: 1; }
+.chart-cohort-waterfall .wf-bar { cursor: pointer; }
+.chart-cohort-waterfall .wf-bar:hover { opacity: 1 !important; }
+.chart-fairness-safezone .heatmap-cell { cursor: pointer; }
+.chart-fairness-safezone .heatmap-cell:hover { fill-opacity: 0.95; }
+.chart-rent-histogram .bar.neutral { fill: var(--chart-ink-4); opacity: 0.55; }
+.chart-rent-histogram .bar.clears { fill: var(--chart-green); opacity: 0.85; }
+.chart-rent-histogram .bar.over { fill: var(--chart-red); opacity: 0.78; }
+.chart-rent-histogram .ceiling-line {
+  stroke: var(--chart-ink); stroke-width: 1.4; stroke-dasharray: 4 3;
+}
+.chart-rent-histogram .ceiling-line.proposed {
+  stroke: var(--chart-acc); stroke-dasharray: none; stroke-width: 1.6;
+}
+.chart-rent-histogram .ceiling-label {
+  font-size: 9px;
+  fill: var(--chart-ink-2);
+  font-family: var(--mono, ui-monospace, monospace);
+  font-weight: 700;
+}
+.chart-rent-histogram .ceiling-label.proposed { fill: var(--chart-acc); }
+
+/* ----------------------------------------------------------------------------
+   ③ Cohort waterfall
+   ------------------------------------------------------------------------- */
+.chart-cohort-waterfall .wf-bar { fill: var(--chart-acc); opacity: 0.9; }
+.chart-cohort-waterfall .wf-bar.dim { opacity: 0.7; }
+.chart-cohort-waterfall .wf-bar.final { fill: var(--chart-green); opacity: 0.95; }
+.chart-cohort-waterfall .wf-track { fill: var(--chart-grid); opacity: 0.5; }
+.chart-cohort-waterfall .wf-label {
+  font-size: 10px;
+  fill: var(--chart-ink-2);
+  font-family: var(--ui, system-ui, sans-serif);
+}
+.chart-cohort-waterfall .wf-count {
+  font-size: 10.5px;
+  fill: var(--chart-ink);
+  font-family: var(--mono, ui-monospace, monospace);
+  font-weight: 700;
+}
+.chart-cohort-waterfall .wf-arrow { stroke: var(--chart-ink-4); stroke-width: 1; fill: none; }
+
+/* ----------------------------------------------------------------------------
+   ④ Elasticity reference
+   ------------------------------------------------------------------------- */
+.chart-elasticity-reference .curve {
+  fill: none;
+  stroke: var(--chart-acc);
+  stroke-width: 2;
+}
+.chart-elasticity-reference .curve-shadow {
+  fill: url(#elasticity-fill);
+  opacity: 0.18;
+}
+.chart-elasticity-reference .pin-dot {
+  fill: var(--chart-ink);
+  stroke: var(--chart-acc);
+  stroke-width: 2;
+}
+.chart-elasticity-reference .pin-line {
+  stroke: var(--chart-ink-3);
+  stroke-width: 1;
+  stroke-dasharray: 3 3;
+}
+.chart-elasticity-reference .knee-marker {
+  stroke: var(--chart-ink-4);
+  stroke-width: 1;
+  stroke-dasharray: 2 4;
+}
+
+/* ============================================================================
+   COMMS + DEEPENING + OPTIMIZER CHARTS (Step 2 / 3 / 5)
+   Self-contained tokens scoped to .test-chart so charts render anywhere.
+   ============================================================================ */
+.test-chart {
+  --green: #42e08b;
+  --red: #ff7a7a;
+  --amber: #ffb15a;
+  --violet: #b794f6;
+  --cyan: #4fd1c5;
+  --acc: #ffb15a;
+  --acc-soft: rgba(255, 177, 90, 0.13);
+  --grid: rgba(255, 255, 255, 0.07);
+  --grid-2: rgba(255, 255, 255, 0.14);
+  font-family: var(--ui, system-ui, sans-serif);
+  color: var(--ink);
+  font-size: 11.5px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+html.theme-light .test-chart {
+  --green: #15803d;
+  --red: #b91c1c;
+  --amber: #b45309;
+  --violet: #6d28d9;
+  --cyan: #0f766e;
+  --acc: #b45309;
+  --acc-soft: rgba(180, 83, 9, 0.10);
+  --grid: rgba(15, 23, 42, 0.08);
+  --grid-2: rgba(15, 23, 42, 0.18);
+}
+
+.test-chart .tc-title {
+  font-size: 10px;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: var(--ink-2);
+}
+.test-chart svg {
+  width: 100%;
+  height: auto;
+  display: block;
+  overflow: visible;
+}
+.test-chart .tc-axis-tx {
+  font-family: var(--mono, ui-monospace, monospace);
+  font-size: 9px;
+  fill: var(--ink-3);
+}
+.test-chart .tc-label {
+  font-family: var(--ui);
+  font-size: 10.5px;
+  font-weight: 600;
+  fill: var(--ink);
+}
+.test-chart .tc-num {
+  font-family: var(--mono);
+  font-size: 11px;
+  fill: var(--ink);
+  font-weight: 700;
+}
+.test-chart .tc-sub {
+  font-family: var(--mono);
+  font-size: 9px;
+  fill: var(--ink-3);
+}
+.test-chart .tc-commentary {
+  font-size: 11px;
+  line-height: 1.5;
+  color: var(--ink-2);
+  border-left: 2px solid var(--acc);
+  padding: 4px 0 4px 10px;
+  font-style: italic;
+}
+.test-chart .tc-commentary.warn { color: var(--amber); border-left-color: var(--amber); }
+.test-chart .tc-commentary.bad { color: var(--red); border-left-color: var(--red); }
+.test-chart .tc-commentary b { color: var(--ink); font-style: normal; font-weight: 700; }
+
+/* ---- ChannelMixFunnel ---- */
+.chart-channel-funnel .cf-stage rect { transition: width 0.3s ease; }
+.chart-channel-funnel .cf-bar-bg { fill: var(--grid); }
+.chart-channel-funnel .cf-bar-fill.s1 { fill: var(--acc); }
+.chart-channel-funnel .cf-bar-fill.s2 { fill: var(--cyan); }
+.chart-channel-funnel .cf-bar-fill.s3 { fill: var(--violet); }
+.chart-channel-funnel .cf-bar-fill.s4 { fill: var(--green); }
+.chart-channel-funnel .cf-arrow {
+  fill: var(--ink-3);
+  font-family: var(--mono);
+  font-size: 9.5px;
+  font-weight: 700;
+}
+
+/* ---- AwarenessSCurve ---- */
+.chart-awareness-scurve .as-line {
+  fill: none;
+  stroke: var(--green);
+  stroke-width: 2;
+}
+.chart-awareness-scurve .as-area { fill: var(--green); opacity: 0.10; }
+.chart-awareness-scurve .as-peak {
+  fill: var(--amber);
+  stroke: var(--panel, #0d121c);
+  stroke-width: 1.5;
+}
+.chart-awareness-scurve .as-grid { stroke: var(--grid); stroke-width: 1; }
+
+/* ---- CostPerAware ---- */
+.chart-cost-aware .cc-bar-bg { fill: var(--grid); }
+.chart-cost-aware .cc-bar.current { fill: var(--acc); }
+.chart-cost-aware .cc-bar.rm { fill: var(--violet); }
+.chart-cost-aware .cc-bar.email { fill: var(--cyan); }
+
+/* ---- ProductFitBars ---- */
+.chart-product-fit .pf-bar-bg { fill: var(--grid); }
+.chart-product-fit .pf-bar-fill { fill: var(--acq, #5b9dff); }
+.chart-product-fit .pf-bar-fill.selected { fill: var(--acc); }
+.chart-product-fit .pf-bar-fill.best { fill: var(--green); }
+.chart-product-fit .pf-row-bg.selected {
+  fill: var(--acc);
+  opacity: 0.06;
+}
+.chart-product-fit .pf-marker { fill: var(--acc); }
+.chart-product-fit .pf-star {
+  fill: var(--amber);
+  font-size: 13px;
+  font-family: var(--mono);
+}
+
+/* ---- IntensityAttach ---- */
+.chart-intensity-attach .ia-attach {
+  fill: none;
+  stroke: var(--green);
+  stroke-width: 2;
+}
+.chart-intensity-attach .ia-regret {
+  fill: none;
+  stroke: var(--amber);
+  stroke-width: 2;
+}
+.chart-intensity-attach .ia-guard {
+  stroke: var(--red);
+  stroke-width: 1.5;
+  stroke-dasharray: 4 4;
+  fill: none;
+}
+.chart-intensity-attach .ia-marker {
+  fill: var(--acc);
+  stroke: var(--panel, #0d121c);
+  stroke-width: 1.5;
+}
+.chart-intensity-attach .ia-grid { stroke: var(--grid); stroke-width: 1; }
+.chart-intensity-attach .ia-legend {
+  font-family: var(--mono);
+  font-size: 9px;
+  fill: var(--ink-2);
+}
+
+/* ---- SuitabilityMatrix ---- */
+.chart-suitability-matrix .sm-cell {
+  stroke: var(--hair-2, rgba(255,255,255,0.16));
+  stroke-width: 1;
+}
+.chart-suitability-matrix .sm-cell.ok { fill: rgba(66, 224, 139, 0.16); }
+.chart-suitability-matrix .sm-cell.bad { fill: rgba(255, 122, 122, 0.18); }
+html.theme-light .chart-suitability-matrix .sm-cell.ok { fill: rgba(21, 128, 61, 0.13); }
+html.theme-light .chart-suitability-matrix .sm-cell.bad { fill: rgba(185, 28, 28, 0.13); }
+.chart-suitability-matrix .sm-celltx {
+  font-family: var(--mono);
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+}
+.chart-suitability-matrix .sm-celltx.ok { fill: var(--green); }
+.chart-suitability-matrix .sm-celltx.bad { fill: var(--red); }
+.chart-suitability-matrix .sm-user {
+  fill: var(--acc);
+  stroke: var(--panel, #0d121c);
+  stroke-width: 2;
+}
+
+/* ---- ParetoFrontier ---- */
+.chart-pareto .pf-bubble { transition: opacity 0.2s ease; }
+.chart-pareto .pf-bubble.dim { opacity: 0.20; }
+.chart-pareto .pf-bubble.front { opacity: 1; }
+.chart-pareto .pf-label {
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 800;
+  fill: var(--ink);
+}
+.chart-pareto .pf-chip {
+  fill: var(--panel, #0d121c);
+  stroke: var(--acc);
+  stroke-width: 1.2;
+}
+.chart-pareto .pf-grid { stroke: var(--grid); stroke-width: 1; }
+.chart-pareto .pf-legend {
+  font-family: var(--mono);
+  font-size: 9px;
+  fill: var(--ink-3);
+}

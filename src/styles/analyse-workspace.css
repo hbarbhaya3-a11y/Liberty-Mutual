@@ -1,0 +1,835 @@
+/* ============================================================================
+   analyse-workspace.css
+   ----------------------------------------------------------------------------
+   Styles for the Hypothesis Detail page (single scrollable layout). Follows
+   theme.css conventions — uses .sec / .sec-h / .panel / .panel-h primitives
+   and the existing token palette (--ink*, --hair, --panel, --bg-2, --acc,
+   --mono, --ui). No glass, no backdrop-filter, no gradient buttons. 10px
+   panel radius, 6-8px chip radius, 1px hair borders only.
+   ========================================================================== */
+
+/* Root container — reuse .theme-page tokens so light/dark just works. */
+.aw {
+  color: var(--ink);
+  font-family: var(--ui);
+  font-size: 13.5px;
+  line-height: 1.5;
+  background: var(--bg-0);
+  min-height: 100%;
+  overflow-y: auto;
+}
+.aw .wrap {
+  /* Slightly wider so 2-col reason grid breathes; tighter top/bottom padding
+     to reclaim vertical space. */
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 16px 22px 40px;
+}
+
+/* ============================================================================
+   HERO
+   ========================================================================== */
+.aw-hero {
+  border: 1px solid var(--hair);
+  border-radius: 10px;
+  background: var(--panel);
+  padding: 22px 24px 20px;
+  margin-bottom: 22px;
+}
+.aw-hero-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  margin-bottom: 8px;
+}
+.aw-hero-star {
+  color: var(--acc, #ffb15a);
+  font-size: 13px;
+  line-height: 1;
+}
+.aw-hero-title {
+  font-size: 32px;
+  font-weight: 700;
+  letter-spacing: -0.6px;
+  color: var(--ink);
+  margin: 0 0 10px;
+  line-height: 1.1;
+}
+.aw-hero-desc {
+  font-size: 13px;
+  color: var(--ink-2);
+  margin: 0 0 16px;
+  line-height: 1.5;
+  max-width: 720px;
+}
+.aw-hero-kpis {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0;
+  margin: 0 0 18px;
+  border-top: 1px solid var(--hair);
+  border-bottom: 1px solid var(--hair);
+  padding: 12px 0;
+}
+.aw-hero-kpi {
+  flex: 1 1 0;
+  min-width: 130px;
+  padding: 0 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.aw-hero-kpi + .aw-hero-kpi {
+  border-left: 1px solid var(--hair);
+}
+.aw-hero-kpi-v {
+  font-family: var(--mono);
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--ink);
+  font-feature-settings: "tnum";
+  letter-spacing: -0.3px;
+  line-height: 1.05;
+}
+.aw-hero-kpi-l {
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  color: var(--ink-4);
+  font-weight: 600;
+}
+.aw-hero-kpi-l em {
+  font-style: italic;
+  color: var(--acc, #ffb15a);
+  font-weight: 700;
+}
+.aw-hero-rangenote {
+  font-family: var(--ui);
+  font-size: 11.5px;
+  font-style: italic;
+  color: var(--ink-3);
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px dashed var(--hair);
+}
+.aw-hero-cta-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+/* ============================================================================
+   BUTTONS
+   ========================================================================== */
+.aw-btn {
+  font-family: var(--ui);
+  font-size: 12.5px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  border-radius: 8px;
+  padding: 9px 16px;
+  cursor: pointer;
+  transition: filter 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.aw-btn .icon { display: block; }
+.aw-btn.primary {
+  background: var(--acc, #ffb15a);
+  color: #0a0e16;
+  border: 1px solid var(--acc, #ffb15a);
+}
+.aw-btn.primary:hover { filter: brightness(1.08); }
+html.theme-light .aw-btn.primary { color: #ffffff; }
+.aw-btn.ghost {
+  background: transparent;
+  color: var(--ink-2);
+  border: 1px solid var(--hair);
+}
+.aw-btn.ghost:hover {
+  color: var(--ink);
+  border-color: var(--hair-2);
+}
+
+/* ============================================================================
+   SECTIONS — reuse .sec / .sec-h / .panel primitives from theme.css.
+   ========================================================================== */
+.aw .sec { margin-top: 22px; }
+.aw .sec-h {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin-bottom: 11px;
+}
+.aw .sec-h .stag {
+  font-family: var(--mono);
+  font-size: 8.5px;
+  letter-spacing: 0.05em;
+  color: var(--ink-4);
+  background: var(--bg-2);
+  border-radius: 4px;
+  padding: 2px 6px;
+}
+.aw .sec-h .stt {
+  font-size: 11px;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: var(--ink);
+}
+.aw .sec-h .sx {
+  margin-left: auto;
+  font-family: var(--mono);
+  font-size: 9.5px;
+  color: var(--ink-3);
+}
+.aw .panel {
+  border: 1px solid var(--hair);
+  border-radius: 10px;
+  background: var(--panel);
+  overflow: hidden;
+}
+.aw .panel-h {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 13px;
+  border-bottom: 1px solid var(--hair);
+  background: var(--bg-2);
+}
+.aw .pt-l {
+  font-size: 9.5px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: var(--ink);
+}
+.aw .pm-r {
+  margin-left: auto;
+  font-family: var(--mono);
+  font-size: 9px;
+  color: var(--ink-3);
+}
+.aw .pbody { padding: 12px 14px; }
+
+/* ============================================================================
+   REASON CARDS — large percent number on the left, body + inline chart right
+   ========================================================================== */
+/* 2-column grid — packs 5 reasons into 3 rows instead of 5 (saves ~40%
+   vertical space). On narrow viewports falls back to single column. */
+.reason-list {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+@media (max-width: 920px) {
+  .reason-list { grid-template-columns: 1fr; }
+}
+.reason-card {
+  display: grid;
+  /* col 1 sizes to the figure: a 2-digit "86" stays at 64px, a 6-digit
+     count like "18,700" grows the column instead of overlapping the title. */
+  grid-template-columns: minmax(64px, max-content) 1fr;
+  gap: 12px;
+  padding: 12px 14px;
+  border: 1px solid var(--hair);
+  border-radius: 10px;
+  background: var(--panel);
+  align-items: start;
+}
+.reason-pct {
+  font-family: var(--mono);
+  font-size: 26px;
+  font-weight: 800;
+  color: var(--ink);
+  line-height: 1;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+  padding-top: 2px;
+  white-space: nowrap;
+}
+.reason-pct-pct {
+  font-size: 13px;
+  color: var(--ink-3);
+  font-weight: 700;
+  margin-left: 1px;
+}
+.reason-body {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  min-width: 0;
+}
+.reason-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--ink);
+  letter-spacing: -0.01em;
+  line-height: 1.3;
+}
+.reason-detail {
+  font-size: 13px;
+  color: var(--ink-2);
+  line-height: 1.5;
+}
+.reason-chart {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px dashed var(--hair);
+}
+
+/* ============================================================================
+   MINI-CHARTS — horizontal bars used inside reason cards
+   ========================================================================== */
+.mini-chart {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.mini-bars-h {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.mini-bar-h-row {
+  display: grid;
+  grid-template-columns: 96px 1fr 48px;
+  align-items: center;
+  gap: 10px;
+  font-size: 11px;
+}
+.mini-bar-h-label {
+  color: var(--ink-3);
+  font-family: var(--mono);
+  font-size: 10.5px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.mini-bar-h-track {
+  height: 16px;
+  background: var(--bg-2);
+  border-radius: 3px;
+  border: 1px solid var(--hair);
+  overflow: hidden;
+}
+.mini-bar-h-fill {
+  height: 100%;
+  background: var(--ink-4);
+  border-radius: 2px;
+  transition: filter 0.15s ease;
+  cursor: pointer;
+  min-width: 4px;
+}
+.mini-bar-h-fill.ok   { background: var(--green, #42e08b); opacity: 0.85; }
+.mini-bar-h-fill.warn { background: var(--acc, #ffb15a); opacity: 0.9; }
+.mini-bar-h-fill.bad  { background: var(--red, #ff7a7a); opacity: 0.85; }
+.mini-bar-h-fill:hover { filter: brightness(1.15); }
+.mini-bar-h-val {
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+.mini-chart-foot {
+  margin-top: 2px;
+  font-size: 11px;
+  color: var(--ink-2);
+  line-height: 1.45;
+  font-style: italic;
+  border-left: 2px solid var(--acc, #ffb15a);
+  padding-left: 8px;
+}
+.mini-chart-foot b { color: var(--ink); font-weight: 700; font-style: normal; }
+.mini-chart-tip {
+  position: absolute;
+  top: -22px;
+  right: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 8px;
+  background: var(--panel);
+  border: 1px solid var(--hair-2, var(--hair));
+  border-radius: 6px;
+  font-family: var(--mono);
+  font-size: 10px;
+  white-space: nowrap;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+  pointer-events: none;
+  z-index: 5;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+html.theme-light .mini-chart-tip {
+  box-shadow: 0 4px 10px rgba(15, 23, 42, 0.12);
+}
+.mini-chart-tip-l {
+  color: var(--ink-3);
+  font-size: 9px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  font-weight: 700;
+}
+.mini-chart-tip-v {
+  color: var(--ink);
+  font-weight: 700;
+}
+
+/* ============================================================================
+   FAIRNESS PANEL CAPTION
+   ========================================================================== */
+.fairness-caption {
+  margin-top: 12px;
+  padding: 10px 12px;
+  border: 1px solid var(--hair);
+  border-radius: 8px;
+  background: var(--bg-2);
+  font-size: 12px;
+  color: var(--ink-2);
+  line-height: 1.55;
+}
+.fairness-caption b { color: var(--ink); font-weight: 700; }
+
+/* ============================================================================
+   EVIDENCE-BASE GROUPS — collapsible drilldowns
+   ========================================================================== */
+.aw-groups {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.aw-group {
+  border: 1px solid var(--hair);
+  border-radius: 10px;
+  background: var(--panel);
+  overflow: hidden;
+}
+.aw-group.open { background: var(--bg-1, var(--panel)); }
+.aw-group-h {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  background: var(--bg-2);
+  border: 0;
+  border-bottom: 1px solid transparent;
+  cursor: pointer;
+  color: var(--ink);
+  font-family: var(--ui);
+  text-align: left;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+.aw-group.open .aw-group-h { border-bottom-color: var(--hair); }
+.aw-group-h:hover { color: var(--ink); background: var(--bg-2); }
+.aw-group-chev {
+  font-family: var(--mono);
+  font-size: 13px;
+  color: var(--ink-3);
+  width: 14px;
+  display: inline-flex;
+  justify-content: center;
+}
+.aw-group-count {
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+  min-width: 18px;
+}
+.aw-group-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink);
+  letter-spacing: -0.01em;
+}
+.aw-group-hint {
+  margin-left: auto;
+  font-family: var(--mono);
+  font-size: 9.5px;
+  color: var(--ink-4);
+  letter-spacing: 0.04em;
+}
+.aw-group-body { padding: 14px; }
+
+/* SenseAssetCard's grid-column: 1 / -1 expansion needs a CSS Grid parent. */
+.aw-sense-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+@media (max-width: 1080px) {
+  .aw-sense-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 720px) {
+  .aw-sense-grid { grid-template-columns: 1fr; }
+}
+
+/* ============================================================================
+   HYPOTHESIS SYNTHESIS — the bridge between the analysis chapters above
+   and the bet at the top. Structured rows ("From X → Y") + a final
+   synthesised-hypothesis sentence. Deliberately functional, not PPT —
+   reads as a decision trace, not a slide.
+   ========================================================================== */
+.aw-synthesis {
+  margin-top: 28px;
+  padding: 18px 22px 20px;
+  background: var(--bg-2);
+  border: 1px solid var(--hair);
+  border-left: 3px solid var(--acc, #ffb15a);
+  border-radius: 10px;
+}
+html.theme-light .aw-synthesis {
+  background: #f8fafc;
+  border-color: #e2e8f0;
+  border-left-color: var(--acc, #b45309);
+}
+.aw-synthesis-h {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+.aw-synthesis-num {
+  width: 32px; height: 32px;
+  border-radius: 8px;
+  background: var(--panel);
+  border: 1px solid var(--hair);
+  display: flex; align-items: center; justify-content: center;
+  color: var(--acc, #ffb15a);
+  flex: 0 0 32px;
+}
+html.theme-light .aw-synthesis-num {
+  background: #ffffff;
+  border-color: #e2e8f0;
+  color: var(--acc, #b45309);
+}
+.aw-synthesis-num .icon { display: block; }
+.aw-synthesis-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.aw-synthesis-eyebrow {
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.18em;
+  color: var(--ink-3);
+}
+.aw-synthesis-title {
+  font-family: var(--ui);
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--ink);
+  letter-spacing: -0.005em;
+}
+.aw-synthesis-body {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.aw-synthesis-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+.aw-synthesis-row {
+  display: grid;
+  grid-template-columns: 200px 18px 1fr;
+  align-items: baseline;
+  gap: 10px;
+  font-size: 12.5px;
+  line-height: 1.5;
+  padding: 4px 0;
+}
+.aw-synthesis-from {
+  color: var(--ink-3);
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.01em;
+}
+.aw-synthesis-from b {
+  font-family: var(--ui);
+  font-weight: 700;
+  color: var(--ink-2);
+  margin-left: 4px;
+}
+.aw-synthesis-arrow {
+  color: var(--ink-4);
+  display: flex; align-items: center; justify-content: center;
+}
+.aw-synthesis-arrow .icon { display: block; }
+.aw-synthesis-to {
+  color: var(--ink);
+  min-width: 0;
+}
+
+/* The "synthesised" lock at the bottom — the actual hypothesis sentence
+   composed from the rows above. Visually distinct so the trace lands. */
+.aw-synthesis-lock {
+  border-top: 1px dashed var(--hair);
+  padding-top: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.aw-synthesis-lock-h {
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.18em;
+  color: var(--acc, #ffb15a);
+}
+html.theme-light .aw-synthesis-lock-h { color: var(--acc, #b45309); }
+.aw-synthesis-lock-body {
+  font-size: 13.5px;
+  color: var(--ink);
+  line-height: 1.55;
+  font-weight: 500;
+  max-width: 760px;
+}
+.aw-synthesis-lock-body b { font-weight: 700; }
+
+@media (max-width: 720px) {
+  .aw-synthesis-row {
+    grid-template-columns: 1fr;
+    gap: 2px;
+  }
+  .aw-synthesis-arrow { display: none; }
+}
+
+/* ============================================================================
+   FOOTER CTAs
+   ========================================================================== */
+.aw-footer-cta {
+  margin-top: 28px;
+  padding-top: 18px;
+  border-top: 1px solid var(--hair);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+/* ============================================================================
+   RESPONSIVE
+   ========================================================================== */
+@media (max-width: 720px) {
+  .aw-hero-kpi + .aw-hero-kpi { border-left: 0; border-top: 1px solid var(--hair); padding-top: 10px; margin-top: 10px; }
+  .aw-hero-kpis { flex-direction: column; gap: 0; }
+  .aw-hero-cta-row, .aw-footer-cta { flex-direction: column-reverse; align-items: stretch; }
+  .aw-btn { width: 100%; }
+  .reason-card { grid-template-columns: minmax(60px, max-content) 1fr; gap: 12px; padding: 12px; }
+  .reason-pct { font-size: 24px; }
+  .mini-bar-h-row { grid-template-columns: 80px 1fr 40px; gap: 8px; }
+}
+
+/* ============================================================================
+   CHAPTER-LEVEL SECTIONS — strong visual differentiation between the page's
+   4 major sections (Why · Who · Why-gate · Evidence). Uses number badge +
+   accent bar + uppercase title + italic subtitle + horizontal divider above
+   each section after the first. Generous whitespace.
+   ========================================================================== */
+.aw-chapter {
+  padding-top: 22px;
+  margin-bottom: 18px;
+}
+/* Horizontal divider between chapters at the top level (NOT inside pair) */
+.aw-chapter + .aw-chapter,
+.aw-chapter-pair + .aw-chapter,
+.aw-chapter + .aw-chapter-pair {
+  border-top: 1px solid var(--hair);
+  margin-top: 8px;
+}
+
+/* Paired chapter row — for related chapters that share visual space (e.g.,
+   cohort coverage + fair-lending). Each half keeps its own number, accent,
+   title, meta — but they sit side-by-side. Collapses to 1-col under 980px. */
+.aw-chapter-pair {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+  padding-top: 22px;
+  margin-bottom: 18px;
+}
+.aw-chapter-pair .aw-chapter-half {
+  padding-top: 0;
+  margin-bottom: 0;
+  border-top: 0;
+}
+@media (max-width: 980px) {
+  .aw-chapter-pair { grid-template-columns: 1fr; }
+}
+
+.aw-chapter-h {
+  display: flex;
+  align-items: stretch;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+.aw-chapter-num {
+  font-family: var(--mono);
+  font-size: 15px;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  color: var(--ink-3);
+  background: var(--bg-2);
+  border: 1px solid var(--hair);
+  border-radius: 7px;
+  padding: 6px 10px;
+  min-width: 38px;
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-feature-settings: "tnum";
+}
+.aw-chapter-accent {
+  width: 3px;
+  align-self: stretch;
+  background: var(--acc, #ffb15a);
+  border-radius: 2px;
+}
+html.theme-light .aw-chapter-accent { background: var(--acc, #b45309); }
+.aw-chapter-text {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.aw-chapter-title {
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  color: var(--ink);
+  line-height: 1.15;
+}
+.aw-chapter-sub {
+  font-family: var(--ui);
+  font-size: 12.5px;
+  color: var(--ink-3);
+  line-height: 1.5;
+  margin-top: 4px;
+  max-width: 760px;
+}
+/* Right-aligned metadata chip — terse, functional, mono. Enterprise-app
+   pattern (Bloomberg / FactSet / ServiceNow): short noun on the left,
+   scope/count chip on the right. No narrative subtitles. */
+.aw-chapter-meta {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  color: var(--ink-3);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  white-space: nowrap;
+  align-self: center;
+  border: 1px solid var(--hair);
+  border-radius: 6px;
+  padding: 5px 9px;
+  background: var(--bg-2);
+  font-feature-settings: "tnum";
+}
+/* Multi-chip variant — for chapters that need to show several status pills */
+.aw-chapter-meta-row {
+  display: inline-flex; align-items: center; gap: 6px;
+  align-self: center;
+}
+.aw-chapter-meta-row .aw-chapter-meta { align-self: stretch; }
+.aw-chapter-meta.ok {
+  color: var(--live, #42e08b);
+  background: rgba(66, 224, 139, 0.08);
+  border-color: rgba(66, 224, 139, 0.25);
+}
+html.theme-light .aw-chapter-meta.ok {
+  color: var(--live, #059669);
+  background: rgba(5, 150, 105, 0.08);
+  border-color: rgba(5, 150, 105, 0.25);
+}
+
+/* ============================================================================
+   PROVENANCE STRIP — compact credibility signal under the hero.
+   Quick read: how many data streams + models power this case, plus
+   validation status. Includes a "Jump to data" link for skip-to-section.
+   ========================================================================== */
+.aw-provenance {
+  display: flex; align-items: center; justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 12px;
+  padding: 9px 14px;
+  border: 1px solid var(--hair);
+  border-radius: 8px;
+  background: var(--bg-2);
+  font-size: 11.5px;
+}
+html.theme-light .aw-provenance { background: #f8fafc; }
+
+.aw-provenance-l {
+  display: flex; align-items: center; flex-wrap: wrap;
+  gap: 12px;
+  color: var(--ink-3);
+}
+.aw-prov-chip {
+  display: inline-flex; align-items: center; gap: 4px;
+  font-family: var(--mono); font-size: 11px;
+}
+.aw-prov-chip b {
+  color: var(--ink);
+  font-weight: 700;
+  font-feature-settings: "tnum";
+}
+.aw-prov-sep {
+  color: var(--ink-4);
+  font-family: var(--mono);
+}
+.aw-prov-status {
+  font-family: var(--mono); font-size: 10px;
+  letter-spacing: 0.04em; text-transform: uppercase;
+  color: var(--live, #42e08b);
+  padding: 2px 7px;
+  border-radius: 4px;
+  background: rgba(66, 224, 139, 0.08);
+  border: 1px solid rgba(66, 224, 139, 0.25);
+}
+.aw-prov-status.muted {
+  color: var(--ink-4);
+  background: transparent;
+  border-color: var(--hair);
+}
+html.theme-light .aw-prov-status {
+  color: var(--live, #059669);
+  background: rgba(5, 150, 105, 0.08);
+  border-color: rgba(5, 150, 105, 0.25);
+}
+html.theme-light .aw-prov-status.muted {
+  color: var(--ink-4);
+  background: transparent;
+  border-color: var(--hair);
+}
+
+.aw-prov-jump {
+  font-family: var(--mono); font-size: 10.5px;
+  letter-spacing: 0.04em; text-transform: uppercase;
+  color: var(--ink-3);
+  text-decoration: none;
+  border: 1px solid var(--hair);
+  padding: 5px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.aw-prov-jump:hover {
+  color: var(--ink);
+  border-color: var(--hair-2);
+  background: var(--panel);
+}

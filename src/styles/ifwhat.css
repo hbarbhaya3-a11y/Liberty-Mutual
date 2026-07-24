@@ -1,0 +1,1506 @@
+/* ============================================================================
+   If-What workspace styles — for the goal + parameter-ranges configuration
+   screen and the Pareto + top-3 results page. Layout primitives reuse
+   .panel / .panel-h / .panel-body from the shared workspace shell.
+   ========================================================================= */
+
+/* ---------- Configuration screen ----------
+   The If-What config now reuses the What-If workspace shell (.sim-workspace
+   + .sim-ws-header + .sim-ws-body + .panel + .sim-lever-section +
+   .lever-row) so the two exploration modes feel like the same workbench
+   with different content. Only the dual-range slider and the search-
+   coverage block are If-What specific. */
+
+/* Objective radios */
+.iw-objectives {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.iw-objective {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 12px;
+  border: 1px solid var(--hair);
+  border-radius: 8px;
+  background: var(--bg-2);
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+}
+html.theme-light .iw-objective { background: #f8fafc; border-color: #e2e8f0; }
+.iw-objective:hover {
+  border-color: var(--violet, #b794f6);
+}
+html.theme-light .iw-objective:hover { border-color: var(--violet, #7c3aed); }
+.iw-objective.is-selected {
+  background: rgba(183, 148, 246, 0.08);
+  border-color: var(--violet, #b794f6);
+}
+html.theme-light .iw-objective.is-selected {
+  background: rgba(124, 58, 237, 0.06);
+  border-color: var(--violet, #7c3aed);
+}
+.iw-objective input { margin-top: 3px; accent-color: var(--violet, #b794f6); }
+html.theme-light .iw-objective input { accent-color: var(--violet, #7c3aed); }
+.iw-objective-body { display: flex; flex-direction: column; gap: 2px; }
+.iw-objective-l {
+  font-family: var(--ui);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink);
+}
+.iw-objective-d {
+  font-size: 11.5px;
+  color: var(--ink-3);
+  line-height: 1.4;
+}
+
+/* Guardrails list */
+.iw-guards {
+  list-style: none;
+  margin: 0; padding: 0;
+  display: flex; flex-direction: column;
+  gap: 6px;
+}
+.iw-guards li {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 12px;
+  color: var(--ink-2);
+}
+.iw-guards li .icon { display: block; color: var(--green, #42e08b); flex: 0 0 auto; }
+html.theme-light .iw-guards li .icon { color: var(--green, #15803d); }
+
+/* ---------- DualRange — two-thumb min/max slider ----------
+   The two native inputs sit absolutely on the same track. Each input's
+   thumb is hit-testable; the non-thumb portion of each input has
+   pointer-events: none so only the thumbs receive clicks (otherwise the
+   second input would swallow events meant for the first). The visible
+   "selected range" segment is a positioned div between the two thumbs. */
+/* Dual-thumb range slider — substantial control with a thicker track,
+   solid filled-segment, and bracket-shaped (square-rounded) thumbs so the
+   "low / high bracket" semantics read at a glance. The two native inputs
+   sit absolutely on the same track; each thumb is hit-testable. The visible
+   "selected range" fill is a positioned div between the two thumbs. */
+.iw-dual {
+  position: relative;
+  height: 32px;
+  margin: 8px 0 4px;
+  /* Section-accented dual-range. The default is violet; section selectors
+     below override per-band so each slider matches its section's color. */
+  --dual-color: var(--violet, #b794f6);
+  --dual-color-glow: rgba(183, 148, 246, 0.45);
+  --dual-color-rim: rgba(183, 148, 246, 0.40);
+}
+/* Section overrides — each cohort/policy/products/comms band paints its
+   own slider in the matching accent. */
+.sim-lever-section-cohort   .iw-dual { --dual-color: var(--violet, #b794f6); --dual-color-glow: rgba(183, 148, 246, 0.45); --dual-color-rim: rgba(183, 148, 246, 0.40); }
+.sim-lever-section-products .iw-dual { --dual-color: var(--acq,    #5b9dff); --dual-color-glow: rgba(91, 157, 255, 0.45);  --dual-color-rim: rgba(91, 157, 255, 0.40);  }
+.sim-lever-section-policy   .iw-dual { --dual-color: var(--acc,    #ffb15a); --dual-color-glow: rgba(255, 177, 90, 0.45);  --dual-color-rim: rgba(255, 177, 90, 0.40);  }
+.sim-lever-section-comms    .iw-dual { --dual-color: var(--green,  #42e08b); --dual-color-glow: rgba(66, 224, 139, 0.45);  --dual-color-rim: rgba(66, 224, 139, 0.40);  }
+/* Base track — inset 11px on each side to align with thumb-center extremes
+   (native thumb's center never reaches the container's literal edge — it
+   clamps to thumbWidth/2 in). */
+.iw-dual-track {
+  position: absolute;
+  left: 11px; right: 11px; top: 50%;
+  transform: translateY(-50%);
+  height: 6px;
+  background: var(--bg-2);
+  border: 1px solid var(--hair);
+  border-radius: 3px;
+}
+html.theme-light .iw-dual-track {
+  background: #f1f5f9;
+  border-color: #cbd5e1;
+}
+/* Selected segment — gradient fill so the optimizer's "explored range"
+   has visual weight matching how much of the policy space it covers. */
+.iw-dual-fill {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  height: 6px;
+  background: var(--dual-color);
+  border-radius: 3px;
+  z-index: 1;
+}
+
+.iw-dual-input {
+  position: absolute;
+  left: 0; right: 0; top: 0;
+  width: 100%;
+  height: 32px;
+  margin: 0;
+  background: transparent;
+  appearance: none;
+  -webkit-appearance: none;
+  /* opacity:0 (not just transparent) so the UA's residual default thumb — a
+     faint ring that peeked out from behind the custom thumb — never paints.
+     Stays interactive: opacity doesn't affect hit-testing, and the thumb
+     pseudo keeps pointer-events:auto. */
+  opacity: 0;
+  pointer-events: none;
+  outline: none;
+}
+.iw-dual-input:focus,
+.iw-dual-input:focus-visible {
+  outline: none;
+  box-shadow: none;
+}
+/* Thumb styling: 22×22 square-rounded, violet fill with strong border so
+   it reads as a deliberate handle rather than a default slider knob. The
+   thumbs sit raised above the track via box-shadow. */
+/* Native thumb — invisible. It exists purely for drag/keyboard interaction.
+   The visible thumb is a separate <div class="iw-dual-thumb"> below.
+   `outline: none` suppresses the browser-default yellow/blue focus ring
+   that otherwise bleeds around the thumb circle. */
+.iw-dual .iw-dual-input::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 22px; height: 22px;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  outline: none;
+  cursor: grab;
+  pointer-events: auto;
+}
+.iw-dual .iw-dual-input::-webkit-slider-thumb:active { cursor: grabbing; }
+.iw-dual .iw-dual-input::-moz-range-thumb {
+  width: 22px; height: 22px;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  outline: none;
+  cursor: grab;
+  pointer-events: auto;
+}
+.iw-dual .iw-dual-input::-moz-focus-outer { border: 0; }
+.iw-dual .iw-dual-input::-webkit-slider-runnable-track {
+  background: transparent;
+  height: 32px;
+}
+.iw-dual .iw-dual-input::-moz-range-track { background: transparent; height: 32px; }
+
+/* Visible custom thumb — opaque, centered on the value position, sits on
+   top of the fill so it cleanly caps each end of the colored bar. No
+   rim halo by default (the halo was being read as a yellow outline on
+   amber sections); halo only on interaction. */
+.iw-dual-thumb {
+  position: absolute;
+  top: 50%;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--dual-color);
+  border: none;   /* solid colour disc — a contrasting ring read as a "circle behind" the thumb */
+  box-shadow: none;   /* flat by default — the soft glow appears only on hover/drag */
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  z-index: 4;
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+.iw-dual:hover .iw-dual-thumb,
+.iw-dual:focus-within .iw-dual-thumb {
+  box-shadow: 0 3px 9px rgba(0, 0, 0, 0.5), 0 0 0 3px var(--dual-color-glow);
+}
+html.theme-light .iw-dual-thumb {
+  border-color: #ffffff;
+  box-shadow: none;
+}
+/* Light theme: tighter, more saturated section colors to keep contrast on
+   the lighter panel background. */
+html.theme-light .iw-dual                                { --dual-color: #7c3aed; --dual-color-glow: rgba(124, 58, 237, 0.35); --dual-color-rim: rgba(124, 58, 237, 0.40); }
+html.theme-light .sim-lever-section-cohort   .iw-dual    { --dual-color: #7c3aed; --dual-color-glow: rgba(124, 58, 237, 0.35); --dual-color-rim: rgba(124, 58, 237, 0.40); }
+html.theme-light .sim-lever-section-products .iw-dual    { --dual-color: #2563eb; --dual-color-glow: rgba(37, 99, 235, 0.35);  --dual-color-rim: rgba(37, 99, 235, 0.40);  }
+html.theme-light .sim-lever-section-policy   .iw-dual    { --dual-color: #b45309; --dual-color-glow: rgba(180, 83, 9, 0.35);   --dual-color-rim: rgba(180, 83, 9, 0.40);   }
+html.theme-light .sim-lever-section-comms    .iw-dual    { --dual-color: #15803d; --dual-color-glow: rgba(21, 128, 61, 0.35);  --dual-color-rim: rgba(21, 128, 61, 0.40);  }
+.iw-dual-input-high { z-index: 2; }
+.iw-dual-input-low { z-index: 3; }
+.iw-dual-input:active { z-index: 4; }
+
+/* Hover value bubbles — pinned above each thumb. Hidden by default; show on
+   hover or focus-within of the slider. Pointer-events off so they never
+   steal interaction. Positioned via inline `left` calc tied to the thumb
+   center (same formula as fill endpoints). */
+.iw-dual-bubble {
+  position: absolute;
+  bottom: calc(100% - 2px);
+  transform: translate(-50%, 4px);
+  padding: 3px 7px;
+  border-radius: 4px;
+  background: var(--dual-color);
+  color: #0f0f12;
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.14s ease, transform 0.14s ease;
+  z-index: 5;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+}
+.iw-dual-bubble::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 4px solid transparent;
+  border-right: 4px solid transparent;
+  border-top: 4px solid var(--dual-color);
+}
+.iw-dual:hover .iw-dual-bubble,
+.iw-dual:focus-within .iw-dual-bubble {
+  opacity: 1;
+  transform: translate(-50%, 0);
+}
+html.theme-light .iw-dual-bubble {
+  color: #ffffff;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.2);
+}
+
+/* ============================================================================
+   Single-thumb range with hover bubble — used by <RangeWithBubble />.
+   Bubble is hidden by default; appears on hover/focus of the wrapper.
+   ========================================================================= */
+.range-bubble-wrap {
+  position: relative;
+  --dual-color: var(--violet, #b794f6);
+  --dual-color-glow: rgba(183, 148, 246, 0.45);
+  --dual-color-rim:  rgba(183, 148, 246, 0.40);
+}
+.sim-lever-section-cohort   .range-bubble-wrap { --dual-color: var(--violet, #b794f6); --dual-color-glow: rgba(183, 148, 246, 0.45); --dual-color-rim: rgba(183, 148, 246, 0.40); }
+.sim-lever-section-products .range-bubble-wrap { --dual-color: var(--acq,    #5b9dff); --dual-color-glow: rgba(91, 157, 255, 0.45);  --dual-color-rim: rgba(91, 157, 255, 0.40);  }
+.sim-lever-section-policy   .range-bubble-wrap { --dual-color: var(--acc,    #ffb15a); --dual-color-glow: rgba(255, 177, 90, 0.45);  --dual-color-rim: rgba(255, 177, 90, 0.40);  }
+.sim-lever-section-comms    .range-bubble-wrap { --dual-color: var(--green,  #42e08b); --dual-color-glow: rgba(66, 224, 139, 0.45);  --dual-color-rim: rgba(66, 224, 139, 0.40);  }
+.range-bubble {
+  position: absolute;
+  bottom: calc(100% - 2px);
+  transform: translate(-50%, 4px);
+  padding: 3px 7px;
+  border-radius: 4px;
+  background: var(--dual-color);
+  color: #0f0f12;
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.14s ease, transform 0.14s ease;
+  z-index: 5;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+}
+.range-bubble::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 4px solid transparent;
+  border-right: 4px solid transparent;
+  border-top: 4px solid var(--dual-color);
+}
+.range-bubble-wrap:hover .range-bubble,
+.range-bubble-wrap:focus-within .range-bubble {
+  opacity: 1;
+  transform: translate(-50%, 0);
+}
+html.theme-light .range-bubble {
+  color: #ffffff;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.2);
+}
+html.theme-light .range-bubble-wrap                                  { --dual-color: #7c3aed; --dual-color-glow: rgba(124, 58, 237, 0.35); --dual-color-rim: rgba(124, 58, 237, 0.40); }
+html.theme-light .sim-lever-section-cohort   .range-bubble-wrap      { --dual-color: #7c3aed; --dual-color-glow: rgba(124, 58, 237, 0.35); --dual-color-rim: rgba(124, 58, 237, 0.40); }
+html.theme-light .sim-lever-section-products .range-bubble-wrap      { --dual-color: #2563eb; --dual-color-glow: rgba(37, 99, 235, 0.35);  --dual-color-rim: rgba(37, 99, 235, 0.40);  }
+html.theme-light .sim-lever-section-policy   .range-bubble-wrap      { --dual-color: #b45309; --dual-color-glow: rgba(180, 83, 9, 0.35);   --dual-color-rim: rgba(180, 83, 9, 0.40);   }
+html.theme-light .sim-lever-section-comms    .range-bubble-wrap      { --dual-color: #15803d; --dual-color-glow: rgba(21, 128, 61, 0.35);  --dual-color-rim: rgba(21, 128, 61, 0.40);  }
+
+/* Reference marker on a single-thumb slider (e.g. today's / competitor rate).
+   Subtle by default; `.strong` (e.g. Market) renders boldly in the accent. */
+.range-marker{position:absolute;top:0;bottom:18px;width:0;border-left:1px dashed var(--ink-4);transform:translateX(-0.5px);pointer-events:none;z-index:1;}
+.range-marker-l{position:absolute;top:-15px;left:50%;transform:translateX(-50%);white-space:nowrap;font:600 9.5px/1 var(--ui);letter-spacing:.03em;text-transform:uppercase;color:var(--ink-4);}
+.range-marker.strong{border-left:2px solid var(--dual-color);transform:translateX(-1px);z-index:2;}
+.range-marker.strong .range-marker-l{top:-16px;padding:2px 5px;border-radius:4px;background:var(--dual-color);color:#0f0f12;font-weight:700;}
+html.theme-light .range-marker.strong .range-marker-l{color:#fff;}
+
+/* Reference marker on a dual-thumb (If-What) slider. */
+.iw-dual-marker{position:absolute;top:-2px;bottom:-2px;width:0;border-left:1px dashed var(--ink-4);pointer-events:none;z-index:1;}
+.iw-dual-marker-l{position:absolute;top:-15px;transform:translateX(-50%);font:600 9.5px/1 var(--ui);text-transform:uppercase;color:var(--ink-4);white-space:nowrap;}
+.iw-dual-marker.strong{border-left:2px solid var(--dual-color);z-index:2;}
+.iw-dual-marker.strong .iw-dual-marker-l{top:-16px;padding:2px 5px;border-radius:4px;background:var(--dual-color);color:#0f0f12;font-weight:700;}
+html.theme-light .iw-dual-marker.strong .iw-dual-marker-l{color:#fff;}
+
+/* Numeric tick scale under the slider. */
+.iw-range-scale {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 4px;
+  font-family: var(--mono);
+  font-size: 10.5px;
+  color: var(--ink-4);
+  font-feature-settings: "tnum";
+}
+.iw-range-sep { color: var(--ink-4); font-weight: 400; padding: 0 2px; }
+/* Pill showing the selected low–high inline next to the row label. */
+.iw-range-pill {
+  font-family: var(--mono);
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--ink);
+  background: var(--bg-2);
+  border: 1px solid var(--hair);
+  padding: 3px 9px;
+  border-radius: 6px;
+  font-feature-settings: "tnum";
+  white-space: nowrap;
+}
+html.theme-light .iw-range-pill {
+  background: #f1f5f9;
+  border-color: #e2e8f0;
+}
+
+/* Chip group — multi-select control for enum dimensions. Each chip toggles
+   its inclusion in the optimizer's allowed value set. */
+.iw-chips-count {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  font-weight: 600;
+  color: var(--ink-3);
+  background: var(--bg-2);
+  border: 1px solid var(--hair);
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-feature-settings: "tnum";
+}
+html.theme-light .iw-chips-count { background: #f1f5f9; border-color: #e2e8f0; }
+.iw-chip-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 6px;
+}
+.iw-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 11px 7px 9px;
+  font-family: var(--ui);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ink-2);
+  background: var(--bg-2);
+  border: 1px solid var(--hair);
+  border-radius: 7px;
+  cursor: pointer;
+  transition: border-color 0.12s, background 0.12s, color 0.12s;
+}
+html.theme-light .iw-chip { background: #f8fafc; border-color: #e2e8f0; }
+.iw-chip:hover { border-color: var(--violet, #b794f6); }
+.iw-chip.is-on {
+  background: rgba(183, 148, 246, 0.14);
+  border-color: var(--violet, #b794f6);
+  color: var(--ink);
+}
+html.theme-light .iw-chip.is-on {
+  background: rgba(124, 58, 237, 0.10);
+  border-color: var(--violet, #7c3aed);
+  color: var(--ink);
+}
+.iw-chip-mark {
+  width: 14px; height: 14px;
+  border-radius: 4px;
+  border: 1px solid var(--hair);
+  background: var(--panel);
+  display: inline-flex; align-items: center; justify-content: center;
+  color: var(--violet, #b794f6);
+}
+html.theme-light .iw-chip-mark { background: #ffffff; border-color: #cbd5e1; }
+.iw-chip.is-on .iw-chip-mark {
+  background: var(--violet, #b794f6);
+  border-color: var(--violet, #b794f6);
+  color: var(--panel);
+}
+html.theme-light .iw-chip.is-on .iw-chip-mark {
+  background: var(--violet, #7c3aed);
+  border-color: var(--violet, #7c3aed);
+  color: #ffffff;
+}
+
+/* Cohort chips — denser cards than rail/style chips since cluster picks
+   carry a sub-line and a customer-count that are load-bearing for the
+   user's decision. 2-column responsive grid. */
+.iw-cohort-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 6px;
+}
+@media (max-width: 720px) {
+  .iw-cohort-list { grid-template-columns: 1fr; }
+}
+.iw-cohort {
+  appearance: none;
+  background: var(--bg-2);
+  border: 1px solid var(--hair);
+  border-radius: 8px;
+  padding: 11px 12px;
+  cursor: pointer;
+  text-align: left;
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  font: inherit;
+  color: inherit;
+  transition: border-color 0.12s, background 0.12s;
+}
+html.theme-light .iw-cohort { background: #f8fafc; border-color: #e2e8f0; }
+.iw-cohort:hover { border-color: var(--violet, #b794f6); }
+.iw-cohort.is-on {
+  background: rgba(183, 148, 246, 0.10);
+  border-color: var(--violet, #b794f6);
+}
+html.theme-light .iw-cohort.is-on {
+  background: rgba(124, 58, 237, 0.08);
+  border-color: var(--violet, #7c3aed);
+}
+.iw-cohort.is-primary { border-left: 3px solid var(--acc, #ffb15a); }
+.iw-cohort-mark {
+  flex: 0 0 16px;
+  width: 16px; height: 16px;
+  border-radius: 4px;
+  border: 1px solid var(--hair);
+  background: var(--panel);
+  display: inline-flex; align-items: center; justify-content: center;
+  color: var(--violet, #b794f6);
+  margin-top: 1px;
+}
+html.theme-light .iw-cohort-mark { background: #ffffff; border-color: #cbd5e1; }
+.iw-cohort.is-on .iw-cohort-mark {
+  background: var(--violet, #b794f6);
+  border-color: var(--violet, #b794f6);
+  color: var(--panel);
+}
+html.theme-light .iw-cohort.is-on .iw-cohort-mark {
+  background: var(--violet, #7c3aed);
+  border-color: var(--violet, #7c3aed);
+  color: #ffffff;
+}
+.iw-cohort-body {
+  display: flex; flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+.iw-cohort-l {
+  font-family: var(--ui);
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--ink);
+  display: inline-flex; align-items: center; gap: 8px;
+}
+.iw-cohort-primary {
+  font-family: var(--mono);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--acc, #ffb15a);
+  background: rgba(255, 177, 90, 0.16);
+  border: 1px solid rgba(255, 177, 90, 0.40);
+  padding: 1px 6px;
+  border-radius: 4px;
+}
+html.theme-light .iw-cohort-primary {
+  color: var(--acc, #b45309);
+  background: rgba(180, 83, 9, 0.10);
+  border-color: rgba(180, 83, 9, 0.30);
+}
+.iw-cohort-counts {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  color: var(--ink-3);
+  font-feature-settings: "tnum";
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.iw-cohort-counts b { color: var(--ink-2); font-weight: 700; }
+
+/* Toggle switch — boolean control, iOS-style knob. */
+.iw-switch {
+  width: 36px; height: 20px;
+  border-radius: 12px;
+  background: var(--bg-2);
+  border: 1px solid var(--hair);
+  cursor: pointer;
+  position: relative;
+  padding: 0;
+  transition: background 0.15s, border-color 0.15s;
+}
+html.theme-light .iw-switch { background: #f1f5f9; border-color: #cbd5e1; }
+.iw-switch:hover { border-color: var(--violet, #b794f6); }
+.iw-switch[disabled] { cursor: not-allowed; opacity: 0.6; }
+.iw-switch.is-on {
+  background: var(--violet, #b794f6);
+  border-color: var(--violet, #b794f6);
+}
+html.theme-light .iw-switch.is-on {
+  background: var(--violet, #7c3aed);
+  border-color: var(--violet, #7c3aed);
+}
+.iw-switch-knob {
+  position: absolute;
+  top: 50%;
+  left: 2px;
+  transform: translateY(-50%);
+  width: 14px; height: 14px;
+  border-radius: 50%;
+  background: var(--ink-3);
+  transition: left 0.15s, background 0.15s;
+}
+.iw-switch.is-on .iw-switch-knob {
+  left: 18px;
+  background: #ffffff;
+}
+.iw-switch[disabled].is-on .iw-switch-knob { background: rgba(255,255,255,0.85); }
+
+/* Right-rail SEARCH COVERAGE block — replaces the old PPT-style "how it
+   works" explainer. Two-column rows: key / value, very flat. */
+.iw-coverage {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  border: 1px solid var(--hair);
+  border-radius: 8px;
+  overflow: hidden;
+  background: var(--panel);
+}
+html.theme-light .iw-coverage { border-color: #e2e8f0; background: #ffffff; }
+.iw-coverage-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 9px 12px;
+  background: var(--bg-2);
+}
+html.theme-light .iw-coverage-row { background: #f8fafc; }
+.iw-coverage-k {
+  font-family: var(--mono);
+  font-size: 9.5px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  color: var(--ink-3);
+  text-transform: uppercase;
+}
+.iw-coverage-v {
+  font-size: 12px;
+  color: var(--ink);
+}
+.iw-mono {
+  font-family: var(--mono);
+  font-feature-settings: "tnum";
+}
+.iw-coverage-total {
+  background: var(--bg-1);
+  border-top: 1px dashed var(--hair);
+}
+html.theme-light .iw-coverage-total { background: #ffffff; border-top-color: #cbd5e1; }
+.iw-coverage-total .iw-coverage-v {
+  font-weight: 800;
+  color: var(--violet, #b794f6);
+}
+html.theme-light .iw-coverage-total .iw-coverage-v { color: var(--violet, #7c3aed); }
+/* "Sampled by optimizer" row — directly below the candidate space row.
+   Highlights the tiny-fraction-of-space the sampler actually evaluates,
+   so the user reads "millions of policies considered, thousands sampled
+   intelligently" — the real behavior of adaptive optimization. */
+.iw-coverage-explored {
+  background: var(--bg-2);
+  border-top: 1px dashed var(--hair);
+}
+html.theme-light .iw-coverage-explored { background: #f8fafc; border-top-color: #e2e8f0; }
+.iw-coverage-explored .iw-coverage-v {
+  color: var(--ink-2);
+  font-weight: 600;
+}
+
+/* If-What Run button — same anatomy as the What-If Run button, just
+   tinted violet to signal the optimizer mode. */
+.iw-run-btn {
+  background: var(--violet, #b794f6);
+  border-color: var(--violet, #b794f6);
+  color: #14102b;
+  box-shadow: 0 4px 14px -4px rgba(183, 148, 246, 0.45);
+}
+.iw-run-btn:hover {
+  background: var(--violet, #b794f6);
+  border-color: var(--violet, #b794f6);
+  filter: brightness(1.06);
+  box-shadow: 0 6px 18px -4px rgba(183, 148, 246, 0.55);
+}
+html.theme-light .iw-run-btn {
+  background: #7c3aed;
+  border-color: #7c3aed;
+  color: #ffffff;
+  box-shadow: 0 4px 14px -4px rgba(124, 58, 237, 0.45), 0 1px 0 rgba(15, 23, 42, 0.05);
+}
+html.theme-light .iw-run-btn:hover {
+  background: #6d28d9;
+  border-color: #6d28d9;
+}
+
+/* Autopilot pulse dot reused in If-What contexts. */
+.iw-ap-dot {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: var(--violet, #b794f6);
+  animation: iw-ap-pulse 1.8s ease-in-out infinite;
+}
+html.theme-light .iw-ap-dot { background: var(--violet, #7c3aed); }
+@keyframes iw-ap-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%      { opacity: 0.5; transform: scale(1.3); }
+}
+
+/* ============================================================================
+   RESULTS — Pareto frontier + top 3 + click-to-detail
+   ========================================================================= */
+
+.iw-ap-banner {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--mono);
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--violet, #b794f6);
+  margin-left: auto;
+}
+html.theme-light .iw-ap-banner { color: var(--violet, #7c3aed); }
+
+/* Top-3 grid */
+.iw-rank-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+@media (max-width: 900px) {
+  .iw-rank-grid { grid-template-columns: 1fr; }
+}
+
+/* RECS + PARETO — chart-prominent two-column composition.
+   Left column (360px fixed): three compact rec cards stacked vertically.
+   Right column (1fr, takes the rest of the panel width): Pareto chart,
+   the visualization the user came to read.
+   `align-items: stretch` makes the chart column fill the height of the
+   stacked cards so the two columns read as a single coherent unit. */
+.iw-recs-pareto-body {
+  display: grid;
+  grid-template-columns: 360px minmax(0, 1fr);
+  gap: 14px;
+  align-items: stretch;
+}
+@media (max-width: 1080px) {
+  .iw-recs-pareto-body {
+    grid-template-columns: 1fr;
+  }
+}
+.iw-recs-col {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+}
+/* Horizontal 3-up recommendation grid (replaces recs+Pareto two-column) */
+.iw-recs-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  align-items: stretch;
+}
+@media (max-width: 900px) { .iw-recs-grid { grid-template-columns: 1fr; } }
+/* More prominent card content now that each card has full-width room */
+.iw-recs-grid .iw-rank-card { padding: 17px 18px; }
+.iw-recs-grid .iw-rank-name { font-size: 15.5px; }
+.iw-recs-grid .iw-rank-hero-v { font-size: 25px; }
+.iw-recs-grid .iw-rank-hero-k { font-size: 9.5px; }
+.iw-recs-grid .iw-rank-summary { margin-top: 11px; gap: 5px; }
+.iw-recs-grid .iw-rank-summary-v { font-size: 12.5px; }
+/* "Why this rank" rationale line on each policy card */
+.iw-rank-why {
+  margin-top: 11px; padding-top: 10px;
+  border-top: 1px dashed var(--hair);
+  font-size: 12px; line-height: 1.45; color: var(--ink-2); text-align: left;
+}
+
+/* Cards size naturally — three compact stacked cards. The grid's
+   `align-items: stretch` makes the chart column match the cards' total
+   height; the chart SVG then flexes to fill its column. The cards stay
+   at their content-driven height (no forced equalization). */
+.iw-pareto-col {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--hair);
+  border-radius: 10px;
+  background: var(--bg-2);
+  overflow: hidden;
+  min-width: 0;
+  min-height: 460px;
+}
+html.theme-light .iw-pareto-col { background: #f8fafc; border-color: #e2e8f0; }
+.iw-pareto-col-h {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 12px 16px 10px;
+  border-bottom: 1px dashed var(--hair);
+}
+.iw-pareto-col-l {
+  font-family: var(--ui);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--ink);
+}
+.iw-pareto-col-s {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--ink-3);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.iw-pareto-col-chart {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  align-items: stretch;
+  padding: 8px 10px 12px;
+}
+/* The .pareto-frontier wrapper inside the column flexes to fill the
+   available height; its inner pareto-svg is then sized by aspect ratio. */
+.iw-pareto-col-chart > * {
+  flex: 1 1 auto;
+  width: 100%;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+.iw-pareto-col-chart .pareto-svg {
+  /* Override the global min-height: 300px from test-mode.css. With
+     preserveAspectRatio="xMidYMid meet" the SVG fits inside the box
+     and centres itself — never distorts. */
+  min-height: 380px !important;
+  max-height: none;
+  width: 100%;
+  flex: 1 1 auto;
+}
+/* Hide the inner ParetoFrontier component's header — we render our own
+   compact header (`.iw-pareto-col-h`) up above. */
+.iw-pareto-col-chart .pareto-h { display: none; }
+.iw-pareto-col-chart .pareto {
+  padding: 0;
+  gap: 0;
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+}
+.iw-pareto-col-chart .pareto-body {
+  padding: 0;
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+}
+.iw-pareto-col-chart .pareto-chart-wrap {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.iw-rank-card {
+  appearance: none;
+  text-align: left;
+  background: var(--panel);
+  border: 1px solid var(--hair);
+  border-radius: 10px;
+  padding: 11px 13px 12px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  transition: border-color 0.15s, box-shadow 0.15s, transform 0.1s;
+  color: inherit;
+  font: inherit;
+}
+html.theme-light .iw-rank-card { background: #ffffff; border-color: #e2e8f0; }
+.iw-rank-card:hover {
+  border-color: var(--ink-3);
+  transform: translateY(-1px);
+}
+.iw-rank-card.is-rank-1 {
+  border-left: 3px solid var(--acc, #ffb15a);
+}
+.iw-rank-card.is-selected {
+  border-color: var(--violet, #b794f6);
+  box-shadow: 0 0 0 3px rgba(183, 148, 246, 0.18);
+}
+html.theme-light .iw-rank-card.is-selected {
+  border-color: var(--violet, #7c3aed);
+  box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.13);
+}
+.iw-rank-card.is-ap-pick {
+  border-color: var(--violet, #b794f6);
+  box-shadow: 0 0 0 3px rgba(183, 148, 246, 0.30);
+  animation: iw-ap-pick-pulse 1.4s ease-in-out infinite;
+}
+@keyframes iw-ap-pick-pulse {
+  0%, 100% { box-shadow: 0 0 0 3px rgba(183, 148, 246, 0.30); }
+  50%      { box-shadow: 0 0 0 6px rgba(183, 148, 246, 0.15); }
+}
+
+.iw-rank-head {
+  display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+}
+.iw-rank-num {
+  font-family: var(--mono);
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--ink);
+  padding: 3px 8px;
+  background: var(--bg-2);
+  border: 1px solid var(--hair);
+  border-radius: 5px;
+}
+html.theme-light .iw-rank-num { background: #f1f5f9; border-color: #e2e8f0; }
+.iw-rank-rec, .iw-rank-appick {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-family: var(--mono);
+  font-size: 9.5px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  padding: 2px 7px;
+  border-radius: 4px;
+  border: 1px solid;
+}
+.iw-rank-rec {
+  background: rgba(255, 177, 90, 0.14);
+  color: var(--acc, #ffb15a);
+  border-color: rgba(255, 177, 90, 0.35);
+}
+html.theme-light .iw-rank-rec {
+  background: rgba(180, 83, 9, 0.10);
+  color: var(--acc, #b45309);
+  border-color: rgba(180, 83, 9, 0.30);
+}
+.iw-rank-rec .icon { display: block; color: inherit; }
+.iw-rank-appick {
+  background: rgba(183, 148, 246, 0.14);
+  color: var(--violet, #b794f6);
+  border-color: rgba(183, 148, 246, 0.35);
+}
+html.theme-light .iw-rank-appick {
+  background: rgba(124, 58, 237, 0.10);
+  color: var(--violet, #7c3aed);
+  border-color: rgba(124, 58, 237, 0.30);
+}
+.iw-rank-appick .icon { display: block; }
+
+.iw-rank-name {
+  font-family: var(--ui);
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--ink);
+  letter-spacing: -0.005em;
+  line-height: 1.25;
+}
+
+/* Hero KPI block on each Top-3 card — single block showing only the KPI
+   matching the selected objective. Replaces the old 4-KPI grid so the
+   card stays uncluttered; full KPI set lives in the deep-dive PROOF
+   KPIs strip when the user clicks in. */
+.iw-rank-hero {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: 7px;
+  background: var(--bg-2);
+  border: 1px solid var(--hair);
+}
+html.theme-light .iw-rank-hero { background: #f8fafc; border-color: #e2e8f0; }
+.iw-rank-hero-k {
+  font-family: var(--mono);
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.10em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  flex: 0 0 auto;
+}
+.iw-rank-hero-v {
+  font-family: var(--mono);
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+  font-feature-settings: "tnum";
+  display: inline-flex; align-items: baseline; gap: 6px;
+  text-align: right;
+}
+.iw-rank-hero.iw-rank-kpi-good .iw-rank-hero-v { color: var(--green, #42e08b); }
+.iw-rank-hero.iw-rank-kpi-warn .iw-rank-hero-v { color: var(--acc, #ffb15a); }
+html.theme-light .iw-rank-hero.iw-rank-kpi-good .iw-rank-hero-v { color: var(--green, #15803d); }
+html.theme-light .iw-rank-hero.iw-rank-kpi-warn .iw-rank-hero-v { color: var(--acc, #b45309); }
+/* CI label under the hero point estimate — same mono family, smaller, dim
+   so the point reads as primary and the CI as supporting metadata. */
+.iw-rank-hero-ci {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--ink-3);
+  margin-top: 2px;
+  letter-spacing: 0.02em;
+  font-feature-settings: "tnum";
+}
+
+/* Compressed configuration band on each Top-3 card. 5 key/value rows in
+   a fixed order so the three cards line up vertically and the user can
+   compare *what differs between policies* (it's not just outcomes — it's
+   the levers themselves). Lighter typographic weight than the headline +
+   KPIs so it reads as supporting detail, not as the verdict. */
+.iw-rank-summary {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 7px 0 0;
+  border-top: 1px dashed var(--hair);
+}
+.iw-rank-summary-row {
+  display: grid;
+  grid-template-columns: 56px 1fr;
+  align-items: baseline;
+  gap: 8px;
+  font-family: var(--ui);
+  font-size: 10.5px;
+  line-height: 1.3;
+}
+.iw-rank-summary-k {
+  font-family: var(--mono);
+  font-size: 8.5px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  color: var(--ink-4);
+  text-transform: uppercase;
+}
+.iw-rank-summary-v {
+  color: var(--ink-2);
+  font-weight: 500;
+  font-feature-settings: "tnum";
+}
+
+.iw-rank-kpis {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px 12px;
+  padding-top: 8px;
+  border-top: 1px dashed var(--hair);
+}
+.iw-rank-kpi {
+  display: flex; flex-direction: column; gap: 1px;
+}
+.iw-rank-kpi-k {
+  font-family: var(--mono);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.10em;
+  color: var(--ink-4);
+  text-transform: uppercase;
+}
+.iw-rank-kpi-v {
+  font-family: var(--mono);
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--ink);
+  font-feature-settings: "tnum";
+}
+.iw-rank-kpi-good .iw-rank-kpi-v { color: var(--green, #42e08b); }
+.iw-rank-kpi-warn .iw-rank-kpi-v { color: var(--acc, #ffb15a); }
+.iw-rank-kpi-neutral .iw-rank-kpi-v { color: var(--ink); }
+html.theme-light .iw-rank-kpi-good .iw-rank-kpi-v { color: var(--green, #15803d); }
+html.theme-light .iw-rank-kpi-warn .iw-rank-kpi-v { color: var(--acc, #b45309); }
+
+.iw-rank-kpi-est,
+.iw-dd-proof-est {
+  margin-left: 6px;
+  padding: 1px 5px;
+  border-radius: 3px;
+  font-family: var(--mono);
+  font-size: 8.5px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  background: var(--bg-2, rgba(255,255,255,0.06));
+  border: 1px solid var(--hair, rgba(255,255,255,0.10));
+  vertical-align: middle;
+}
+.iw-dd-proof-est {
+  font-size: 9.5px;
+  padding: 2px 6px;
+}
+
+.iw-rank-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+  font-family: var(--mono);
+  font-size: 10.5px;
+  color: var(--ink-3);
+  padding-top: 8px;
+  border-top: 1px dashed var(--hair);
+}
+.iw-rank-meta-k {
+  color: var(--ink-4);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-size: 9px;
+  margin-right: 4px;
+}
+
+/* Deep-dive panel for a selected recommendation. Mirrors the structure of
+   the What-If results page (verdict band + proof KPIs + config + reasoning)
+   so any If-What candidate gets the same depth of inspection. */
+.iw-deepdive {
+  padding: 16px 18px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+.iw-dd-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+}
+.iw-dd-eyebrow {
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.18em;
+  color: var(--ink-3);
+}
+.iw-dd-name {
+  font-family: var(--ui);
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--ink);
+  margin-top: 2px;
+  letter-spacing: -0.01em;
+}
+.iw-dd-sub {
+  font-size: 12.5px;
+  color: var(--ink-3);
+  margin-top: 2px;
+}
+
+/* Verdict band — same visual grammar as What-If's verdict-callout */
+.iw-dd-verdict {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 14px;
+  border-radius: 9px;
+  border: 1px solid var(--hair);
+  background: var(--bg-2);
+}
+html.theme-light .iw-dd-verdict { background: #f8fafc; border-color: #e2e8f0; }
+.iw-dd-verdict-glyph {
+  width: 34px; height: 34px;
+  border-radius: 50%;
+  display: inline-flex; align-items: center; justify-content: center;
+  flex: 0 0 34px;
+}
+.iw-dd-verdict-glyph .icon { display: block; }
+.iw-dd-verdict-body { display: flex; flex-direction: column; gap: 2px; }
+.iw-dd-verdict-title {
+  font-family: var(--ui);
+  font-size: 13.5px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  color: var(--ink);
+  text-transform: uppercase;
+}
+.iw-dd-verdict-sub {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--ink-3);
+}
+.iw-dd-verdict-good { border-color: rgba(66, 224, 139, 0.40); background: rgba(66, 224, 139, 0.06); }
+.iw-dd-verdict-good .iw-dd-verdict-glyph { background: rgba(66, 224, 139, 0.18); color: var(--green, #42e08b); }
+html.theme-light .iw-dd-verdict-good { background: rgba(21, 128, 61, 0.06); border-color: rgba(21, 128, 61, 0.25); }
+html.theme-light .iw-dd-verdict-good .iw-dd-verdict-glyph { background: rgba(21, 128, 61, 0.12); color: var(--green, #15803d); }
+.iw-dd-verdict-mixed { border-color: rgba(255, 177, 90, 0.40); background: rgba(255, 177, 90, 0.06); }
+.iw-dd-verdict-mixed .iw-dd-verdict-glyph { background: rgba(255, 177, 90, 0.18); color: var(--acc, #ffb15a); }
+html.theme-light .iw-dd-verdict-mixed { background: rgba(180, 83, 9, 0.06); border-color: rgba(180, 83, 9, 0.25); }
+html.theme-light .iw-dd-verdict-mixed .iw-dd-verdict-glyph { background: rgba(180, 83, 9, 0.12); color: var(--acc, #b45309); }
+.iw-dd-verdict-weak { border-color: rgba(91, 157, 255, 0.40); background: rgba(91, 157, 255, 0.06); }
+.iw-dd-verdict-weak .iw-dd-verdict-glyph { background: rgba(91, 157, 255, 0.18); color: var(--acq, #5b9dff); }
+
+/* Block — common scaffold for proof KPIs / configuration / reasoning */
+.iw-dd-block {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.iw-dd-block-h {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--hair);
+}
+.iw-dd-block-h .stag {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  font-weight: 800;
+  letter-spacing: 0.18em;
+  color: var(--ink-2);
+}
+.iw-dd-block-h .stt {
+  font-size: 11px;
+  color: var(--ink-4);
+}
+
+/* 2x2 + 1 wide-tile grid for the deep-dive projected outcomes section.
+   Mirrors the What-If results page structure visually. */
+.iw-dd-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+  margin-top: 4px;
+}
+@media (max-width: 900px) {
+  .iw-dd-grid { grid-template-columns: 1fr; }
+}
+.iw-dd-grid-tile {
+  display: flex; flex-direction: column;
+  gap: 10px;
+  padding: 14px 16px;
+  border: 1px solid var(--hair);
+  border-radius: 10px;
+  background: var(--panel);
+}
+html.theme-light .iw-dd-grid-tile {
+  background: #ffffff;
+  border-color: #e2e8f0;
+}
+.iw-dd-grid-tile-wide { grid-column: 1 / -1; }
+.iw-dd-grid-tile-h {
+  font-family: var(--ui);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--ink);
+}
+.iw-dd-grid-tile-caption {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--ink-3);
+  line-height: 1.5;
+  padding-top: 8px;
+  border-top: 1px dashed var(--hair);
+}
+
+/* Proof KPI grid — was 4 cards, now 3 (fair-lending demoted to Guardrails strip) */
+.iw-dd-proof {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+@media (max-width: 720px) { .iw-dd-proof { grid-template-columns: repeat(2, 1fr); } }
+.iw-dd-proof-kpi {
+  border: 1px solid var(--hair);
+  border-radius: 8px;
+  background: var(--bg-2);
+  padding: 10px 12px 11px;
+}
+html.theme-light .iw-dd-proof-kpi { background: #f8fafc; border-color: #e2e8f0; }
+.iw-dd-proof-k {
+  font-family: var(--mono);
+  font-size: 9.5px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  color: var(--ink-3);
+  text-transform: uppercase;
+}
+.iw-dd-proof-v {
+  font-family: var(--mono);
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--ink);
+  font-feature-settings: "tnum";
+  line-height: 1.1;
+  margin-top: 3px;
+}
+.iw-dd-proof-kpi.iw-rank-kpi-good .iw-dd-proof-v { color: var(--green, #42e08b); }
+.iw-dd-proof-kpi.iw-rank-kpi-warn .iw-dd-proof-v { color: var(--acc, #ffb15a); }
+html.theme-light .iw-dd-proof-kpi.iw-rank-kpi-good .iw-dd-proof-v { color: var(--green, #15803d); }
+html.theme-light .iw-dd-proof-kpi.iw-rank-kpi-warn .iw-dd-proof-v { color: var(--acc, #b45309); }
+/* CI label under the deep-dive point estimate — matches hero CI styling. */
+.iw-dd-proof-ci {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--ink-3);
+  margin-top: 3px;
+  letter-spacing: 0.02em;
+  font-feature-settings: "tnum";
+}
+.iw-detail-stage {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--green, #42e08b);
+  color: #052914;
+  border: 0;
+  border-radius: 7px;
+  padding: 9px 14px;
+  font-family: var(--ui);
+  font-size: 12.5px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: filter 0.15s;
+}
+.iw-detail-stage:hover { filter: brightness(1.06); }
+.iw-detail-stage .icon { display: block; }
+html.theme-light .iw-detail-stage {
+  background: var(--green, #15803d);
+  color: #ffffff;
+}
+
+.iw-detail-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 16px;
+}
+@media (max-width: 900px) {
+  .iw-detail-grid { grid-template-columns: 1fr; }
+}
+.iw-detail-block {
+  display: flex; flex-direction: column; gap: 8px;
+}
+.iw-detail-block-h {
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.18em;
+  color: var(--ink-2);
+}
+.iw-detail-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 11.5px;
+}
+.iw-detail-table td {
+  padding: 5px 0;
+  border-bottom: 1px dotted var(--hair);
+}
+.iw-detail-table td:first-child { color: var(--ink-3); }
+.iw-detail-table td:last-child {
+  text-align: right;
+  font-family: var(--mono);
+  color: var(--ink);
+  font-feature-settings: "tnum";
+}
+
+.iw-detail-kpis {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px 14px;
+}
+.iw-detail-kpi {
+  display: flex; flex-direction: column; gap: 2px;
+}
+.iw-detail-kpi-k {
+  font-family: var(--mono);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  color: var(--ink-4);
+  text-transform: uppercase;
+}
+.iw-detail-kpi-v {
+  font-family: var(--mono);
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--ink);
+  font-feature-settings: "tnum";
+}
+.iw-detail-kpi.iw-rank-kpi-good .iw-detail-kpi-v { color: var(--green, #42e08b); }
+.iw-detail-kpi.iw-rank-kpi-warn .iw-detail-kpi-v { color: var(--acc, #ffb15a); }
+html.theme-light .iw-detail-kpi.iw-rank-kpi-good .iw-detail-kpi-v { color: var(--green, #15803d); }
+html.theme-light .iw-detail-kpi.iw-rank-kpi-warn .iw-detail-kpi-v { color: var(--acc, #b45309); }
+
+.iw-detail-why {
+  list-style: none;
+  margin: 0; padding: 0;
+  display: flex; flex-direction: column;
+  gap: 6px;
+  font-size: 11.5px;
+  color: var(--ink-2);
+  line-height: 1.5;
+}
+.iw-detail-why li {
+  position: relative;
+  padding-left: 12px;
+}
+.iw-detail-why li::before {
+  content: "";
+  position: absolute;
+  left: 0; top: 8px;
+  width: 4px; height: 4px;
+  border-radius: 50%;
+  background: var(--violet, #b794f6);
+}
+html.theme-light .iw-detail-why li::before { background: var(--violet, #7c3aed); }
+
+/* ============================================================================
+   Results tabs · Compare (scorecard + comparison charts) | per-policy deep dive
+   ========================================================================= */
+.iw-result-tabs {
+  display: flex; gap: 4px; flex-wrap: wrap;
+  border-bottom: 1px solid var(--hair);
+  margin: 0 0 18px;
+}
+.iw-rtab {
+  appearance: none; -webkit-appearance: none;
+  background: transparent; border: none; cursor: pointer;
+  font: inherit; font-size: 13px; font-weight: 600; color: var(--ink-3);
+  padding: 10px 14px; border-bottom: 2px solid transparent;
+  margin-bottom: -1px; white-space: nowrap;
+  transition: color 0.15s, border-color 0.15s;
+}
+.iw-rtab:hover { color: var(--ink); }
+.iw-rtab.is-active { color: var(--ink); border-bottom-color: var(--acc, #ffb15a); }
+.iw-rtab-num { font-family: var(--mono); color: var(--ink-4); font-size: 11px; }
+.iw-rtab.is-active .iw-rtab-num { color: var(--acc, #ffb15a); }
+
+/* Scorecard matrix */
+.iw-scorecard { width: 100%; border-collapse: collapse; }
+.iw-scorecard th, .iw-scorecard td { padding: 9px 12px; text-align: left; border-bottom: 1px solid var(--hair); }
+.iw-scorecard thead th { font-size: 11px; color: var(--ink-3); font-weight: 700; }
+.iw-scorecard thead th.is-rec { background: var(--acc-soft, rgba(255,177,90,0.08)); }
+.iw-sc-col { appearance: none; background: transparent; border: none; cursor: pointer; font: inherit; font-size: 12.5px; font-weight: 700; color: var(--ink); padding: 0; text-align: left; }
+.iw-sc-col:hover { color: var(--acc, #ffb15a); }
+.iw-sc-rank { font-family: var(--mono); font-size: 10.5px; color: var(--ink-4); }
+.iw-sc-metric { font-size: 12px; color: var(--ink-2); font-weight: 600; white-space: nowrap; }
+.iw-scorecard td.is-rec { background: var(--acc-soft, rgba(255,177,90,0.06)); }
+.iw-sc-cell { display: flex; flex-direction: column; gap: 5px; min-width: 92px; }
+.iw-sc-v { font-family: var(--mono); font-size: 13px; font-weight: 700; color: var(--ink-2); letter-spacing: -0.2px; }
+td.is-win .iw-sc-v { color: var(--ink); }
+.iw-sc-bar { height: 4px; border-radius: 2px; opacity: 0.45; }
+td.is-win .iw-sc-bar { opacity: 1; }
+
+/* Comparison charts */
+.cmp-legend { display: flex; gap: 14px; flex-wrap: wrap; margin-bottom: 12px; font-size: 12px; color: var(--ink-2); }
+.cmp-leg { display: inline-flex; align-items: center; gap: 6px; font-weight: 600; }
+.cmp-leg i { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+.cmp-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+@media (max-width: 900px) { .cmp-grid { grid-template-columns: 1fr; } }
+.cmp-chart { display: flex; flex-direction: column; border: 1px solid var(--hair); border-radius: 10px; padding: 12px 14px; background: var(--bg-1); }
+.cmp-chart-t { font-size: 12px; font-weight: 700; color: var(--ink); margin-bottom: 8px; }
+.cmp-svg { width: 100%; height: auto; display: block; }
+.cmp-base { fill: none; stroke: var(--ink-4); stroke-width: 1.25; stroke-dasharray: 4 3; opacity: 0.7; }
+.cmp-axt { fill: var(--ink-3); font-family: var(--mono); font-size: 9.5px; }
+.cmp-grid-l { stroke: var(--hair); stroke-width: 1; opacity: 0.6; }
+.cmp-grid-v { stroke: var(--hair); stroke-width: 1; opacity: 0.22; }
+.cmp-yt { fill: var(--ink-4); font-family: var(--mono); font-size: 9px; }
+/* hover read-out */
+.cmp-cross { stroke: var(--ink-3); stroke-width: 1; stroke-dasharray: 3 2; opacity: 0.65; }
+.cmp-tip-bg { fill: var(--bg-2); stroke: var(--hair); stroke-width: 1; }
+html.theme-light .cmp-tip-bg { fill: #ffffff; }
+.cmp-tip-h { fill: var(--ink); font-family: var(--ui); font-size: 10px; font-weight: 700; }
+.cmp-tip-l { fill: var(--ink-2); font-family: var(--ui); font-size: 10px; }
+.cmp-tip-v { fill: var(--ink); font-family: var(--mono); font-size: 10px; font-weight: 700; }
+/* product-allocation mix — fills the tile, segments normalized to 100% */
+.cmp-mix { flex: 1 1 auto; display: flex; flex-direction: column; justify-content: center; gap: 14px; padding: 6px 0 2px; }
+.cmp-mix-row { display: flex; align-items: center; gap: 12px; }
+.cmp-mix-name { font-size: 12px; font-weight: 700; color: var(--ink-2); width: 132px; flex: 0 0 auto; }
+.cmp-mix-bar { flex: 1 1 auto; height: 30px; border-radius: 7px; overflow: hidden; display: flex; }
+.cmp-mix-seg { height: 100%; display: flex; align-items: center; justify-content: center; font-family: var(--mono); font-size: 10px; font-weight: 700; color: rgba(0,0,0,0.62); min-width: 0; }
+.cmp-mix-key { display: flex; gap: 14px; margin-top: 6px; font-size: 11px; color: var(--ink-3); }
+.cmp-mix-key span { display: inline-flex; align-items: center; gap: 5px; }
+.cmp-mix-key i { width: 10px; height: 10px; border-radius: 2px; display: inline-block; }
+
+/* Single-slider (RangeWithBubble) disabled state */
+.iw-dual.is-disabled { opacity: 0.45; pointer-events: none; }
+
+/* ============================================================================
+   Custom segment builder (rule-defined cohort, parallel to presets)
+   ========================================================================= */
+.csb { border: 1px solid var(--hair); border-radius: 10px; background: var(--bg-1); margin-top: 12px; }
+.csb.is-active { border-color: var(--violet, #b794f6); box-shadow: 0 0 0 1px var(--violet, #b794f6); }
+.csb-toggle {
+  width: 100%; display: flex; align-items: center; gap: 9px;
+  background: transparent; border: none; cursor: pointer; font: inherit;
+  padding: 12px 14px; color: var(--ink); font-weight: 700; font-size: 13px; text-align: left;
+}
+.csb-caret { color: var(--ink-3); font-size: 11px; width: 12px; }
+.csb-toggle-sub { font-weight: 500; font-size: 11.5px; color: var(--ink-4); }
+.csb-toggle-badge { margin-left: auto; font-family: var(--mono); font-size: 11px; font-weight: 700; color: #1a1205; background: var(--violet, #b794f6); padding: 2px 9px; border-radius: 20px; }
+.csb-body { padding: 0 14px 14px; display: flex; flex-direction: column; gap: 10px; }
+.csb-empty { font-size: 12px; color: var(--ink-4); line-height: 1.5; }
+.csb-rule { display: flex; align-items: center; gap: 8px; }
+.csb-sel, .csb-num {
+  appearance: none; -webkit-appearance: none;
+  background: var(--bg-2); border: 1px solid var(--hair); border-radius: 7px;
+  color: var(--ink); font: inherit; font-size: 12.5px; padding: 7px 9px; height: 34px;
+}
+.csb-sel:focus, .csb-num:focus { outline: none; border-color: var(--violet, #b794f6); }
+.csb-attr { flex: 1 1 auto; min-width: 0; }
+.csb-op { flex: 0 0 auto; width: 56px; text-align: center; }
+.csb-valwrap { flex: 0 0 auto; display: inline-flex; align-items: center; gap: 5px; position: relative; }
+.csb-pre { color: var(--ink-3); font-family: var(--mono); font-size: 12.5px; }
+.csb-num { width: 96px; font-family: var(--mono); text-align: right; }
+.csb-val.csb-sel { width: 78px; }
+.csb-unit { color: var(--ink-4); font-size: 11.5px; white-space: nowrap; }
+.csb-rm {
+  flex: 0 0 auto; width: 26px; height: 26px; border-radius: 6px;
+  background: transparent; border: 1px solid var(--hair); color: var(--ink-3);
+  cursor: pointer; font-size: 15px; line-height: 1; display: inline-flex; align-items: center; justify-content: center;
+}
+.csb-rm:hover { border-color: var(--red, #ff6b6b); color: var(--red, #ff6b6b); }
+.csb-actions { display: flex; align-items: center; gap: 10px; }
+.csb-add {
+  background: transparent; border: 1px dashed var(--hair); border-radius: 7px;
+  color: var(--ink-2); cursor: pointer; font: inherit; font-size: 12px; font-weight: 600; padding: 7px 12px;
+}
+.csb-add:hover { border-color: var(--violet, #b794f6); color: var(--violet, #b794f6); }
+.csb-fetch {
+  margin-left: auto; background: var(--violet, #b794f6); border: none; border-radius: 7px;
+  color: #1a1205; cursor: pointer; font: inherit; font-size: 12.5px; font-weight: 700; padding: 8px 16px;
+}
+.csb-fetch:hover { filter: brightness(1.08); }
+.csb-fetch:disabled { opacity: 0.4; cursor: not-allowed; }
+.csb-result { display: flex; align-items: center; gap: 14px; padding: 11px 13px; border: 1px solid var(--hair); border-radius: 8px; background: var(--bg-2); }
+.csb-result-num { display: flex; flex-direction: column; gap: 1px; }
+.csb-result-v { font-family: var(--mono); font-size: 20px; font-weight: 700; color: var(--ink); letter-spacing: -0.4px; }
+.csb-result-l { font-size: 11px; color: var(--ink-4); }
+.csb-use {
+  margin-left: auto; background: var(--violet, #b794f6); border: none; border-radius: 7px;
+  color: #1a1205; cursor: pointer; font: inherit; font-size: 12.5px; font-weight: 700; padding: 9px 15px; white-space: nowrap;
+}
+.csb-use.is-on { background: transparent; border: 1px solid var(--violet, #b794f6); color: var(--violet, #b794f6); }
+
+/* preset cohort cards dim when a custom segment is active */
+.sim-cohort-card.is-dim { opacity: 0.45; }

@@ -1,0 +1,85 @@
+/* ============================================================================
+   StagedIntermezzo — full-screen transitional overlay between Stage and
+   Deploy. Brief (~1.5s). Deliberately quiet — no spinners, no glow — just
+   a confirmation moment that the policy moved phases.
+   ========================================================================= */
+
+.intermezzo {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  background: rgba(8, 12, 20, 0.78);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: intermezzo-fade-in 0.22s ease-out;
+}
+html.theme-light .intermezzo {
+  background: rgba(255, 255, 255, 0.84);
+}
+@keyframes intermezzo-fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.intermezzo-card {
+  background: var(--panel);
+  border: 1px solid var(--hair);
+  border-radius: 14px;
+  padding: 28px 36px 30px;
+  min-width: 360px;
+  max-width: 520px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  text-align: center;
+  animation: intermezzo-card-in 0.32s cubic-bezier(0.16, 1, 0.3, 1);
+}
+html.theme-light .intermezzo-card {
+  background: #ffffff;
+  border-color: #e2e8f0;
+}
+@keyframes intermezzo-card-in {
+  from { transform: translateY(8px) scale(0.98); opacity: 0; }
+  to   { transform: translateY(0) scale(1); opacity: 1; }
+}
+
+.intermezzo-icon {
+  width: 56px; height: 56px;
+  border-radius: 50%;
+  background: rgba(66, 224, 139, 0.14);
+  color: var(--live, #42e08b);
+  display: flex; align-items: center; justify-content: center;
+  margin-bottom: 4px;
+}
+html.theme-light .intermezzo-icon {
+  background: rgba(21, 128, 61, 0.10);
+  color: var(--green, #15803d);
+}
+.intermezzo-icon .icon { display: block; }
+
+.intermezzo-tag {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  font-weight: 800;
+  letter-spacing: 0.18em;
+  color: var(--ink-3);
+}
+
+.intermezzo-title {
+  font-family: var(--ui);
+  font-size: 19px;
+  font-weight: 700;
+  color: var(--ink);
+  letter-spacing: -0.005em;
+}
+
+.intermezzo-sub {
+  font-size: 12.5px;
+  color: var(--ink-3);
+  line-height: 1.5;
+  max-width: 420px;
+}

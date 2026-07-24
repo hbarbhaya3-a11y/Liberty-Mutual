@@ -1,0 +1,1278 @@
+/* ============================================================================
+   SmbGrowthSimulateView — SMB Growth / Re-bundle Simulate workbench.
+
+   Forked from SmbRateSimulateView.jsx structure but re-domained from
+   SMB operating-deposit retention via rate to SMB growth / re-bundle —
+   a cross-sell capture play (credit + payments win-back):
+     - 6 lever sections (CUSTOMER / ELIGIBILITY / OFFER / EXPANSION NUDGES /
+       CHANNEL / SIMULATION DURATION)
+     - Single-column lever layout
+     - Sticky config strip with pricing-consistency margin in the central slot
+     - Results: verdict + 3 ProofKpi cards + 4 guardrail pills + 2×2 tiles
+       WITH CHARTS + a micro-segment per-segment recommendation table
+     - Stage for Deploy → intermezzo → navWorkspace("deploy")
+     - Autopilot cinematic: T+1500 auto-run, T+3500 auto-stage
+
+   What-If only — the If-What optimizer branch lives in SmbGrowthIfWhatView.
+
+   The model reads SMBGROWTH_CALIBRATION, whose field names mirror the rate
+   calibration so simulateOutcomes() forks mechanically; semantics are
+   re-labelled for growth: "incremental Yr-1 revenue", "cross-sell conversion"
+   (which RISES base→best), and offerCeilingBps is the INTRO-PRICING /
+   FEE-WAIVER DEPTH (bps) lever.
+   ========================================================================= */
+
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useAppShell } from "@/state/AppShell";
+import SimulationLoader from "@/components/loaders/SimulationLoader";
+import Icon from "@/components/Icon";
+import { ResultTileNII, ResultTileBars, ResultTileCohort } from "@/components/SimResultTiles";
+import RangeWithBubble from "@/components/RangeWithBubble";
+import { MOCK_EXPERIMENTS } from "@/workspaces/LearnWorkspace";
+import SmbGrowthIfWhatView from "@/workspaces/SmbGrowthIfWhatView";
+import {
+  SMBGROWTH_HYPOTHESIS_ID,
+  SMBGROWTH_HYPOTHESIS_TITLE,
+  SMBGROWTH_CALIBRATION,
+  SMBGROWTH_MICROSEGMENTS,
+  SMBGROWTH_SEGMENT_COLUMNS,
+  SMBGROWTH_CONFIG,
+} from "@/data/smbGrowthConfig";
+
+const PAGE_SUBTITLE = SMBGROWTH_HYPOTHESIS_TITLE;
+
+/* Twin's recommended SMB-growth / re-bundle levers — autopilot anchor + reset
+   target. Prefilled to test the re-bundle offer as written on the signal card.
+
+   What the policy IS (these are levers):
+     - Pre-approved limit ($K) the expansion offer carries
+     - Intro-pricing / fee-waiver depth (bps) · the headline offer lever
+     - Packaging tier · delivery channel
+
+   What goes elsewhere:
+     - Pilot duration / holdout % / auto-rollback → Deploy's RCT setup
+     - RM capacity, frequency, tone → operational/communications detail */
+const RECOMMENDED = {
+  minBalanceK:        75,
+  offerCeilingBps:    75,
+  offerTerm:          "pkg_bundled",
+  channels:           ["app", "banker", "rmcall"],   // multi-select
+  bankingServices:    [],                             // default off; turn on to layer expansion nudges
+  triggerWindowDays:  60,                             // expansion-signal window before the competitor finances it
+};
+
+/* ----------------------------------------------------------------------------
+   Expansion nudges the bank can attach to a re-bundle offer to deepen the
+   relationship and pull the operating flows back on-us. Each is a real
+   servicing / relationship action.
+---------------------------------------------------------------------------- */
+const BANKING_SERVICES = [
+  { id: "relationship_lock", label: "Primacy-rate lock",        sub: "Better bundle price conditional on bringing payroll / treasury on-us · re-bundles primacy" },
+  { id: "rate_alert",        label: "Expansion-review opt-in",  sub: "Proactively re-review the relationship when a new expansion signal fires" },
+  { id: "sweep_on_deposit",  label: "Sweep-on-deposit",         sub: "New operating deposits above the buffer auto-sweep into the bundled tier" },
+];
+
+/* ----------------------------------------------------------------------------
+   Packaging options · radio cards, single-select.
+   How the lead product is wrapped. factor scales conversion / incremental
+   revenue relative to the recommended bundled packaging.
+---------------------------------------------------------------------------- */
+const OFFER_PRODUCTS = [
+  { id: "pkg_alacarte", label: "Packaging · à la carte", sub: "Lead product only · lowest cost, weakest attach and conversion",          factor: 0.90 },
+  { id: "pkg_light",    label: "Packaging · light bundle", sub: "Lead + one attach · modest conversion lift, modest give-up",            factor: 0.96 },
+  { id: "pkg_bundled",  label: "Packaging · bundled",    sub: "Recommended · lead + operating flows attached · best conversion balance", factor: 1.00 },
+  { id: "pkg_intro",    label: "Packaging · intro-priced bundle", sub: "Bundle with an intro price · converts more, gives up more margin", factor: 1.05 },
+  { id: "pkg_full",     label: "Packaging · full primacy", sub: "Full Essentials stack · highest attach, approaches the margin line",     factor: 1.08 },
+];
+
+/* ----------------------------------------------------------------------------
+   Delivery channels · multi-select checkboxes.
+---------------------------------------------------------------------------- */
+const CHANNEL_OPTIONS = [
+  { id: "banker",  label: "Primary banker" },
+  { id: "app",     label: "In-app pre-approval" },
+  { id: "rmcall",  label: "RM call" },
+  { id: "email",   label: "Email + app" },
+];
+
+/* Pilot-design defaults used at staging time (Deploy owns these downstream;
+   here they just produce sensible simulation results). */
+const PILOT_DEFAULTS = {
+  pilotDuration: 8,
+  holdoutPct:    10,
+  rollbackOn:    true,
+};
+
+/* ----------------------------------------------------------------------------
+   simulateOutcomes — SMB-growth / re-bundle lever → outcome chain.
+
+   Anchors at recommended defaults (per SMBGROWTH_CALIBRATION):
+     - eligibleAfterGate = 35,500 accounts (excludes watch/hold)
+     - treatmentN/controlN = 34,560 / 3,840
+     - Incremental Yr-1 revenue = $31M (at +75 bps intro depth default)
+     - Cross-sell conversion: 8.4% (base) → 19.1% (with policy) → +10.7pp lift
+     - +$13M more revenue than a blanket bundle-discount
+     - Spread protected = $640K / yr
+     - Pricing-consistency margin = 0.92 (held by the price floor)
+
+   The model FLIPS the rate template's runoff direction: conversion RISES from
+   base toward the best-configuration ceiling as the offer strengthens.
+---------------------------------------------------------------------------- */
+function simulateOutcomes(opts) {
+  const C = SMBGROWTH_CALIBRATION;
+  const {
+    minBalanceK, offerCeilingBps, offerTerm,
+    channels, holdoutPct, pilotDuration,
+    cohortPresets,
+    bankingServices = [], triggerWindowDays = 60,
+  } = opts;
+
+  /* Multi-select cohort: sum the bases of the selected cohorts. Picking
+     "Full cohort" supersedes the others since it includes everyone. */
+  const COHORT_COUNTS = {
+    "full":               C.cohortTotal,
+    "rate-driven":        C.cohortTotal,        // expansion-ready eligible base — anchors the +$31M default
+    "mid-sensitive":      C.scalingMultisiteN,
+    "high-value":         C.equipmentN,
+    "relationship":       C.offUsFinancersN,
+    "multi-product":      12000,
+  };
+  const list = Array.isArray(cohortPresets) ? cohortPresets : [cohortPresets];
+  const presetBase = list.includes("full")
+    ? C.cohortTotal
+    : list.reduce((s, id) => s + (COHORT_COUNTS[id] || 0), 0) || C.eligibleAfterGate;
+
+  /* Eligibility scaling — a higher pre-approved limit threshold narrows the
+     qualifying pool. Cohort selection already encodes the expansion signals
+     upstream. */
+  const balanceFactor = Math.max(0.5, 1 - (minBalanceK - RECOMMENDED.minBalanceK) * 0.004);
+  const eligibleN = Math.round(presetBase * Math.max(0.4, Math.min(1.4, balanceFactor)));
+
+  /* Packaging-tier factor: pulled from the OFFER_PRODUCTS table so adding new
+     tiers doesn't require math updates here. A richer bundle drives more
+     conversion / incremental revenue. */
+  const termFactor = (OFFER_PRODUCTS.find((p) => p.id === offerTerm) || OFFER_PRODUCTS[0]).factor;
+
+  /* Treatment / control split. */
+  const treatmentN = Math.round(eligibleN * (1 - holdoutPct / 100));
+  const controlN   = eligibleN - treatmentN;
+
+  /* Channel reach factor — sum of per-channel weights, capped at 1.05 for
+     full multi-channel coverage. Primary banker carries the highest
+     per-account lift on large expansions; in-app scales broadly. */
+  const channelWeights = { banker: 0.42, app: 0.28, rmcall: 0.30, email: 0.20 };
+  const channelSum = (channels || []).reduce((s, c) => s + (channelWeights[c] || 0), 0);
+  const channelFactor = Math.max(0.45, Math.min(1.05, channelSum / 1.0));
+
+  /* Intro-pricing-depth scaling — incremental revenue scales roughly linearly
+     with offer attractiveness (relative to recommended +75bps depth). */
+  const ceilingFactor = offerCeilingBps / RECOMMENDED.offerCeilingBps;
+
+  /* Expansion-nudge factor — each attached nudge raises the conversion
+     mechanism. Full 3-nudge stack ≈ +60% effectiveness vs no nudges,
+     diminishing past 3. */
+  const servicesFactor = 1 + Math.min(0.6, bankingServices.length * 0.18);
+
+  /* Expansion-signal window factor — 60d is the sweet spot. Earlier and the
+     expansion signal hasn't formed; later and the competitor has already
+     financed the growth. */
+  const triggerFactor = 1 - Math.abs(triggerWindowDays - 60) / 120;
+
+  /* Per-treated incremental-revenue math — calibrated to hit anchor at
+     defaults (+$31M Yr-1). */
+  const retainedM = C.retainedDepositsAnnualM
+                  * (treatmentN / C.treatmentN)
+                  * channelFactor
+                  * Math.min(1.3, ceilingFactor)
+                  * termFactor
+                  * servicesFactor
+                  * triggerFactor;
+
+  /* Cross-sell conversion RISES from the base toward the best-configuration
+     ceiling as the offer strengthens. strengthFactor blends offer depth and
+     channel reach; conversion is clamped at the best-config ceiling. */
+  const strengthFactor = Math.max(
+    0,
+    Math.min(1, channelFactor * Math.min(1.2, ceilingFactor) * termFactor * servicesFactor * triggerFactor)
+  );
+  const conversionWithPolicy = Math.min(
+    C.runoffBau + (C.runoffWithPolicy - C.runoffBau) * strengthFactor,
+    C.runoffWithPolicy
+  );
+  const runoffWithPolicy   = conversionWithPolicy;
+  const runoffReductionPp  = conversionWithPolicy - C.runoffBau;   // conversion LIFT (+pp)
+
+  /* Spread protected scales linearly with incremental revenue. */
+  const spreadProtectedK = C.spreadProtectedK * (retainedM / C.retainedDepositsAnnualM);
+
+  /* Products-per-relationship (primacy) lift scales with conversion — more
+     accounts taking the lead product + bundle attach means deeper primacy. */
+  const productsPerRelLift = (C.productsPerRelLift || 0.4) * (retainedM / C.retainedDepositsAnnualM);
+
+  /* Intro-pricing give-up (margin cost) scales with offer depth. */
+  const offerCostM = C.offerCostM * ceilingFactor;
+  const netAnnualisedK = Math.round((spreadProtectedK * 1000 - offerCostM * 1e6) / 1000) + C.netAnnualisedK;
+
+  /* Pricing-consistency margin held by the price floor. */
+  const udaapMargin = C.udaapMargin;
+
+  /* Customer fatigue scales with treatment size + offer aggressiveness. */
+  const complaintsDelta = Math.round(
+    C.complaintsDelta * (treatmentN / C.treatmentN) * Math.min(1.4, ceilingFactor)
+  );
+
+  /* Primacy-attach recovery — secondary mechanism. Baseline +6pp; each
+     attached expansion nudge adds ~2pp because the nudge is the intervention
+     this KPI actually measures. */
+  const ddRecoveryPp = 6 + bankingServices.length * 2;
+
+  /* Profitability gates */
+  const profitabilityOk = netAnnualisedK > 0;
+  const udaapOk = udaapMargin >= C.udaapFloor;
+
+  return {
+    eligibleN, treatmentN, controlN,
+    retainedM, runoffBau: C.runoffBau, runoffWithPolicy, runoffReductionPp,
+    spreadProtectedK, offerCostM, netAnnualisedK, productsPerRelLift,
+    udaapMargin, udaapOk, profitabilityOk,
+    complaintsDelta, ddRecoveryPp,
+    pilotDuration,
+    cohortTotal: C.cohortTotal,
+  };
+}
+
+/* ----------------------------------------------------------------------------
+   PriorAnchorPill — reads MOCK_EXPERIMENTS and finds the most recent pilot
+   whose priorAnchorFor includes the current hypothesis. Surfaces the headline
+   model update.
+---------------------------------------------------------------------------- */
+function PriorAnchorPill({ hypothesisId }) {
+  if (!hypothesisId) return null;
+  const anchor = MOCK_EXPERIMENTS
+    .filter((e) => e.priorAnchorFor?.includes(hypothesisId) && e.modelUpdates?.length > 0)
+    .sort((a, b) => new Date(b.closedAt) - new Date(a.closedAt))[0];
+  if (!anchor) return null;
+  const headline = anchor.modelUpdates.find((u) => u.dir !== "flag") || anchor.modelUpdates[0];
+  return (
+    <div className="sim-prior-anchor">
+      <span className="sim-prior-anchor-pill">PRIOR · ANCHORED</span>
+      <span className="sim-prior-anchor-text">
+        Using updated priors from <b>{anchor.id}</b> · <code>{headline.driver}</code>{" "}
+        {headline.dir === "flag"
+          ? <> = <b>{String(headline.after)}</b></>
+          : <> {String(headline.before)} → <b>{String(headline.after)}</b> ({headline.dir === "up" ? "↑" : headline.dir === "down" ? "↓" : "+"})</>}
+      </span>
+      <span className="sim-prior-anchor-sub">
+        +{anchor.modelUpdates.length - 1} other update{anchor.modelUpdates.length - 1 === 1 ? "" : "s"} from this pilot · fidelity {anchor.fidelity.toFixed(2)} R²
+      </span>
+    </div>
+  );
+}
+
+/* ----------------------------------------------------------------------------
+   Verdict — SMB-growth-specific verdict callout.
+---------------------------------------------------------------------------- */
+function computeVerdict({ retainedOk, runoffOk, udaapOk, profitabilityOk }) {
+  if (retainedOk && runoffOk && udaapOk && profitabilityOk) return "proven";
+  if (retainedOk && runoffOk && (!udaapOk || !profitabilityOk)) return "mixed";
+  return "disproven";
+}
+
+function Verdict({ verdict }) {
+  if (verdict === "proven") {
+    return (
+      <div className="verdict-callout verdict-proven">
+        <span className="verdict-glyph"><Icon name="check" size={20} strokeWidth={2.5} /></span>
+        <div className="verdict-body">
+          <div className="verdict-title">SIMULATION SUPPORTS HYPOTHESIS</div>
+          <div className="verdict-sub">All growth KPIs hit · pricing-consistency margin held · margin floor clear</div>
+        </div>
+      </div>
+    );
+  }
+  if (verdict === "mixed") {
+    return (
+      <div className="verdict-callout verdict-mixed">
+        <span className="verdict-glyph"><Icon name="warn" size={20} /></span>
+        <div className="verdict-body">
+          <div className="verdict-title">PARTIAL SUPPORT · GUARDRAIL AT RISK</div>
+          <div className="verdict-sub">Incremental revenue in range · pricing-consistency margin held · margin floor uncertain</div>
+        </div>
+      </div>
+    );
+  }
+  return (
+    <div className="verdict-callout verdict-disproven">
+      <span className="verdict-glyph"><Icon name="x" size={20} strokeWidth={2.5} /></span>
+      <div className="verdict-body">
+        <div className="verdict-title">SIMULATION DOES NOT SUPPORT HYPOTHESIS</div>
+        <div className="verdict-sub">Incremental revenue below CI · or the offer buys conversion away below the price floor</div>
+      </div>
+    </div>
+  );
+}
+
+/* ----------------------------------------------------------------------------
+   LeverRow — same structure / CSS as the template.
+---------------------------------------------------------------------------- */
+function LeverRow({ label, caption, value, offDefault = false, children }) {
+  return (
+    <div className="lever-row">
+      <div className="lever-head">
+        <span className="lever-name">{label}</span>
+        {value != null && (
+          <span className={"lever-value" + (offDefault ? " off-default" : "")}>{value}</span>
+        )}
+      </div>
+      {caption && <div className="lever-caption">{caption}</div>}
+      <div className="lever-control">{children}</div>
+    </div>
+  );
+}
+
+function RangeScale({ marks }) {
+  return (
+    <div className="range-scale">{marks.map((m) => <span key={m}>{m}</span>)}</div>
+  );
+}
+
+/* ----------------------------------------------------------------------------
+   ProofKpi — same structure / CSS as the template.
+   Hit: "ok" | "warn" | "miss". DeltaTone: "good" | "warn" | "bad".
+---------------------------------------------------------------------------- */
+function ProofKpi({ label, value, valueCap, baseline, baselineCap, delta, deltaTone = "good", kind = "absolute", hit = "ok" }) {
+  const chipIcon = hit === "ok" ? "check" : hit === "warn" ? "warn" : "x";
+  const chipText = hit === "ok" ? "hit" : hit === "warn" ? "at risk" : "missed";
+  return (
+    <div className={"proof-kpi proof-kpi-" + hit}>
+      <div className="proof-kpi-h">
+        <span className="proof-kpi-l">{label}</span>
+        <span className="proof-kpi-chip">
+          <Icon name={chipIcon} size={10} strokeWidth={2.5} />
+          {chipText}
+        </span>
+      </div>
+      <div className="proof-kpi-v-row">
+        <span className="proof-kpi-v">{value}</span>
+        {valueCap && <span className="proof-kpi-v-cap">{valueCap}</span>}
+        {kind !== "incremental" && delta && (
+          <span className={"proof-kpi-delta-chip proof-kpi-delta-chip-" + deltaTone}>{delta}</span>
+        )}
+      </div>
+      <div className="proof-kpi-compare">
+        <span className="proof-kpi-compare-k">baseline</span>
+        <span className="proof-kpi-compare-v">{baseline}</span>
+        {baselineCap && <span className="proof-kpi-compare-cap">· {baselineCap}</span>}
+      </div>
+    </div>
+  );
+}
+
+/* ============================================================================
+   SmbGrowthSimulateView
+   ========================================================================= */
+export default function SmbGrowthSimulateView() {
+  const {
+    selectedHypothesisId, navigate: navWorkspace, stagePolicy, pushAgentEvent,
+    tuneMode, setTuneMode, explorationMode,
+    recordDecisionTrace, setIntermezzo,
+  } = useAppShell();
+
+  // If-What path: dispatch to the goal-driven optimizer view. The What-If
+  // lever workbench below is for free-form lever configuration; If-What
+  // asks "given this goal, what's the best policy in these ranges?"
+  if (explorationMode === "ifwhat") {
+    return <SmbGrowthIfWhatView />;
+  }
+
+  // Mode state machine
+  const [mode, setMode] = useState("config");          // 'config' | 'running' | 'results'
+  const isAutopilot = tuneMode === "autopilot";
+
+  // Hypothesis id — fall back to the recommended SMB-growth hypothesis if
+  // nothing was seeded.
+  const activeHypId = selectedHypothesisId || SMBGROWTH_HYPOTHESIS_ID;
+
+  // ---- Lever state ----
+  const [minBalanceK,       setMinBalanceK]       = useState(RECOMMENDED.minBalanceK);
+  const [offerCeilingBps,   setOfferCeilingBps]   = useState(RECOMMENDED.offerCeilingBps);
+  const [offerTerm,         setOfferTerm]         = useState(RECOMMENDED.offerTerm);
+  const [channels,          setChannels]          = useState(RECOMMENDED.channels);
+  const [cohortPresets,     setCohortPresets]     = useState(["full"]);
+  const [bankingServices,   setBankingServices]   = useState(RECOMMENDED.bankingServices);
+  const [triggerWindowDays, setTriggerWindowDays] = useState(RECOMMENDED.triggerWindowDays);
+  // Simulation duration — own section above the Run button. Default 8wk
+  // because the result tiles are calibrated against an 8-wk anchor.
+  const [simWeeks,          setSimWeeks]          = useState(PILOT_DEFAULTS.pilotDuration);
+
+  const toggleService = (id) => setBankingServices((cur) =>
+    cur.includes(id) ? cur.filter((s) => s !== id) : [...cur, id]
+  );
+
+  const toggleCohort = (id) => setCohortPresets((cur) =>
+    cur.includes(id) ? (cur.length === 1 ? cur : cur.filter((p) => p !== id)) : [...cur, id]
+  );
+
+  const toggleChannel = (id) => setChannels((cur) =>
+    cur.includes(id) ? cur.filter((c) => c !== id) : [...cur, id]
+  );
+
+  // ---- Off-default detection (for amber value-badge highlight) ----
+  const off = (k, v) => v !== RECOMMENDED[k];
+  const channelsOffDefault = channels.length !== RECOMMENDED.channels.length ||
+    channels.some((c) => !RECOMMENDED.channels.includes(c));
+
+  // ---- Live outcomes (config + results both read this) ----
+  // Pilot params come from PILOT_DEFAULTS — they're not levers in this
+  // workspace; Deploy owns them downstream when configuring the RCT.
+  const outcomes = useMemo(() => simulateOutcomes({
+    minBalanceK, offerCeilingBps, offerTerm, channels,
+    holdoutPct:    PILOT_DEFAULTS.holdoutPct,
+    pilotDuration: PILOT_DEFAULTS.pilotDuration,
+    cohortPresets,
+    bankingServices, triggerWindowDays,
+  }), [minBalanceK, offerCeilingBps, offerTerm,
+       channels, cohortPresets,
+       bankingServices, triggerWindowDays]);
+
+  // ---- Results snapshot (taken on Run, frozen until next Run) ----
+  const [results, setResults] = useState(null);
+
+  // ---- Run / Loader / Stage handlers ----
+  const onRun = useCallback(() => {
+    setMode("running");
+    pushAgentEvent({
+      kind: "info",
+      src: "Simulation",
+      text: tuneMode === "autopilot"
+        ? "Autopilot · running re-bundle cross-sell simulation"
+        : "What-If re-bundle cross-sell simulation kicked off · 8-week horizon",
+    });
+  }, [pushAgentEvent, tuneMode]);
+
+  const onLoaderComplete = useCallback(() => {
+    const o = outcomes;
+    const verdict = computeVerdict({
+      retainedOk:      o.retainedM >= 25,
+      runoffOk:        o.runoffReductionPp >= 0.05,
+      udaapOk:         o.udaapOk,
+      profitabilityOk: o.profitabilityOk,
+    });
+    setResults({
+      verdict,
+      playKey: Date.now(),
+      outcomes: o,
+    });
+    setMode("results");
+    pushAgentEvent({
+      kind: "good",
+      src: "Simulation",
+      text: `What-If converged · +$${o.retainedM.toFixed(0)}M incremental Yr-1 revenue · conversion ${(o.runoffWithPolicy * 100).toFixed(1)}%`,
+    });
+  }, [outcomes, pushAgentEvent]);
+
+  const onLoaderCancel = useCallback(() => setMode("config"), []);
+  const onBackToConfig = useCallback(() => { setResults(null); setMode("config"); }, []);
+
+  const onStage = useCallback(() => {
+    const stagedAt = Date.now();
+    const policy = {
+      id: `p-${stagedAt}`,
+      name: SMBGROWTH_HYPOTHESIS_TITLE,
+      hypothesis: activeHypId,
+      cluster: "smb-growth-expansion",
+      themeId: "smbgrowth",
+      experimentType: "smbgrowth",
+      minBalanceK, offerCeilingBps, offerTerm, channels,
+      cohortPresets,
+      bankingServices, triggerWindowDays,
+      // Pilot defaults — Deploy will own these when the user actually
+      // configures the RCT. Carried along so the staged-policy record
+      // is complete for downstream consumers.
+      pilotDuration: PILOT_DEFAULTS.pilotDuration,
+      holdoutPct:    PILOT_DEFAULTS.holdoutPct,
+      rollbackOn:    PILOT_DEFAULTS.rollbackOn,
+      stagedBy: tuneMode === "autopilot" ? "autopilot" : "user",
+      status: "pending",
+      stagedAt,
+    };
+    stagePolicy(policy);
+
+    if (tuneMode === "autopilot") {
+      recordDecisionTrace({
+        hypothesisId: activeHypId,
+        policyId: policy.id,
+        levers: {
+          minBalanceK, offerCeilingBps, offerTerm,
+          channels, cohortPresets,
+        },
+        reasoning: [
+          "Off-us financers + scaling multi-site — the expansion segments actively leaking credit and payments",
+          "+75 bps intro depth · bundled packaging — converts inside the price floor",
+          "Primary banker + in-app pre-approval + RM call — large expansions led by a banker, the rest scaled digitally",
+        ],
+        scenarios: 96400,
+      });
+    }
+
+    pushAgentEvent({
+      kind: "good",
+      src: "Simulation",
+      text: tuneMode === "autopilot"
+        ? "Autopilot staged SMB-growth re-bundle policy for Deploy"
+        : "SMB-growth re-bundle policy staged for Deploy",
+    });
+
+    setIntermezzo(tuneMode === "autopilot" ? "staged-autopilot" : "staged-guided");
+    setTimeout(() => {
+      setIntermezzo(null);
+      navWorkspace("deploy");
+    }, 1500);
+  }, [
+    activeHypId, minBalanceK, offerCeilingBps, offerTerm,
+    channels, cohortPresets,
+    bankingServices, triggerWindowDays,
+    tuneMode, stagePolicy, recordDecisionTrace, setIntermezzo,
+    pushAgentEvent, navWorkspace,
+  ]);
+
+  // ---- Autopilot cinematic ----
+  const hasAutoRunRef = useRef(false);
+  const hasAutoStagedRef = useRef(false);
+
+  useEffect(() => {
+    if (!isAutopilot || hasAutoRunRef.current || mode !== "config") return;
+    hasAutoRunRef.current = true;
+    const id = setTimeout(() => {
+      if (tuneMode === "autopilot" && mode === "config") onRun();
+    }, 1500);
+    return () => clearTimeout(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAutopilot]);
+
+  useEffect(() => {
+    if (!isAutopilot || mode !== "results" || hasAutoStagedRef.current) return;
+    hasAutoStagedRef.current = true;
+    const id = setTimeout(() => {
+      if (tuneMode === "autopilot") onStage();
+    }, 3500);
+    return () => clearTimeout(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mode, isAutopilot]);
+
+  // ---- Reset to Twin's recommendations ----
+  const resetToRecommended = useCallback(() => {
+    setMinBalanceK(RECOMMENDED.minBalanceK);
+    setOfferCeilingBps(RECOMMENDED.offerCeilingBps);
+    setOfferTerm(RECOMMENDED.offerTerm);
+    setChannels(RECOMMENDED.channels);
+    setCohortPresets(["full"]);
+    setBankingServices(RECOMMENDED.bankingServices);
+    setTriggerWindowDays(RECOMMENDED.triggerWindowDays);
+  }, []);
+
+  // ---- Cohort-preset label (joins multi-selection) ----
+  const COHORT_DISPLAY = {
+    "full": "Full cohort",
+    "rate-driven": "Expansion-ready",
+    "mid-sensitive": "Scaling multi-site",
+    "high-value": "Equipment-heavy",
+    "relationship": "Off-us financers",
+    "multi-product": "Multi-product",
+  };
+  const cohortLabel = cohortPresets.length === 1
+    ? COHORT_DISPLAY[cohortPresets[0]] || cohortPresets[0]
+    : `${cohortPresets.length} cohorts`;
+
+  // ============================================================
+  // RESULTS MODE — early return
+  // ============================================================
+  if (mode === "results" && results) {
+    return (
+      <ResultsReveal
+        results={results}
+        onReRun={onBackToConfig}
+        onStage={onStage}
+      />
+    );
+  }
+
+  // ============================================================
+  // CONFIG / RUNNING modes
+  // ============================================================
+  return (
+    <div className="sim-ws sim-ws-single test-journey" style={{ "--acc": SMBGROWTH_CONFIG.accent, "--acc-soft": SMBGROWTH_CONFIG.accent + "22" }}>
+      {/* ============ HEADER ============ */}
+      <header className="sim-ws-header">
+        <div className="test-journey-eyebrow">TESTING · {PAGE_SUBTITLE.toUpperCase()}</div>
+        <div className="sim-ws-header-row">
+          <h1 className="sim-ws-title">{PAGE_SUBTITLE}</h1>
+          <div className="sim-ws-header-meta">
+            <span className={"sim-mode-pill " + (isAutopilot ? "sim-mode-pill-auto" : "sim-mode-pill-guided")}>
+              <span className="sim-mode-pill-dot" />
+              {isAutopilot ? "AUTOPILOT" : "WHAT-IF"}
+            </span>
+            {isAutopilot ? (
+              <button className="tj-btn tj-btn-ghost" onClick={() => setTuneMode("guided")}>
+                Take over <Icon name="arrowRight" size={12} />
+              </button>
+            ) : (
+              <button className="tj-btn tj-btn-ghost" onClick={resetToRecommended}>
+                Reset to Twin's recommendations
+              </button>
+            )}
+          </div>
+        </div>
+        <p className="sim-ws-subline">
+          {outcomes.eligibleN.toLocaleString()} accounts actionable after the expansion-signal gate ·{" "}
+          stickiness threshold fixed at 0.55 · price floor enforced per account.
+        </p>
+      </header>
+
+      {/* ============ PRIOR ANCHOR PILL ============ */}
+      <PriorAnchorPill hypothesisId={activeHypId} />
+
+      {/* ============ STICKY CONFIG STRIP ============ */}
+      <div className="sim-config-strip">
+        <div className="sim-config-strip-cohort">
+          <div className="sim-config-strip-cohort-h">
+            <span className="sim-config-strip-l">Selected cohort</span>
+            <span className="sim-config-strip-chips">
+              <span className="sim-config-strip-chip">{cohortLabel.split(" · ")[0]}</span>
+            </span>
+          </div>
+          <div className="sim-config-strip-counts">
+            <span>{outcomes.eligibleN.toLocaleString()} actionable</span>
+            <span className="sim-config-strip-sep">·</span>
+            <span className="sim-config-strip-verified">
+              after expansion-signal gate ({Math.round((outcomes.eligibleN / outcomes.cohortTotal) * 100)}% of cohort)
+            </span>
+          </div>
+        </div>
+        <div className={"sim-config-strip-guard " + (outcomes.udaapOk ? "is-safe" : "is-breach")}>
+          <span className="sim-config-strip-guard-dot" />
+          <span className="sim-config-strip-guard-l">Pricing-consistency margin</span>
+          <span className="sim-config-strip-guard-v">{outcomes.udaapMargin.toFixed(2)}</span>
+          <span className="sim-config-strip-guard-vs">vs 0.85 floor</span>
+        </div>
+      </div>
+
+      {/* ============ LEVER PANEL · 6 sections ============ */}
+      <section className="panel sim-ws-col sim-ws-levers sim-ws-levers-full">
+
+        {/* Section 1 · CUSTOMER (violet accent) — Cohort preset + segment builder */}
+        <div className="sim-lever-section sim-lever-section-cohort">
+          <div className="sim-lever-section-band">
+            <div className="sim-lever-section-num">1</div>
+            <div className="sim-lever-section-name">CUSTOMER</div>
+            <div className="sim-lever-section-meta">Which businesses the re-bundle reaches — tick a scope or specific segments</div>
+          </div>
+          <div className="sim-lever-fieldset" style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 12 }}>
+            {[
+              { id: "full",            count: 38400, signature: "Select-all · every SMB in the expansion cohort." },
+              { id: "relationship",    count: 12400, signature: "New off-us card / acquirer change · credit leaving the relationship." },
+              { id: "mid-sensitive",   count:  9200, signature: "New location + rising recurring cost · growth-capital need." },
+              { id: "high-value",      count:  7600, signature: "Major asset purchase · ownership-financing fit." },
+            ].map((c) => {
+              const name = c.id === "full" ? "Full cohort"
+                         : c.id === "relationship" ? "Off-us financers"
+                         : c.id === "mid-sensitive" ? "Scaling multi-site"
+                         : "Equipment-heavy";
+              const isSelected = cohortPresets.includes(c.id);
+              return (
+                <label
+                  key={c.id}
+                  className={"sim-cohort-card" + (isSelected ? " is-on" : "")}
+                >
+                  <input
+                    type="checkbox"
+                    checked={isSelected}
+                    disabled={isAutopilot}
+                    onChange={() => toggleCohort(c.id)}
+                  />
+                  <div className="sim-cohort-card-h">
+                    <span className="sim-cohort-card-n">{name}</span>
+                  </div>
+                  <div className="sim-cohort-card-counts">
+                    <span><b>{(c.count / 1000).toFixed(0)}K</b> accounts</span>
+                  </div>
+                  <div className="sim-cohort-card-sig">{c.signature}</div>
+                </label>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Section 2 · ELIGIBILITY (violet accent) — Who in the cohort qualifies */}
+        <div className="sim-lever-section sim-lever-section-cohort">
+          <div className="sim-lever-section-band">
+            <div className="sim-lever-section-num">2</div>
+            <div className="sim-lever-section-name">ELIGIBILITY</div>
+            <div className="sim-lever-section-meta">Which accounts in the cohort qualify for the re-bundle offer</div>
+          </div>
+
+          <LeverRow
+            label="Pre-approved limit ($K)"
+            caption="The pre-approved credit / line limit the expansion offer carries. A higher limit narrows the qualifying pool to the accounts that can absorb it."
+            value={`$${minBalanceK}K`}
+            offDefault={off("minBalanceK", minBalanceK)}
+          >
+            <RangeWithBubble min={5} max={250} step={5} value={minBalanceK}
+              onChange={(e) => setMinBalanceK(+e.target.value)} disabled={isAutopilot}
+              formatter={(v) => `$${v}K`} />
+            <RangeScale marks={["$5K", "$75K", "$250K"]} />
+          </LeverRow>
+
+        </div>
+
+        {/* Section 3 · OFFER (amber accent) — What the offer is */}
+        <div className="sim-lever-section sim-lever-section-policy">
+          <div className="sim-lever-section-band">
+            <div className="sim-lever-section-num">3</div>
+            <div className="sim-lever-section-name">OFFER</div>
+            <div className="sim-lever-section-meta">What we put in front of the account</div>
+          </div>
+
+          <LeverRow
+            label="Intro pricing / fee-waiver depth (bps)"
+            caption="How deep the intro price / fee waiver runs on the re-bundle — converts more as it deepens, but gives up more margin."
+            value={`+${offerCeilingBps} bps`}
+            offDefault={off("offerCeilingBps", offerCeilingBps)}
+          >
+            <RangeWithBubble min={0} max={150} step={1} value={offerCeilingBps}
+              onChange={(e) => setOfferCeilingBps(+e.target.value)} disabled={isAutopilot}
+              formatter={(v) => `+${v} bps`} />
+            <RangeScale marks={["0", "+75", "+120", "+150"]} />
+          </LeverRow>
+
+          <LeverRow
+            label="Packaging"
+            caption="How the lead product is wrapped — à la carte, bundled, or intro-priced. A richer bundle converts more and attaches more downstream; it also gives up more margin."
+            value={(OFFER_PRODUCTS.find((p) => p.id === offerTerm) || OFFER_PRODUCTS[0]).label}
+            offDefault={off("offerTerm", offerTerm)}
+          >
+            <div className="iw-objectives">
+              {OFFER_PRODUCTS.map((p) => (
+                <label
+                  key={p.id}
+                  className={"iw-objective" + (offerTerm === p.id ? " is-selected" : "")}
+                >
+                  <input
+                    type="radio"
+                    name="smbgrowth-offer-packaging"
+                    value={p.id}
+                    checked={offerTerm === p.id}
+                    onChange={() => setOfferTerm(p.id)}
+                    disabled={isAutopilot}
+                  />
+                  <span className="iw-objective-body">
+                    <span className="iw-objective-l">
+                      {p.label}
+                    </span>
+                    <span className="iw-objective-d">{p.sub}</span>
+                  </span>
+                </label>
+              ))}
+            </div>
+          </LeverRow>
+        </div>
+
+        {/* Section 4 · EXPANSION NUDGES (green accent) — Relationship/servicing
+            actions we attach to a re-bundle to deepen the relationship and pull
+            the operating flows on-us. Each maps to a real servicing action. */}
+        <div className="sim-lever-section sim-lever-section-products">
+          <div className="sim-lever-section-band">
+            <div className="sim-lever-section-num">4</div>
+            <div className="sim-lever-section-name">EXPANSION NUDGES</div>
+            <div className="sim-lever-section-meta">Servicing and relationship actions we attach to pull the operating flows on-us</div>
+          </div>
+
+          <LeverRow
+            label="Nudge enrollment"
+            caption="Each nudge is a real servicing or relationship action — a primacy-rate lock, an expansion-review opt-in, or sweep-on-deposit. Multiple nudges compound but with diminishing returns past 3."
+            value={bankingServices.length === 0 ? "none selected" : `${bankingServices.length} of ${BANKING_SERVICES.length}`}
+            offDefault={bankingServices.length !== RECOMMENDED.bankingServices.length}
+          >
+            <div className="iw-objectives">
+              {BANKING_SERVICES.map((s) => {
+                const checked = bankingServices.includes(s.id);
+                return (
+                  <label
+                    key={s.id}
+                    className={"iw-objective" + (checked ? " is-selected" : "")}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={checked}
+                      onChange={() => toggleService(s.id)}
+                      disabled={isAutopilot}
+                    />
+                    <span className="iw-objective-body">
+                      <span className="iw-objective-l">{s.label}</span>
+                      <span className="iw-objective-d">{s.sub}</span>
+                    </span>
+                  </label>
+                );
+              })}
+            </div>
+          </LeverRow>
+
+          <LeverRow
+            label="Expansion-signal window"
+            caption="How many days of expansion signal before the competitor finances the growth to fire the offer. 60d is the sweet spot — earlier and the expansion signal hasn't formed; later and the credit has already gone off-us."
+            value={`${triggerWindowDays}d window`}
+            offDefault={triggerWindowDays !== RECOMMENDED.triggerWindowDays}
+          >
+            <RangeWithBubble
+              min={30} max={90} step={15} value={triggerWindowDays}
+              onChange={(e) => setTriggerWindowDays(+e.target.value)}
+              disabled={isAutopilot}
+              formatter={(v) => `${v}d window`}
+            />
+            <RangeScale marks={["30d", "60d", "90d"]} />
+          </LeverRow>
+        </div>
+
+        {/* Section 5 · CHANNEL (green accent) — How it reaches the account */}
+        <div className="sim-lever-section sim-lever-section-comms">
+          <div className="sim-lever-section-band">
+            <div className="sim-lever-section-num">5</div>
+            <div className="sim-lever-section-name">CHANNEL</div>
+            <div className="sim-lever-section-meta">How the re-bundle offer reaches the account - pick one or more</div>
+          </div>
+
+          <LeverRow
+            label="Delivery channels"
+            caption="Account hears about the offer via the channels you select. More channels means broader reach but more fatigue risk."
+            value={channels.length === 0 ? "none selected" : `${channels.length} selected`}
+            offDefault={channelsOffDefault}
+          >
+            <div className="lever-checks">
+              {CHANNEL_OPTIONS.map((c) => {
+                const checked = channels.includes(c.id);
+                return (
+                  <label key={c.id} className={"lever-check" + (checked ? " on" : "")}>
+                    <input
+                      type="checkbox"
+                      checked={checked}
+                      onChange={() => toggleChannel(c.id)}
+                      disabled={isAutopilot}
+                    />
+                    {c.label}
+                  </label>
+                );
+              })}
+            </div>
+          </LeverRow>
+        </div>
+
+        {/* Section 6 · SIMULATION DURATION — model horizon every result is
+            scored over; pilot RCT length lives in Deploy. */}
+        <div className="sim-lever-section">
+          <div className="sim-lever-section-band">
+            <div className="sim-lever-section-num">6</div>
+            <div className="sim-lever-section-name">SIMULATION DURATION</div>
+            <div className="sim-lever-section-meta">Model horizon the simulator runs over</div>
+          </div>
+
+          <LeverRow
+            label="Weeks"
+            caption="Time horizon the model runs over. The pilot RCT length is set separately in Deploy."
+            value={`${simWeeks} weeks`}
+            offDefault={simWeeks !== PILOT_DEFAULTS.pilotDuration}
+          >
+            <RangeWithBubble
+              min={4} max={12} step={2}
+              value={simWeeks}
+              onChange={(e) => setSimWeeks(+e.target.value)}
+              disabled={isAutopilot}
+              formatter={(v) => `${v} weeks`}
+            />
+            <RangeScale marks={["4w", "6w", "8w", "10w", "12w"]} />
+          </LeverRow>
+        </div>
+
+      </section>
+
+      {/* ============ RUN BUTTON · at the bottom, after all levers ============ */}
+      <div className="results-actions" style={{ justifyContent: "flex-end" }}>
+        <button
+          className="tj-btn tj-btn-primary tj-btn-lg sim-run-btn"
+          onClick={onRun}
+          disabled={mode === "running"}
+        >
+          <Icon name="play" size={14} />
+          {mode === "running" ? "Running…" : "Run Simulation"}
+        </button>
+      </div>
+
+      {/* ============ RUNNING OVERLAY ============ */}
+      {mode === "running" && (
+        <div className="sim-overlay" role="dialog" aria-modal="true" aria-label="Simulation running">
+          <div className="sim-overlay-backdrop" />
+          <div className="sim-overlay-card">
+            <SimulationLoader
+              variant="whatif"
+              includeDeepening={false}
+              onComplete={onLoaderComplete}
+              onCancel={onLoaderCancel}
+            />
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ============================================================================
+   ResultsReveal — verdict + 3 ProofKpi cards + 4 guardrail pills + 2×2 grid
+   WITH CHARTS + per-segment recommendation micro-segment table.
+
+   Same staged-reveal timing as the template: verdict @0, KPIs @200,
+   chart/tiles @600, micro-segments @900, actions @4400.
+   ========================================================================= */
+function ResultsReveal({ results, onReRun, onStage }) {
+  const { verdict, playKey, outcomes } = results;
+  const o = outcomes;
+  const [showVerdict, setShowVerdict] = useState(false);
+  const [showKpis,    setShowKpis]    = useState(false);
+  const [showChart,   setShowChart]   = useState(false);
+  const [showSegs,    setShowSegs]    = useState(false);
+  const [showActions, setShowActions] = useState(false);
+  const [progress,    setProgress]    = useState(0);
+  const timersRef = useRef([]);
+  const rafRef = useRef(null);
+
+  useEffect(() => {
+    setShowVerdict(false); setShowKpis(false); setShowChart(false); setShowSegs(false); setShowActions(false);
+    setProgress(0);
+    const t = (ms, fn) => { const id = setTimeout(fn, ms); timersRef.current.push(id); };
+    t(0,    () => setShowVerdict(true));
+    t(200,  () => setShowKpis(true));
+    t(600,  () => setShowChart(true));
+    t(900,  () => setShowSegs(true));
+    t(4400, () => setShowActions(true));
+    return () => {
+      timersRef.current.forEach(clearTimeout);
+      timersRef.current = [];
+      if (rafRef.current) cancelAnimationFrame(rafRef.current);
+    };
+  }, [playKey]);
+
+  // Animate the result-tile progress (0 → 1) over 3s once the chart panel is in.
+  useEffect(() => {
+    if (!showChart) return;
+    let t0 = null;
+    const dur = 3000;
+    const ease = (p) => p < 0.5 ? 2 * p * p : 1 - Math.pow(-2 * p + 2, 2) / 2;
+    const frame = (now) => {
+      if (t0 === null) t0 = now;
+      const p = Math.min(1, (now - t0) / dur);
+      setProgress(ease(p));
+      if (p < 1) rafRef.current = requestAnimationFrame(frame);
+    };
+    rafRef.current = requestAnimationFrame(frame);
+    return () => { if (rafRef.current) cancelAnimationFrame(rafRef.current); };
+  }, [showChart]);
+
+  // ── Derived tile inputs ──────────────────────────────────────────────────
+  // Revenue-shaped 8-week curve for the area chart (reuses ResultTileNII which
+  // reads `outcomes.NII_8wk_M` and synthesises a CI cone). We map "incremental
+  // revenue accumulated over the 8-week horizon" into the same field —
+  // ~8/52 of annual.
+  const tileOutcomes = { NII_8wk_M: o.retainedM * (8 / 52) };
+
+  // For the cross-sell-conversion bar: base vs the achieved conversion (pp).
+  const conversionBasePct   = o.runoffBau * 100;
+  const conversionPolicyPct = o.runoffWithPolicy * 100;
+  // For primacy-attach bar: pp attached per week (lags 3 wks then ramps).
+  const ddRecPerWk          = o.ddRecoveryPp / 8;
+
+  // Cohort donut segments by expansion archetype (4 to match the template; sums to 100)
+  const cohortSegments = [
+    { id: "hi",  label: "Off-us financers",          pct: 38, color: "var(--acc, #4fd1c5)" },
+    { id: "mid", label: "Scaling multi-site",        pct: 33, color: "var(--violet, #b794f6)" },
+    { id: "anc", label: "Equipment-heavy",           pct: 21, color: "var(--cyan, #4fd1c5)" },
+    { id: "ws",  label: "Watch / hold (no offer)",   pct:  8, color: "var(--ink-3)" },
+  ];
+
+  return (
+    <div className="results-content">
+      {/* HEADER — Verdict + Proof KPIs together = "the answer" */}
+      <section className={`panel results-header reveal ${showVerdict ? "in" : ""}`}>
+        <Verdict verdict={verdict} />
+        <div className={`proof-kpis reveal ${showKpis ? "in" : ""}`}>
+          <div className="proof-kpis-h">
+            <span className="stag">PROOF KPIs</span>
+            <span className="stt">Simulated outcomes vs pre-policy baseline (status quo)</span>
+          </div>
+          <div className="proof-kpis-grid">
+            <ProofKpi
+              label="Incremental Yr-1 revenue"
+              value={`+$${o.retainedM.toFixed(0)}M`}
+              valueCap="/ yr"
+              baseline="$0"
+              baselineCap="credit + payments leave the relationship"
+              delta={`+$${o.retainedM.toFixed(0)}M`}
+              deltaTone="good"
+              hit={o.retainedM >= 25 ? "ok" : o.retainedM >= 15 ? "warn" : "miss"}
+            />
+            <ProofKpi
+              label="Cross-sell conversion"
+              value={`${(o.runoffWithPolicy * 100).toFixed(1)}%`}
+              valueCap="with policy"
+              baseline={`${(o.runoffBau * 100).toFixed(1)}%`}
+              baselineCap="today, no offer"
+              delta={`+${(o.runoffReductionPp * 100).toFixed(1)}pp`}
+              deltaTone="good"
+              hit={o.runoffReductionPp >= 0.05 ? "ok" : "warn"}
+            />
+            <ProofKpi
+              label="Products per relationship"
+              value={`+${o.productsPerRelLift.toFixed(1)}`}
+              valueCap="primacy lift"
+              baseline="1.7"
+              baselineCap="today"
+              delta={`+${o.productsPerRelLift.toFixed(1)}`}
+              deltaTone="good"
+              hit="ok"
+            />
+          </div>
+        </div>
+      </section>
+
+      {/* GUARDRAILS — constraint pills, separate from outcome KPIs */}
+      <section className={`panel reveal ${showKpis ? "in" : ""}`}>
+        <div className="sim-guardrails-strip">
+          <div className="sim-guardrails-h">
+            <Icon name="check" size={12} strokeWidth={2.5} />
+            <span>Guardrails · all passed</span>
+          </div>
+          <div className="sim-guardrails-pills">
+            <span className={"sim-guardrail-pill " + (o.profitabilityOk ? "sim-guardrail-pass" : "sim-guardrail-fail")}>
+              <span className="sim-guardrail-pill-dot" />
+              <span className="sim-guardrail-pill-l">Price floor</span>
+              <span className="sim-guardrail-pill-d">net annualised +${(o.netAnnualisedK / 1000).toFixed(1)}M</span>
+            </span>
+            <span className={"sim-guardrail-pill " + (o.udaapOk ? "sim-guardrail-pass" : "sim-guardrail-fail")}>
+              <span className="sim-guardrail-pill-dot" />
+              <span className="sim-guardrail-pill-l">Pricing consistency</span>
+              <span className="sim-guardrail-pill-d">margin {o.udaapMargin.toFixed(2)} vs 0.85 floor</span>
+            </span>
+            <span className="sim-guardrail-pill sim-guardrail-pass">
+              <span className="sim-guardrail-pill-dot" />
+              <span className="sim-guardrail-pill-l">Credit-risk limit · enforced</span>
+              <span className="sim-guardrail-pill-d">pre-approvals within risk</span>
+            </span>
+            <span className="sim-guardrail-pill sim-guardrail-pass">
+              <span className="sim-guardrail-pill-dot" />
+              <span className="sim-guardrail-pill-l">Model risk · approved</span>
+              <span className="sim-guardrail-pill-d">conversion model stable</span>
+            </span>
+          </div>
+        </div>
+      </section>
+
+      {/* SIMULATED OUTCOMES · 2×2 grid — SVG charts */}
+      <section className={`panel reveal ${showChart ? "in" : ""}`}>
+        <div className="sim-result-grid">
+          <ResultTileNII
+            outcomes={tileOutcomes}
+            progress={progress}
+            title="Incremental revenue accumulation"
+            subhead="cumulative over 8-wk pilot · vs $0 baseline (credit + payments leave)"
+            insight="Most conversion lands inside the first 4 weeks — accounts reached early, before the competitor finances the expansion, take the re-bundle. Extending the pilot adds little new revenue."
+          />
+          <ResultTileBars
+            title="Cross-sell conversion: base vs best"
+            subhead={`rises from ${(o.runoffBau*100).toFixed(1)}% base to ${(o.runoffWithPolicy*100).toFixed(1)}% with policy`}
+            steady={conversionPolicyPct / 8}
+            baselinePerWk={conversionBasePct / 8}
+            progress={progress}
+            format={(n) => `${n.toFixed(2)}pp`}
+            rampWeeks={2}
+            seed={11}
+            numbers={[
+              { k: "base conversion (do-nothing)", v: `${(o.runoffBau * 100).toFixed(1)}%` },
+              { k: "achieved conversion (policy)", v: `${(o.runoffWithPolicy * 100).toFixed(1)}%` },
+              { k: "8-wk incremental revenue",     v: `+$${o.retainedM.toFixed(0)}M` },
+            ]}
+            insight="The first two weeks lag — accounts need the pre-approved offer to land before conversion lifts. Full effect from week 3."
+            accent="var(--acc, #4fd1c5)"
+          />
+          <ResultTileBars
+            title="Primacy attach on-us / wk"
+            subhead="operating flows pulled on-us by the re-bundle attach"
+            steady={ddRecPerWk}
+            baselinePerWk={0}
+            progress={progress}
+            format={(n) => `${n.toFixed(2)}pp`}
+            rampWeeks={4}
+            seed={23}
+            numbers={[
+              { k: "steady rate / wk",      v: `${ddRecPerWk.toFixed(2)}pp` },
+              { k: "8-wk total",            v: `+${o.ddRecoveryPp}pp` },
+              { k: "products / relationship", v: `+${o.productsPerRelLift.toFixed(1)}` },
+            ]}
+            insight="Attached flows lag the offer by ~3 weeks — accounts move payroll and treasury on-us once the bundle is set up. Concentrated in weeks 6–8."
+            accent="var(--violet, #b794f6)"
+          />
+          <ResultTileCohort
+            segments={cohortSegments}
+            treatedN={o.treatmentN}
+            caption={`${cohortSegments[0].label} + ${cohortSegments[1].label} account for ${cohortSegments[0].pct + cohortSegments[1].pct}% · the two largest expansion archetypes`}
+            insight="Most of the value comes from the off-us financers segment — the slice the conversion model prices most precisely."
+          />
+        </div>
+      </section>
+
+      {/* PER-SEGMENT RECOMMENDATION · micro-segment table grafted after the
+          charts. Reuses the b2b-segtable / b2b-segrow / b2b-segcard JSX from
+          MicroSegmentResults (sans its headline, which the verdict + proof
+          KPIs above already cover). */}
+      <section className={`panel reveal ${showSegs ? "in" : ""}`}>
+        <MicroSegmentTable
+          segmentColumns={SMBGROWTH_SEGMENT_COLUMNS}
+          microSegments={SMBGROWTH_MICROSEGMENTS}
+        />
+      </section>
+
+      {/* ACTIONS */}
+      <div className={`results-actions reveal ${showActions ? "in" : ""}`}>
+        <button className="tj-btn tj-btn-ghost" onClick={onReRun}>
+          <Icon name="arrowLeft" size={14} /> Tune levers and re-run
+        </button>
+        <button className="tj-btn tj-btn-primary tj-btn-stage" onClick={onStage}>
+          <Icon name="upload" size={14} /> Stage for Deploy
+        </button>
+      </div>
+    </div>
+  );
+}
+
+/* ============================================================================
+   MicroSegmentTable — the table + per-segment card from MicroSegmentResults,
+   lifted verbatim (minus the headline section, which would require cfg.headline
+   the verdict/proof-KPIs above already provide). 5 segments incl. Watch / Hold
+   and Already-gone / Blocked, with the conv-vs-base handling preserved.
+   ========================================================================= */
+function MicroSegmentTable({ segmentColumns, microSegments }) {
+  const firstGo = microSegments.find((s) => s.tone === "go") || microSegments[0];
+  const [selId, setSelId] = useState(firstGo ? firstGo.id : null);
+  const toggle = (id) => setSelId((cur) => (cur === id ? null : id));
+  const selected = microSegments.find((s) => s.id === selId) || null;
+
+  const renderCell = (seg, col) => {
+    const val = seg[col.id];
+
+    if (col.id === "conv") {
+      if (seg.convBase != null) {
+        return (
+          <span className="b2b-seg-cell">
+            <span className="b2b-seg-conv">{seg.conv + "%"}</span>{" "}
+            <span className="b2b-seg-conv-base">{"vs " + seg.convBase + "%"}</span>
+          </span>
+        );
+      }
+      if (val === "—" || val == null) {
+        if (seg.tone === "hold") return <span className="b2b-seg-tag hold">Hold</span>;
+        if (seg.tone === "blocked") return <span className="b2b-seg-tag blocked">Blocked</span>;
+        return <span className="b2b-seg-cell">—</span>;
+      }
+      return <span className="b2b-seg-conv">{val}</span>;
+    }
+
+    if ((val === "—" || val == null) && col.id === segmentColumns[0].id) {
+      if (seg.tone === "hold") return <span className="b2b-seg-tag hold">Hold</span>;
+      if (seg.tone === "blocked") return <span className="b2b-seg-tag blocked">Blocked</span>;
+    }
+
+    return <span className="b2b-seg-cell">{val == null ? "—" : val}</span>;
+  };
+
+  return (
+    <section className="aw-chapter">
+      <div className="aw-chapter-h">
+        <div className="aw-chapter-accent" />
+        <div className="aw-chapter-text">
+          <div className="aw-chapter-title">
+            Per-segment recommendation · one cohort, many right answers
+          </div>
+          <div className="aw-chapter-sub">
+            go / hold / blocked · click a row for the per-segment policy
+          </div>
+        </div>
+        <div className="aw-chapter-meta-row">
+          <span className="aw-chapter-meta">{microSegments.length} segments</span>
+        </div>
+      </div>
+
+      <div className="b2b-segtable">
+        <div className="b2b-seghead">
+          <span>Micro-segment</span>
+          {segmentColumns.map((col) => (
+            <span key={col.id}>{col.label}</span>
+          ))}
+        </div>
+        {microSegments.map((seg) => (
+          <div
+            key={seg.id}
+            className={"b2b-segrow " + seg.tone + (selId === seg.id ? " sel" : "")}
+            onClick={() => toggle(seg.id)}
+          >
+            <div>
+              <span className="b2b-seg-name">{seg.name}</span>{" "}
+              <span className="b2b-seg-n">{"~" + seg.n.toLocaleString()}</span>
+              <div className="b2b-seg-sig">{seg.signals}</div>
+            </div>
+            {segmentColumns.map((col) => (
+              <div key={col.id}>{renderCell(seg, col)}</div>
+            ))}
+          </div>
+        ))}
+      </div>
+
+      {selected && (
+        <div className="b2b-segcard">
+          <div className="b2b-segcard-h">
+            <span className="b2b-segcard-name">{selected.name}</span>
+            {selected.tone === "hold" && <span className="b2b-seg-tag hold">Hold</span>}
+            {selected.tone === "blocked" && <span className="b2b-seg-tag blocked">Blocked</span>}
+          </div>
+          <div className="b2b-segcard-grid">
+            <div className="b2b-segcard-row">
+              <span className="b2b-segcard-k proof-kpi-l">Detected need</span>
+              <span className="b2b-segcard-v">{selected.need}</span>
+            </div>
+            <div className="b2b-segcard-row">
+              <span className="b2b-segcard-k proof-kpi-l">Recommended</span>
+              <span className="b2b-segcard-v">
+                {selected.product}
+                {selected.rate ? " · " + selected.rate : ""}
+              </span>
+            </div>
+            <div className="b2b-segcard-row">
+              <span className="b2b-segcard-k proof-kpi-l">Channel</span>
+              <span className="b2b-segcard-v">{selected.channel}</span>
+            </div>
+            <div className="b2b-segcard-row">
+              <span className="b2b-segcard-k proof-kpi-l">Cost to serve</span>
+              <span className="b2b-segcard-v">{selected.cost}</span>
+            </div>
+            <div className="b2b-segcard-row">
+              <span className="b2b-segcard-k proof-kpi-l">Predicted KPI · confidence</span>
+              <span className="b2b-segcard-v">{selected.confidence}</span>
+            </div>
+            <div className="b2b-segcard-cf">
+              {"Counterfactual (do-nothing): " +
+                (selected.convBase != null
+                  ? selected.convBase +
+                    "% base conversion — lift shown is net, not gross."
+                  : "shown beside each figure so the lift is real, not gross.")}
+            </div>
+          </div>
+        </div>
+      )}
+    </section>
+  );
+}

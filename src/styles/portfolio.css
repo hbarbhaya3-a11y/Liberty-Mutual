@@ -1,0 +1,765 @@
+/* ============================================================================
+   Portfolio table — shared CSS for the Deploy and Learn workspaces. Both
+   surface a portfolio of records (staged policies / completed experiments)
+   with filter chips up top, a flat table beneath, and inline expansion
+   showing detail underneath the clicked row.
+   ========================================================================= */
+
+.portfolio-page {
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-1);
+  overflow: hidden;
+}
+html.theme-light .portfolio-page { background: #ffffff; }
+
+/* HEADER */
+.portfolio-header {
+  flex: 0 0 auto;
+  padding: 14px 22px 12px;
+  border-bottom: 1px solid var(--hair);
+  background: var(--bg-1);
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 18px;
+  align-items: end;
+}
+html.theme-light .portfolio-header { background: #ffffff; border-bottom-color: #e2e8f0; }
+.portfolio-header-title { min-width: 0; }
+
+.portfolio-header-counts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+}
+.portfolio-chip {
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--bg-2);
+  border: 1px solid var(--hair);
+  border-radius: 6px;
+  padding: 5px 10px;
+  cursor: pointer;
+  font-family: var(--ui);
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--ink-2);
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+html.theme-light .portfolio-chip { background: #f1f5f9; border-color: #e2e8f0; }
+.portfolio-chip:hover { color: var(--ink); border-color: var(--ink-3); }
+.portfolio-chip.is-active {
+  background: var(--panel);
+  color: var(--ink);
+  border-color: var(--ink-3);
+}
+html.theme-light .portfolio-chip.is-active {
+  background: #ffffff;
+  border-color: var(--ink-3);
+}
+.portfolio-chip-n {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  font-weight: 800;
+  color: var(--ink-3);
+  background: var(--bg-1);
+  border-radius: 4px;
+  padding: 1px 5px;
+  min-width: 22px;
+  text-align: center;
+}
+html.theme-light .portfolio-chip-n { background: #ffffff; }
+.portfolio-chip.is-active .portfolio-chip-n { color: var(--ink); }
+
+/* BODY (scrolling region) */
+.portfolio-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 14px 22px 32px;
+}
+
+/* TABLE */
+.portfolio-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12.5px;
+}
+.portfolio-table thead {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: var(--bg-1);
+}
+html.theme-light .portfolio-table thead { background: #ffffff; }
+.portfolio-table th {
+  font-family: var(--mono);
+  font-size: 9.5px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-4);
+  text-align: left;
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--hair);
+}
+.portfolio-table td {
+  padding: 11px 10px;
+  border-bottom: 1px solid var(--hair);
+  vertical-align: middle;
+  color: var(--ink-2);
+}
+.pt-col-rank { width: 32px; }
+.pt-col-date { width: 80px; white-space: nowrap; }
+.pt-col-chev { width: 22px; text-align: right; color: var(--ink-3); }
+.pt-col-chev .icon { display: inline-block; }
+
+.pt-row {
+  cursor: pointer;
+  transition: background 0.12s;
+}
+.pt-row:hover {
+  background: var(--bg-2);
+}
+html.theme-light .pt-row:hover { background: #f8fafc; }
+.pt-row.pt-row-open {
+  background: var(--bg-2);
+}
+html.theme-light .pt-row.pt-row-open { background: #f1f5f9; }
+.pt-row.pt-row-open td { border-bottom-color: transparent; }
+
+.pt-policy-name {
+  font-weight: 600;
+  color: var(--ink);
+}
+
+/* ============================================================================
+   LIVE indicator — shows in the portfolio row when an experiment is in
+   its live-pilot stage. A pulsing red dot to the left of the policy name
+   + a small "LIVE" tag to the right. Visible without expanding the row,
+   so the user can scan the portfolio and immediately see what's running.
+   ========================================================================= */
+.pt-live-dot {
+  display: inline-block;
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: #ef4444;
+  margin-right: 8px;
+  animation: pt-live-pulse 1.4s ease-in-out infinite;
+  box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.55);
+  vertical-align: middle;
+}
+@keyframes pt-live-pulse {
+  0% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.55);
+  }
+  70% {
+    transform: scale(1.15);
+    box-shadow: 0 0 0 6px rgba(239, 68, 68, 0);
+  }
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0);
+  }
+}
+.pt-live-tag {
+  display: inline-flex;
+  align-items: center;
+  margin-left: 8px;
+  font-family: var(--mono);
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  padding: 1px 6px;
+  border-radius: 3px;
+  background: rgba(239, 68, 68, 0.14);
+  color: #ef4444;
+  border: 1px solid rgba(239, 68, 68, 0.30);
+  vertical-align: middle;
+}
+html.theme-light .pt-live-tag {
+  background: rgba(185, 28, 28, 0.10);
+  color: #b91c1c;
+  border-color: rgba(185, 28, 28, 0.25);
+}
+
+/* Subtle row background for live experiments (very low-key — the dot/tag
+   carry the signal; the row tint just helps scanning). */
+.pt-row.pt-row-live { background: rgba(239, 68, 68, 0.018); }
+html.theme-light .pt-row.pt-row-live { background: rgba(185, 28, 28, 0.014); }
+.pt-row.pt-row-live:hover { background: rgba(239, 68, 68, 0.05); }
+html.theme-light .pt-row.pt-row-live:hover { background: rgba(185, 28, 28, 0.04); }
+
+/* "JUST STAGED" — appears next to user-staged rows that just landed from
+   Simulate. Different colour from LIVE so the two signals don't compete. */
+.pt-new-tag {
+  display: inline-flex;
+  align-items: center;
+  margin-left: 8px;
+  font-family: var(--mono);
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  padding: 1px 6px;
+  border-radius: 3px;
+  background: rgba(91, 157, 255, 0.16);
+  color: var(--acq, #5b9dff);
+  border: 1px solid rgba(91, 157, 255, 0.32);
+  vertical-align: middle;
+  animation: pt-new-pulse 2s ease-in-out infinite;
+}
+html.theme-light .pt-new-tag {
+  background: rgba(37, 99, 235, 0.10);
+  color: var(--acq, #2563eb);
+  border-color: rgba(37, 99, 235, 0.25);
+}
+@keyframes pt-new-pulse {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0.65; }
+}
+.pt-row.pt-row-just-staged { background: rgba(91, 157, 255, 0.025); }
+html.theme-light .pt-row.pt-row-just-staged { background: rgba(37, 99, 235, 0.020); }
+
+/* Completion state lives in the stage column (Completed · full duration
+   OR Completed · early stop, stat-sig) — no separate row badge needed. */
+.pt-hyp, .pt-theme {
+  font-family: var(--mono);
+  font-size: 11.5px;
+  font-feature-settings: "tnum";
+}
+
+/* Stage chip */
+.pt-stage {
+  display: inline-flex;
+  align-items: center;
+  font-family: var(--mono);
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  padding: 3px 8px;
+  border-radius: 5px;
+  white-space: nowrap;
+}
+.pt-stage-wk { color: var(--ink-3); font-weight: 500; }
+.pt-stage-neutral {
+  background: var(--bg-2);
+  color: var(--ink-2);
+  border: 1px solid var(--hair);
+}
+html.theme-light .pt-stage-neutral { background: #f1f5f9; border-color: #e2e8f0; }
+.pt-stage-amber {
+  background: rgba(255, 177, 90, 0.14);
+  color: var(--acc, #ffb15a);
+  border: 1px solid rgba(255, 177, 90, 0.35);
+}
+html.theme-light .pt-stage-amber {
+  background: rgba(180, 83, 9, 0.10);
+  color: var(--acc, #b45309);
+  border-color: rgba(180, 83, 9, 0.25);
+}
+.pt-stage-blue {
+  background: rgba(91, 157, 255, 0.14);
+  color: var(--acq, #5b9dff);
+  border: 1px solid rgba(91, 157, 255, 0.35);
+}
+html.theme-light .pt-stage-blue {
+  background: rgba(37, 99, 235, 0.10);
+  color: var(--acq, #2563eb);
+  border-color: rgba(37, 99, 235, 0.25);
+}
+.pt-stage-green {
+  background: rgba(66, 224, 139, 0.14);
+  color: var(--green, #42e08b);
+  border: 1px solid rgba(66, 224, 139, 0.35);
+}
+html.theme-light .pt-stage-green {
+  background: rgba(21, 128, 61, 0.10);
+  color: var(--green, #15803d);
+  border-color: rgba(21, 128, 61, 0.25);
+}
+.pt-stage-muted {
+  background: transparent;
+  color: var(--ink-4);
+  border: 1px solid var(--hair);
+}
+
+/* Staged-by chip — small inline badge */
+.pt-stagedby {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  padding: 2px 7px;
+  border-radius: 4px;
+}
+.pt-stagedby-ap {
+  background: rgba(183, 148, 246, 0.14);
+  color: var(--violet, #b794f6);
+  border: 1px solid rgba(183, 148, 246, 0.30);
+}
+html.theme-light .pt-stagedby-ap {
+  background: rgba(124, 58, 237, 0.08);
+  color: var(--violet, #7c3aed);
+  border-color: rgba(124, 58, 237, 0.25);
+}
+.pt-stagedby-user {
+  background: var(--bg-2);
+  color: var(--ink-2);
+  border: 1px solid var(--hair);
+}
+html.theme-light .pt-stagedby-user { background: #f1f5f9; border-color: #e2e8f0; }
+
+/* INLINE EXPANSION */
+.pt-row-expand td {
+  padding: 0;
+  background: var(--bg-2);
+  border-bottom: 1px solid var(--hair);
+}
+html.theme-light .pt-row-expand td { background: #f8fafc; }
+.portfolio-expand {
+  padding: 14px 18px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.portfolio-expand-blurb {
+  font-size: 12.5px;
+  color: var(--ink-2);
+  line-height: 1.5;
+  max-width: 720px;
+}
+
+/* Inline review-stage subs (for user-staged policies only) */
+.portfolio-subs {
+  display: flex;
+  gap: 4px;
+  border-bottom: 1px solid var(--hair);
+}
+.portfolio-sub {
+  appearance: none;
+  background: transparent;
+  border: 0;
+  padding: 8px 14px;
+  font-family: var(--ui);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ink-3);
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+}
+.portfolio-sub:hover { color: var(--ink); }
+.portfolio-sub.is-active {
+  color: var(--ink);
+  border-bottom-color: var(--acc, #ffb15a);
+}
+html.theme-light .portfolio-sub.is-active { border-bottom-color: var(--acc, #b45309); }
+.portfolio-sub-body { padding-top: 8px; }
+
+.portfolio-expand-actions {
+  display: flex;
+  justify-content: flex-end;
+  padding-top: 6px;
+  border-top: 1px solid var(--hair);
+}
+.portfolio-remove {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: transparent;
+  border: 1px solid var(--hair);
+  border-radius: 6px;
+  padding: 5px 10px;
+  font-size: 11.5px;
+  color: var(--ink-3);
+  cursor: pointer;
+}
+.portfolio-remove:hover {
+  color: var(--red, #ef4444);
+  border-color: rgba(239, 68, 68, 0.40);
+}
+.portfolio-remove .icon { display: block; }
+
+/* Historical-row detail block (no review tabs) */
+.portfolio-hist {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  background: var(--panel);
+  border: 1px solid var(--hair);
+  border-radius: 8px;
+  padding: 12px 14px;
+}
+html.theme-light .portfolio-hist { background: #ffffff; border-color: #e2e8f0; }
+.portfolio-hist-row {
+  display: grid;
+  grid-template-columns: 140px 1fr;
+  gap: 10px;
+  font-size: 12px;
+  padding: 4px 0;
+  border-bottom: 1px dotted var(--hair);
+}
+.portfolio-hist-row:last-child { border-bottom: 0; }
+.portfolio-hist-k {
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+.portfolio-hist-v {
+  color: var(--ink);
+  line-height: 1.5;
+}
+
+.portfolio-empty {
+  padding: 40px 24px;
+  text-align: center;
+  color: var(--ink-3);
+  font-size: 12.5px;
+}
+
+/* ============================================================================
+   LEARN-SPECIFIC additions (aggregate header strip)
+   ========================================================================== */
+
+.portfolio-aggregate {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1px;
+  background: var(--hair);
+  border: 1px solid var(--hair);
+  border-radius: 8px;
+  overflow: hidden;
+  margin-bottom: 14px;
+}
+@media (max-width: 720px) {
+  .portfolio-aggregate { grid-template-columns: 1fr 1fr; }
+}
+.portfolio-agg-cell {
+  background: var(--panel);
+  padding: 12px 14px 13px;
+}
+html.theme-light .portfolio-agg-cell { background: #ffffff; }
+.portfolio-agg-k {
+  font-family: var(--mono);
+  font-size: 9.5px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+.portfolio-agg-v {
+  font-family: var(--mono);
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--ink);
+  font-feature-settings: "tnum";
+  letter-spacing: -0.01em;
+  line-height: 1.1;
+  margin-top: 4px;
+}
+.portfolio-agg-s {
+  font-size: 11px;
+  color: var(--ink-4);
+  margin-top: 3px;
+}
+
+/* Learn: fidelity bar inside each expanded row */
+.learn-fidelity {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background: var(--panel);
+  border: 1px solid var(--hair);
+  border-radius: 8px;
+  padding: 12px 14px;
+}
+html.theme-light .learn-fidelity { background: #ffffff; border-color: #e2e8f0; }
+.learn-fidelity-h {
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.18em;
+  color: var(--ink-2);
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--hair);
+}
+.learn-fidelity-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px 18px;
+}
+@media (max-width: 700px) {
+  .learn-fidelity-grid { grid-template-columns: 1fr; }
+}
+.learn-fidelity-row {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  gap: 12px;
+  align-items: baseline;
+  padding: 5px 0;
+  border-bottom: 1px dotted var(--hair);
+  font-size: 12px;
+}
+.learn-fidelity-row:last-child { border-bottom: 0; }
+.learn-fidelity-k {
+  color: var(--ink-2);
+}
+.learn-fidelity-pred {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--ink-4);
+}
+.learn-fidelity-act {
+  font-family: var(--mono);
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--ink);
+  font-feature-settings: "tnum";
+}
+.learn-fidelity-act.is-warn { color: var(--acc, #ffb15a); }
+.learn-fidelity-act.is-bad { color: var(--red, #ef4444); }
+html.theme-light .learn-fidelity-act.is-warn { color: var(--acc, #b45309); }
+html.theme-light .learn-fidelity-act.is-bad { color: var(--red, #b91c1c); }
+
+/* ============================================================================
+   LEARN · SYSTEMIC CALLOUTS — cross-pilot patterns Twin auto-detected.
+   Sits between the aggregate strip and the table. Each card surfaces one
+   pattern (theme · drift · evidence pilots · action taken on the model).
+   ========================================================================== */
+.learn-systemic {
+  margin: 0 0 16px;
+}
+.learn-systemic-h {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  padding: 0 2px 8px;
+  flex-wrap: wrap;
+}
+.learn-systemic-eyebrow {
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.18em;
+  color: var(--ink-2);
+}
+.learn-systemic-sub {
+  font-size: 11.5px;
+  color: var(--ink-4);
+}
+.learn-systemic-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+@media (max-width: 1024px) { .learn-systemic-grid { grid-template-columns: 1fr; } }
+
+.learn-systemic-card {
+  background: var(--panel);
+  border: 1px solid var(--hair);
+  border-left: 3px solid var(--ink-4);
+  border-radius: 6px;
+  padding: 11px 13px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  position: relative;
+}
+html.theme-light .learn-systemic-card { background: #ffffff; border-color: #e2e8f0; }
+.learn-systemic-card-bad  { border-left-color: var(--red, #ef4444); }
+.learn-systemic-card-warn { border-left-color: var(--acc, #ffb15a); }
+.learn-systemic-card-good { border-left-color: var(--green, #42e08b); }
+
+.learn-systemic-card-h {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.learn-systemic-pill {
+  font-family: var(--mono);
+  font-size: 9.5px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  padding: 2px 7px;
+  border-radius: 3px;
+  border: 1px solid var(--hair);
+  color: var(--ink-2);
+}
+.learn-systemic-pill-bad  { color: var(--red, #ef4444); border-color: rgba(239,68,68,0.4); background: rgba(239,68,68,0.08); }
+.learn-systemic-pill-warn { color: var(--acc, #ffb15a); border-color: rgba(255,177,90,0.4); background: rgba(255,177,90,0.08); }
+.learn-systemic-pill-good { color: var(--green, #42e08b); border-color: rgba(66,224,139,0.4); background: rgba(66,224,139,0.08); }
+.learn-systemic-theme {
+  font-weight: 700;
+  font-size: 12px;
+  color: var(--ink);
+}
+.learn-systemic-drift {
+  margin-left: auto;
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--ink-2);
+  font-feature-settings: "tnum";
+}
+.learn-systemic-pattern {
+  font-size: 12.5px;
+  line-height: 1.45;
+  color: var(--ink);
+}
+.learn-systemic-action {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  color: var(--ink-3);
+  padding-top: 5px;
+  border-top: 1px dotted var(--hair);
+}
+.learn-systemic-sources {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.learn-systemic-sources-k {
+  font-family: var(--mono);
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  color: var(--ink-4);
+  text-transform: uppercase;
+}
+.learn-systemic-src {
+  font-family: var(--mono);
+  font-size: 10px;
+  background: var(--bg, rgba(255,255,255,0.04));
+  border: 1px solid var(--hair);
+  padding: 1px 6px;
+  border-radius: 3px;
+  color: var(--ink-2);
+}
+html.theme-light .learn-systemic-src { background: #f1f5f9; }
+
+/* ============================================================================
+   LEARN · MODEL UPDATES LEDGER — table inside each expanded experiment row.
+   Sits below the realised-vs-predicted grid; documents the before→after
+   values pushed back into Twin.
+   ========================================================================== */
+.learn-modelup {
+  margin-top: 10px;
+  background: var(--panel);
+  border: 1px solid var(--hair);
+  border-radius: 8px;
+  padding: 12px 14px;
+}
+html.theme-light .learn-modelup { background: #ffffff; border-color: #e2e8f0; }
+.learn-modelup-h {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--hair);
+  margin-bottom: 6px;
+  flex-wrap: wrap;
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  color: var(--ink-2);
+}
+.learn-modelup-h-sub {
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 400;
+  letter-spacing: 0;
+  color: var(--ink-4);
+  text-transform: none;
+}
+.learn-modelup-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+.learn-modelup-table th {
+  text-align: left;
+  font-family: var(--mono);
+  font-size: 9.5px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-4);
+  padding: 6px 8px 6px 0;
+  border-bottom: 1px solid var(--hair);
+}
+.learn-modelup-table td {
+  padding: 7px 8px 7px 0;
+  border-bottom: 1px dotted var(--hair);
+  vertical-align: top;
+  color: var(--ink);
+}
+.learn-modelup-table tr:last-child td { border-bottom: 0; }
+.learn-modelup-driver {
+  font-family: var(--mono);
+  font-size: 11.5px;
+  color: var(--ink);
+  background: transparent;
+}
+.learn-modelup-num {
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--ink-2);
+  font-feature-settings: "tnum";
+  white-space: nowrap;
+}
+.learn-modelup-dir {
+  font-family: var(--mono);
+  font-size: 14px;
+  text-align: center;
+  width: 18px;
+  color: var(--ink-3);
+}
+.learn-modelup-dir-up   { color: var(--green, #42e08b); }
+.learn-modelup-dir-down { color: var(--acc, #ffb15a); }
+.learn-modelup-dir-new  { color: var(--acq, #5b9dff); }
+.learn-modelup-kpi {
+  font-size: 11.5px;
+  color: var(--ink-3);
+}
+.learn-modelup-note {
+  font-size: 11.5px;
+  color: var(--ink-2);
+  line-height: 1.45;
+}
+.learn-modelup-foot {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px dotted var(--hair);
+  font-size: 11px;
+  color: var(--ink-4);
+}
+.learn-modelup-foot code {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  color: var(--ink-2);
+  background: transparent;
+}
+
+
+/* "Your run" badge — marks a just-completed staged pilot in the Learn table */
+.pt-live-badge {
+  display: inline-block; margin-left: 8px; padding: 1px 6px;
+  font-size: 9px; font-weight: 700; letter-spacing: 0.06em;
+  border-radius: 4px; vertical-align: middle;
+  color: var(--green, #42e08b);
+  background: color-mix(in srgb, var(--green, #42e08b) 14%, transparent);
+  border: 1px solid color-mix(in srgb, var(--green, #42e08b) 30%, transparent);
+}

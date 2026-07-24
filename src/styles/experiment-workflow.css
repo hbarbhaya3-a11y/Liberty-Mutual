@@ -1,0 +1,2147 @@
+/* ============================================================================
+   ExperimentWorkflow — styles for the Deploy row inline-expansion content.
+   Anatomy: timeline at top (horizontal stepper) + stacked stage panels
+   underneath (Approval / Compliance / Live Pilot). The Live Pilot panel
+   holds the RCT-vs-simulated tracking grid + per-KPI charts.
+   ========================================================================= */
+
+.wf-root {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* ============ TIMELINE (horizontal stepper) ============ */
+.wf-timeline {
+  display: flex;
+  align-items: stretch;
+  gap: 0;
+  background: var(--panel);
+  border: 1px solid var(--hair);
+  border-radius: 9px;
+  padding: 12px 16px;
+}
+html.theme-light .wf-timeline { background: #ffffff; border-color: #e2e8f0; }
+
+.wf-step {
+  flex: 1 1 auto;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  position: relative;
+  min-width: 0;
+}
+.wf-step-chip {
+  width: 26px; height: 26px;
+  border-radius: 50%;
+  border: 1.5px solid var(--hair-2);
+  background: var(--bg-2);
+  display: flex; align-items: center; justify-content: center;
+  color: var(--ink-3);
+  flex: 0 0 26px;
+  position: relative;
+  z-index: 1;
+}
+html.theme-light .wf-step-chip { background: #f1f5f9; border-color: #cbd5e1; }
+.wf-step-chip .icon { display: block; }
+.wf-step-pip {
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--ink-4);
+}
+.wf-step-pulse {
+  width: 9px; height: 9px;
+  border-radius: 50%;
+  background: var(--acc, #ffb15a);
+  animation: wf-pulse 1.4s ease-in-out infinite;
+}
+@keyframes wf-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%      { opacity: 0.55; transform: scale(1.45); }
+}
+
+.wf-step-done .wf-step-chip {
+  background: rgba(66, 224, 139, 0.14);
+  border-color: var(--green, #42e08b);
+  color: var(--green, #42e08b);
+}
+html.theme-light .wf-step-done .wf-step-chip {
+  background: rgba(22, 163, 74, 0.10);
+  border-color: var(--green, #15803d);
+  color: var(--green, #15803d);
+}
+.wf-step-current .wf-step-chip {
+  background: rgba(255, 177, 90, 0.16);
+  border-color: var(--acc, #ffb15a);
+  box-shadow: 0 0 0 3px rgba(255, 177, 90, 0.14);
+}
+html.theme-light .wf-step-current .wf-step-chip {
+  background: rgba(180, 83, 9, 0.10);
+  border-color: var(--acc, #b45309);
+  box-shadow: 0 0 0 3px rgba(180, 83, 9, 0.10);
+}
+
+.wf-step-body { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+.wf-step-label {
+  font-family: var(--ui);
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--ink);
+  white-space: nowrap;
+}
+.wf-step-pending .wf-step-label { color: var(--ink-4); font-weight: 600; }
+.wf-step-date {
+  font-family: var(--mono);
+  font-size: 9.5px;
+  color: var(--ink-4);
+  letter-spacing: 0.02em;
+}
+.wf-step-current .wf-step-date { color: var(--acc, #ffb15a); font-weight: 700; }
+html.theme-light .wf-step-current .wf-step-date { color: var(--acc, #b45309); }
+
+.wf-connector {
+  flex: 1 1 auto;
+  height: 2px;
+  background: var(--hair);
+  margin: 0 4px;
+  align-self: center;
+  min-width: 18px;
+}
+.wf-connector-done { background: var(--green, #42e08b); opacity: 0.45; }
+
+/* ============ PANELS (one per stage) ============ */
+.wf-panel {
+  background: var(--panel);
+  border: 1px solid var(--hair);
+  border-left: 3px solid var(--hair-2);
+  border-radius: 9px;
+  padding: 0;
+  overflow: hidden;
+}
+html.theme-light .wf-panel { background: #ffffff; border-color: #e2e8f0; border-left-color: #cbd5e1; }
+.wf-panel-done {
+  border-left-color: var(--green, #42e08b);
+}
+html.theme-light .wf-panel-done { border-left-color: var(--green, #15803d); }
+.wf-panel-current {
+  border-left-color: var(--acc, #ffb15a);
+  box-shadow: 0 4px 12px -6px rgba(255, 177, 90, 0.25);
+}
+html.theme-light .wf-panel-current {
+  border-left-color: var(--acc, #b45309);
+  box-shadow: 0 4px 12px -6px rgba(180, 83, 9, 0.25);
+}
+
+.wf-panel-h {
+  padding: 11px 14px 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  border-bottom: 1px solid var(--hair);
+}
+html.theme-light .wf-panel-h { border-bottom-color: #e2e8f0; }
+.wf-panel-h-l, .wf-panel-h-r {
+  display: flex; align-items: center; gap: 10px;
+  min-width: 0;
+}
+.wf-panel-h-r { color: var(--ink-3); font-size: 11.5px; }
+.wf-panel-title {
+  font-family: var(--ui);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--ink);
+}
+.wf-panel-date {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--ink-4);
+}
+.wf-panel-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-family: var(--mono);
+  font-size: 9.5px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  padding: 3px 8px;
+  border-radius: 4px;
+  background: rgba(66, 224, 139, 0.14);
+  color: var(--green, #42e08b);
+  border: 1px solid rgba(66, 224, 139, 0.30);
+}
+html.theme-light .wf-panel-status {
+  background: rgba(22, 163, 74, 0.10);
+  color: var(--green, #15803d);
+  border-color: rgba(22, 163, 74, 0.25);
+}
+.wf-panel-status .icon { display: block; }
+.wf-panel-status .wf-status-pulse {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+  animation: wf-pulse 1.4s ease-in-out infinite;
+}
+.wf-status-pilot {
+  background: rgba(91, 157, 255, 0.16);
+  color: var(--acq, #5b9dff);
+  border-color: rgba(91, 157, 255, 0.35);
+}
+html.theme-light .wf-status-pilot {
+  background: rgba(37, 99, 235, 0.10);
+  color: var(--acq, #2563eb);
+  border-color: rgba(37, 99, 235, 0.25);
+}
+.wf-panel-current .wf-panel-status {
+  background: rgba(255, 177, 90, 0.16);
+  color: var(--acc, #ffb15a);
+  border-color: rgba(255, 177, 90, 0.35);
+}
+html.theme-light .wf-panel-current .wf-panel-status {
+  background: rgba(180, 83, 9, 0.10);
+  color: var(--acc, #b45309);
+  border-color: rgba(180, 83, 9, 0.25);
+}
+
+.wf-panel-body {
+  padding: 12px 14px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* Generic key/value row inside panels */
+.wf-kv-row {
+  display: grid;
+  grid-template-columns: 130px 1fr;
+  gap: 12px;
+  align-items: baseline;
+  font-size: 12px;
+  padding: 4px 0;
+  border-bottom: 1px dotted var(--hair);
+}
+.wf-kv-row:last-child { border-bottom: 0; }
+.wf-kv-row-foot { border-top: 1px dotted var(--hair); padding-top: 8px; margin-top: 4px; }
+.wf-k {
+  font-family: var(--mono);
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+.wf-v {
+  color: var(--ink);
+  line-height: 1.5;
+}
+.wf-v-sub { color: var(--ink-3); font-weight: 400; }
+
+/* Awaiting-approval pending state */
+.wf-pending {
+  font-size: 12.5px;
+  color: var(--ink-2);
+  line-height: 1.5;
+  padding: 10px 12px;
+  background: rgba(255, 177, 90, 0.06);
+  border: 1px dashed rgba(255, 177, 90, 0.30);
+  border-radius: 7px;
+}
+html.theme-light .wf-pending {
+  background: rgba(180, 83, 9, 0.04);
+  border-color: rgba(180, 83, 9, 0.25);
+}
+.wf-pending-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+.wf-btn {
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: transparent;
+  border: 1px solid var(--hair-2);
+  border-radius: 6px;
+  padding: 6px 12px;
+  font-family: var(--ui);
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--ink-2);
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+.wf-btn:hover {
+  background: var(--bg-2);
+  color: var(--ink);
+}
+html.theme-light .wf-btn:hover { background: #f1f5f9; }
+.wf-btn .icon { display: block; }
+.wf-btn-primary {
+  background: var(--green, #42e08b);
+  color: #052914;
+  border-color: var(--green, #42e08b);
+}
+.wf-btn-primary:hover {
+  filter: brightness(1.06);
+  background: var(--green, #42e08b);
+  color: #052914;
+  border-color: var(--green, #42e08b);
+}
+html.theme-light .wf-btn-primary {
+  background: #15803d;
+  border-color: #15803d;
+  color: #ffffff;
+}
+html.theme-light .wf-btn-primary:hover {
+  background: #15803d;
+  border-color: #15803d;
+  color: #ffffff;
+}
+
+/* Compliance checks table */
+.wf-checks {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+.wf-checks td {
+  padding: 6px 0;
+  border-bottom: 1px dotted var(--hair);
+}
+.wf-checks tr:last-child td { border-bottom: 0; }
+.wf-checks-k {
+  font-family: var(--mono);
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  width: 130px;
+}
+.wf-checks-v {
+  color: var(--ink);
+  font-size: 12px;
+}
+.wf-checks-pass {
+  width: 60px;
+  text-align: right;
+}
+.wf-pass-good {
+  display: inline-flex; align-items: center; gap: 4px;
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--green, #42e08b);
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: rgba(66, 224, 139, 0.10);
+}
+html.theme-light .wf-pass-good {
+  color: var(--green, #15803d);
+  background: rgba(22, 163, 74, 0.08);
+}
+.wf-pass-good .icon { display: block; }
+.wf-pass-bad {
+  display: inline-flex; align-items: center; gap: 4px;
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--red, #ef4444);
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: rgba(239, 68, 68, 0.10);
+}
+
+/* Live-pilot panel — additional treatment over .wf-panel-current to make
+   the panel feel like a monitor on a running experiment, not a static
+   record. Animated diagonal-stripe band on the top border + a subtle
+   red glow. */
+.wf-panel-live {
+  position: relative;
+}
+.wf-panel-live::before {
+  content: "";
+  position: absolute;
+  top: -1px; left: -1px; right: -1px;
+  height: 3px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    #ef4444 30%,
+    #ff7a7a 50%,
+    #ef4444 70%,
+    transparent 100%
+  );
+  background-size: 200% 100%;
+  border-top-left-radius: 9px;
+  border-top-right-radius: 9px;
+  animation: wf-live-sheen 2.6s linear infinite;
+  pointer-events: none;
+}
+@keyframes wf-live-sheen {
+  0%   { background-position: 100% 0; }
+  100% { background-position: -100% 0; }
+}
+
+/* LIVE activity ticker — sits between the panel header and body. Pulsing
+   red badge + rotating event text + data-refresh counter. */
+.wf-live-ticker {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 8px 14px;
+  background: linear-gradient(90deg,
+    rgba(239, 68, 68, 0.06) 0%,
+    rgba(239, 68, 68, 0.02) 100%);
+  border-bottom: 1px solid var(--hair);
+  font-size: 11.5px;
+  color: var(--ink-2);
+  overflow: hidden;
+}
+html.theme-light .wf-live-ticker {
+  background: linear-gradient(90deg,
+    rgba(185, 28, 28, 0.05) 0%,
+    rgba(185, 28, 28, 0.015) 100%);
+  border-bottom-color: #e2e8f0;
+}
+.wf-live-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-family: var(--mono);
+  font-size: 9.5px;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  padding: 3px 8px;
+  border-radius: 4px;
+  background: #ef4444;
+  color: #ffffff;
+  flex: 0 0 auto;
+  box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.55);
+  animation: wf-live-badge-pulse 1.8s ease-in-out infinite;
+}
+@keyframes wf-live-badge-pulse {
+  0%   { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.55); }
+  70%  { box-shadow: 0 0 0 7px rgba(239, 68, 68, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+}
+html.theme-light .wf-live-badge { background: #b91c1c; }
+.wf-live-dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: #ffffff;
+  animation: wf-pulse 1s ease-in-out infinite;
+}
+.wf-live-event {
+  flex: 1 1 auto;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 11.5px;
+  color: var(--ink);
+  font-family: var(--mono);
+  font-feature-settings: "tnum";
+  animation: wf-event-fade 0.4s ease-out;
+}
+@keyframes wf-event-fade {
+  from { opacity: 0; transform: translateX(6px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+.wf-live-refresh {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  color: var(--ink-3);
+  flex: 0 0 auto;
+  letter-spacing: 0.02em;
+}
+
+/* ============ LIVE PILOT — RCT TRACKING ============ */
+.wf-rct-cohorts {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--ink-3);
+}
+.wf-rct-cohorts b {
+  color: var(--ink);
+  font-weight: 700;
+  font-feature-settings: "tnum";
+}
+.wf-rct-note {
+  font-size: 11.5px;
+  color: var(--ink-3);
+  line-height: 1.5;
+  max-width: 720px;
+}
+
+.wf-rct-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+@media (max-width: 900px) { .wf-rct-grid { grid-template-columns: 1fr; } }
+
+.wf-rct-card {
+  background: var(--bg-2);
+  border: 1px solid var(--hair);
+  border-radius: 10px;
+  padding: 14px 16px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+html.theme-light .wf-rct-card { background: #f8fafc; border-color: #e2e8f0; }
+.wf-rct-card-h {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.wf-rct-card-label {
+  font-family: var(--mono);
+  font-size: 12.5px;
+  font-weight: 800;
+  letter-spacing: 0.10em;
+  text-transform: uppercase;
+  color: var(--ink);
+}
+.wf-rct-variance {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  padding: 2px 7px;
+  border-radius: 4px;
+}
+.wf-rct-variance .icon { display: block; }
+.wf-rct-variance-ok {
+  background: rgba(66, 224, 139, 0.12);
+  color: var(--green, #42e08b);
+}
+html.theme-light .wf-rct-variance-ok {
+  background: rgba(22, 163, 74, 0.10);
+  color: var(--green, #15803d);
+}
+.wf-rct-variance-warn {
+  background: rgba(255, 177, 90, 0.14);
+  color: var(--acc, #ffb15a);
+}
+html.theme-light .wf-rct-variance-warn {
+  background: rgba(180, 83, 9, 0.10);
+  color: var(--acc, #b45309);
+}
+.wf-rct-variance-bad {
+  background: rgba(239, 68, 68, 0.14);
+  color: var(--red, #ef4444);
+}
+html.theme-light .wf-rct-variance-bad {
+  background: rgba(185, 28, 28, 0.10);
+  color: var(--red, #b91c1c);
+}
+/* Pre-readout state — neutral colour, soft pulse, no claims about lift. */
+.wf-rct-variance-pre {
+  background: var(--bg-2, rgba(255,255,255,0.04));
+  color: var(--ink-2);
+  border: 1px solid var(--hair);
+}
+html.theme-light .wf-rct-variance-pre {
+  background: #f1f5f9;
+  color: #475569;
+  border-color: #cbd5e1;
+}
+
+.wf-rct-card-vals {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px 12px;
+  padding: 6px 0;
+  border-top: 1px dashed var(--hair);
+  border-bottom: 1px dashed var(--hair);
+}
+.wf-rct-card-vals > div {
+  display: flex; flex-direction: column; gap: 1px;
+}
+.wf-rct-card-vk {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.10em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+.wf-rct-card-vv {
+  font-family: var(--mono);
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--ink);
+  font-feature-settings: "tnum";
+  letter-spacing: -0.005em;
+}
+.wf-rct-card-vv-sub { color: var(--ink-3); font-weight: 500; }
+/* Per-line colour for the treatment / control / lift values so they
+   match their chart lines. The eye can connect "the blue solid line" to
+   the "treatment · wk N · +$0.34M" cell instantly. */
+.wf-rct-card-vv-tx   { color: var(--ink); }
+.wf-rct-card-vv-ctrl { color: var(--ink-3); }
+.wf-rct-card-vv-lift {
+  color: var(--green, #42e08b);
+}
+html.theme-light .wf-rct-card-vv-lift { color: var(--green, #15803d); }
+
+/* Legend for the RCT charts — one strip above the grid */
+.wf-rct-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  padding: 8px 10px;
+  background: var(--bg-2);
+  border: 1px solid var(--hair);
+  border-radius: 7px;
+  font-family: var(--mono);
+  font-size: 10.5px;
+  color: var(--ink-2);
+}
+html.theme-light .wf-rct-legend { background: #f8fafc; border-color: #e2e8f0; }
+.wf-rct-leg-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.wf-rct-leg-sw {
+  width: 18px;
+  height: 2px;
+  border-radius: 1px;
+  background: var(--ink-3);
+}
+.wf-rct-leg-tx {
+  background: var(--green, #42e08b);
+  height: 3px;
+}
+.wf-rct-leg-ctrl { background: var(--ink-3); }
+.wf-rct-leg-pred {
+  background: linear-gradient(
+    90deg,
+    var(--ink-3) 0 4px,
+    transparent 4px 7px,
+    var(--ink-3) 7px 11px,
+    transparent 11px 14px,
+    var(--ink-3) 14px 18px
+  );
+  height: 2px;
+}
+.wf-rct-leg-lift {
+  background: rgba(66, 224, 139, 0.20);
+  border: 1px solid rgba(66, 224, 139, 0.40);
+  height: 8px;
+  border-radius: 2px;
+  width: 18px;
+}
+html.theme-light .wf-rct-leg-lift {
+  background: rgba(21, 128, 61, 0.16);
+  border-color: rgba(21, 128, 61, 0.35);
+}
+
+.wf-tracking-wrap {
+  position: relative;
+  width: 100%;
+}
+.wf-tracking-svg {
+  width: 100%;
+  height: 180px;
+  display: block;
+}
+
+/* Hover tooltip — absolute over the chart wrap. Shows week + the 3 series
+   values + the causal lift. Always positioned top-right so it doesn't
+   block the cursor or the data lines. */
+.wf-rct-tip {
+  position: absolute;
+  top: 4px; right: 6px;
+  background: var(--panel);
+  border: 1px solid var(--hair-2);
+  border-radius: 6px;
+  padding: 6px 9px 7px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  pointer-events: none;
+  font-family: var(--mono);
+  font-size: 10.5px;
+  color: var(--ink);
+  z-index: 4;
+  min-width: 138px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+}
+html.theme-light .wf-rct-tip {
+  background: #ffffff;
+  border-color: #cbd5e1;
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.10);
+}
+.wf-rct-tip-h {
+  font-family: var(--mono);
+  font-size: 9.5px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  color: var(--ink-3);
+  text-transform: uppercase;
+  padding-bottom: 3px;
+  border-bottom: 1px solid var(--hair);
+}
+.wf-rct-tip-future {
+  color: var(--acc, #ffb15a);
+  letter-spacing: 0.04em;
+  font-weight: 700;
+  text-transform: none;
+}
+.wf-rct-tip-row {
+  display: grid;
+  grid-template-columns: 10px 1fr auto;
+  align-items: center;
+  gap: 6px;
+  font-size: 10.5px;
+}
+.wf-rct-tip-row-future {
+  grid-template-columns: 1fr;
+  color: var(--ink-3);
+  font-style: normal;
+  font-family: var(--ui);
+  font-size: 10.5px;
+  max-width: 160px;
+  line-height: 1.4;
+}
+.wf-rct-tip-row-lift {
+  padding-top: 3px;
+  margin-top: 2px;
+  border-top: 1px dashed var(--hair);
+  grid-template-columns: 1fr auto;
+}
+.wf-rct-tip-row-lift .wf-rct-tip-k {
+  font-weight: 700;
+  color: var(--ink);
+}
+.wf-rct-tip-row-lift .wf-rct-tip-v {
+  color: var(--green, #42e08b);
+  font-weight: 800;
+}
+html.theme-light .wf-rct-tip-row-lift .wf-rct-tip-v { color: var(--green, #15803d); }
+.wf-rct-tip-sw {
+  width: 10px;
+  height: 2.5px;
+  border-radius: 1px;
+  display: inline-block;
+}
+.wf-rct-tip-sw-dashed {
+  background: linear-gradient(
+    90deg,
+    var(--ink-3) 0 3px,
+    transparent 3px 5px,
+    var(--ink-3) 5px 8px,
+    transparent 8px 10px
+  );
+}
+.wf-rct-tip-k {
+  color: var(--ink-3);
+  letter-spacing: 0.02em;
+}
+.wf-rct-tip-v {
+  color: var(--ink);
+  font-weight: 700;
+  text-align: right;
+  font-feature-settings: "tnum";
+}
+
+.wf-rct-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding-top: 10px;
+  border-top: 1px dashed var(--hair);
+  flex-wrap: wrap;
+}
+.wf-rct-foot-l {
+  display: flex; align-items: baseline; gap: 8px;
+  font-size: 12px;
+}
+.wf-rct-foot-k {
+  font-family: var(--mono);
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+.wf-rct-foot-v {
+  color: var(--ink);
+  font-size: 12px;
+  line-height: 1.4;
+}
+.wf-rct-foot-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  padding: 3px 9px;
+  border-radius: 5px;
+  background: rgba(66, 224, 139, 0.12);
+  color: var(--green, #42e08b);
+  border: 1px solid rgba(66, 224, 139, 0.30);
+}
+html.theme-light .wf-rct-foot-pill {
+  background: rgba(22, 163, 74, 0.10);
+  color: var(--green, #15803d);
+  border-color: rgba(22, 163, 74, 0.25);
+}
+.wf-rct-foot-pill .icon { display: block; }
+
+/* ============================================================================
+   APPROVAL · multi-department sign-off table
+   ========================================================================= */
+.wf-approval-progress {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--ink-3);
+  font-feature-settings: "tnum";
+}
+.wf-dept-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 4px;
+}
+.wf-dept-row {
+  border-bottom: 1px solid var(--hair);
+}
+.wf-dept-row:last-child { border-bottom: 0; }
+.wf-dept-row td { padding: 12px 8px; vertical-align: top; }
+.wf-dept-row td:first-child { padding-left: 0; width: 110px; }
+.wf-dept-row td:last-child  { padding-right: 0; }
+
+.wf-dept-pill {
+  display: inline-flex; align-items: center; gap: 5px;
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.10em;
+  text-transform: uppercase;
+  padding: 3px 8px;
+  border-radius: 4px;
+}
+.wf-dept-pill-ok   { background: rgba(66, 224, 139, 0.12); color: var(--green, #42e08b); border: 1px solid rgba(66, 224, 139, 0.30); }
+.wf-dept-pill-pend { background: rgba(255, 177, 90, 0.12); color: var(--acc, #ffb15a); border: 1px solid rgba(255, 177, 90, 0.30); }
+.wf-dept-pill-bad  { background: rgba(239, 68, 68, 0.12); color: var(--red, #ef4444); border: 1px solid rgba(239, 68, 68, 0.30); }
+.wf-dept-pill-warn { background: rgba(91, 157, 255, 0.12); color: var(--acq, #5b9dff); border: 1px solid rgba(91, 157, 255, 0.30); }
+html.theme-light .wf-dept-pill-ok { color: var(--green, #15803d); }
+html.theme-light .wf-dept-pill-pend { color: var(--acc, #b45309); }
+html.theme-light .wf-dept-pill-bad { color: var(--red, #b91c1c); }
+html.theme-light .wf-dept-pill-warn { color: var(--acq, #2563eb); }
+
+.wf-dept-name {
+  font-family: var(--ui);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--ink);
+  display: flex; align-items: center; gap: 8px;
+}
+.wf-dept-you-tag {
+  font-family: var(--mono);
+  font-size: 8.5px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  padding: 1px 6px;
+  border-radius: 3px;
+  color: var(--violet, #b794f6);
+  background: rgba(183, 148, 246, 0.12);
+  border: 1px solid rgba(183, 148, 246, 0.30);
+}
+html.theme-light .wf-dept-you-tag {
+  color: #7c3aed;
+  background: rgba(124, 58, 237, 0.08);
+  border-color: rgba(124, 58, 237, 0.25);
+}
+.wf-dept-sub {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  color: var(--ink-3);
+  margin-top: 2px;
+}
+.wf-dept-date { color: var(--ink-4); }
+.wf-dept-note {
+  font-family: var(--ui);
+  font-size: 12px;
+  color: var(--ink-2);
+  line-height: 1.5;
+}
+.wf-dept-note-empty { color: var(--ink-4); }
+.wf-pending-inline {
+  margin-bottom: 8px;
+  padding: 10px 12px;
+  font-size: 12px;
+}
+
+/* ============================================================================
+   GO LIVE · ready-to-launch panel between Compliance and Live Pilot
+   ========================================================================= */
+.wf-panel-golive {
+  border-left-color: var(--violet, #b794f6) !important;
+  background: linear-gradient(180deg, rgba(183, 148, 246, 0.04), transparent 60%), var(--bg-1, #0e1117);
+}
+html.theme-light .wf-panel-golive {
+  border-left-color: #7c3aed !important;
+  background: linear-gradient(180deg, rgba(124, 58, 237, 0.03), transparent 60%), #ffffff;
+}
+.wf-golive-note {
+  font-family: var(--ui);
+  font-size: 13px;
+  color: var(--ink-2);
+  line-height: 1.55;
+  margin-bottom: 14px;
+}
+.wf-golive-summary {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  margin-bottom: 16px;
+  padding: 12px;
+  background: var(--bg-2, rgba(255,255,255,0.04));
+  border: 1px solid var(--hair);
+  border-radius: 8px;
+}
+html.theme-light .wf-golive-summary { background: #f8fafc; border-color: #e2e8f0; }
+@media (max-width: 720px) { .wf-golive-summary { grid-template-columns: 1fr 1fr; } }
+
+/* TREATMENT / CONTROL SPLIT CONTROL — sits above the summary strip.
+   Three preset chips (90/10, 80/20, 50/50) drive the split %; the
+   horizontal bar visualizes it with absolute cohort sizes inside each
+   half so the consequence of the choice is read at a glance. */
+.wf-golive-split {
+  margin-bottom: 16px;
+  padding: 14px 14px 12px;
+  background: var(--bg-2, rgba(255,255,255,0.04));
+  border: 1px solid var(--hair);
+  border-radius: 8px;
+}
+html.theme-light .wf-golive-split { background: #f8fafc; border-color: #e2e8f0; }
+.wf-golive-split-h {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+  margin-bottom: 10px;
+}
+.wf-golive-split-l {
+  font-family: var(--ui);
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--ink);
+  letter-spacing: 0.02em;
+}
+.wf-golive-split-power {
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--ink-3);
+  letter-spacing: 0.04em;
+  margin-top: 3px;
+}
+.wf-golive-split-presets {
+  display: inline-flex;
+  gap: 6px;
+}
+.wf-golive-split-preset {
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  padding: 5px 9px;
+  border-radius: 5px;
+  border: 1px solid var(--hair);
+  background: var(--panel);
+  color: var(--ink-2);
+  cursor: pointer;
+  transition: border-color 0.12s, color 0.12s, background 0.12s;
+}
+html.theme-light .wf-golive-split-preset { background: #ffffff; border-color: #cbd5e1; }
+.wf-golive-split-preset:hover { border-color: var(--violet, #b794f6); color: var(--ink); }
+.wf-golive-split-preset.is-on {
+  background: var(--violet, #b794f6);
+  border-color: var(--violet, #b794f6);
+  color: #14102b;
+}
+html.theme-light .wf-golive-split-preset.is-on {
+  background: #7c3aed;
+  border-color: #7c3aed;
+  color: #ffffff;
+}
+/* Horizontal split bar. Two child divs flex by the treatment/control %
+   so the bar reflects the chosen split. Each half shows the absolute
+   cohort N inside it so the consequence of the choice is unambiguous. */
+.wf-golive-split-bar {
+  display: flex;
+  height: 56px;
+  border-radius: 6px;
+  overflow: hidden;
+  border: 1px solid var(--hair);
+  margin-bottom: 8px;
+}
+.wf-golive-split-bar-tx,
+.wf-golive-split-bar-ctrl {
+  display: flex;
+  align-items: center;
+  padding: 8px 10px;
+  min-width: 0;
+  transition: flex 0.18s ease;
+}
+.wf-golive-split-bar-tx {
+  background: linear-gradient(90deg, rgba(91, 157, 255, 0.20), rgba(91, 157, 255, 0.30));
+  color: var(--ink);
+  border-right: 1px solid var(--hair);
+}
+.wf-golive-split-bar-ctrl {
+  background: rgba(127, 127, 127, 0.18);
+  color: var(--ink-2);
+}
+html.theme-light .wf-golive-split-bar-tx {
+  background: linear-gradient(90deg, rgba(59, 130, 246, 0.18), rgba(59, 130, 246, 0.26));
+}
+html.theme-light .wf-golive-split-bar-ctrl {
+  background: rgba(148, 163, 184, 0.20);
+}
+.wf-golive-split-bar-label {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  min-width: 0;
+  flex-wrap: wrap;
+}
+.wf-golive-split-bar-pct {
+  font-family: var(--mono);
+  font-size: 18px;
+  font-weight: 800;
+  font-feature-settings: "tnum";
+  letter-spacing: -0.01em;
+  color: var(--ink);
+}
+.wf-golive-split-bar-name {
+  font-family: var(--ui);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-2);
+}
+.wf-golive-split-bar-n {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  color: var(--ink-3);
+  font-feature-settings: "tnum";
+  white-space: nowrap;
+}
+.wf-golive-split-foot {
+  font-family: var(--ui);
+  font-size: 11px;
+  color: var(--ink-3);
+  font-feature-settings: "tnum";
+}
+.wf-golive-split-foot b { color: var(--ink-2); font-weight: 700; }
+.wf-golive-summary-cell { display: flex; flex-direction: column; gap: 3px; }
+.wf-golive-k {
+  font-family: var(--mono);
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-4);
+}
+.wf-golive-v {
+  font-family: var(--ui);
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--ink);
+}
+.wf-golive-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.wf-btn-lg {
+  padding: 10px 22px;
+  font-size: 13px;
+  font-weight: 700;
+}
+.wf-golive-hint {
+  font-family: var(--ui);
+  font-size: 11px;
+  font-style: italic;
+  color: var(--ink-3);
+  flex: 1;
+}
+
+/* ============================================================================
+   LIVE RCT PAGE (`.lrp`)
+   ----------------------------------------------------------------------------
+   Dedicated page for a live RCT — rendered IN PLACE of the Deploy
+   portfolio table inside the main content area (the shell + left nav
+   stay visible, no viewport-covering overlay).
+
+   Sections rendered vertically:
+     header → integration → approval & compliance trail → live ticker →
+     live performance grid → interim learnings → footer.
+   ========================================================================= */
+
+/* Outer wrapper — slots into the main content area; matches the
+   portfolio-page's overall feel (padding + flow). */
+.lrp-page-shell {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+}
+.lrp {
+  padding: 16px 22px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+/* HEADER — three distinct rows so nothing fights for the same axis.
+   Row 1: back button alone (always left-anchored).
+   Row 2: page title (h1) + status badge (pushed right by gap).
+   Row 3: meta line on left, cohort summary on right. */
+.lrp-h {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--hair);
+}
+.lrp-h-back-row { display: flex; }
+.lrp-h-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+.lrp-h-meta-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+.lrp-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--ui);
+  font-size: 12px;
+  font-weight: 700;
+  padding: 6px 11px;
+  border-radius: 7px;
+  border: 1px solid var(--hair);
+  background: var(--bg-2);
+  color: var(--ink-2);
+  cursor: pointer;
+  transition: border-color 0.12s, color 0.12s;
+}
+html.theme-light .lrp-back { background: #f1f5f9; border-color: #e2e8f0; }
+.lrp-back:hover { border-color: var(--acc, #ffb15a); color: var(--ink); }
+.lrp-back .icon { display: block; }
+.lrp-h-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.10em;
+  text-transform: uppercase;
+  color: var(--acc, #ffb15a);
+  padding: 5px 10px;
+  border-radius: 6px;
+  background: rgba(255, 177, 90, 0.10);
+  border: 1px solid rgba(255, 177, 90, 0.35);
+}
+html.theme-light .lrp-h-status {
+  color: var(--acc, #b45309);
+  background: rgba(180, 83, 9, 0.08);
+  border-color: rgba(180, 83, 9, 0.30);
+}
+.lrp-h-cohorts {
+  font-family: var(--mono);
+  font-size: 11.5px;
+  color: var(--ink-3);
+  font-feature-settings: "tnum";
+  white-space: nowrap;
+}
+.lrp-h-cohorts b { color: var(--ink); font-weight: 700; }
+.lrp-h-name {
+  font-family: var(--ui);
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--ink);
+  letter-spacing: -0.01em;
+  margin: 0;
+  line-height: 1.2;
+  /* min-width 0 lets the name truncate gracefully in narrow viewports
+     instead of pushing the status badge off-screen. */
+  min-width: 0;
+  flex: 1 1 auto;
+}
+.lrp-h-meta {
+  font-family: var(--mono);
+  font-size: 11.5px;
+  color: var(--ink-3);
+  font-feature-settings: "tnum";
+}
+
+/* The lrp-h-status badge needs to NOT shrink, so the title takes any
+   leftover space. */
+.lrp-h-title-row .lrp-h-status { flex: 0 0 auto; }
+
+/* SECTION header — reused for performance + interim learnings. */
+.lrp-section-h {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  margin-bottom: 12px;
+}
+.lrp-section-title {
+  font-family: var(--ui);
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--ink);
+  margin: 0;
+}
+.lrp-section-sub {
+  font-family: var(--ui);
+  font-size: 12px;
+  color: var(--ink-3);
+  line-height: 1.5;
+  margin: 0;
+}
+
+/* SECTION wrapper — reused for Integration AND Approval & compliance.
+   Each section has its own header + its own grid of pills. The two
+   sections sit one above the other so the user reads "system wiring"
+   and "human governance" as separate concepts. */
+.lrp-section {
+  padding: 14px 16px;
+  background: var(--bg-2);
+  border: 1px solid var(--hair);
+  border-radius: 10px;
+}
+html.theme-light .lrp-section { background: #f8fafc; border-color: #e2e8f0; }
+
+/* Legacy single-block trail (no longer used after the integration/
+   approval split, but keep the class so any future renders fall back
+   to the same container styling without redefining it). */
+.lrp-trail {
+  padding: 14px 16px;
+  background: var(--bg-2);
+  border: 1px solid var(--hair);
+  border-radius: 10px;
+}
+html.theme-light .lrp-trail { background: #f8fafc; border-color: #e2e8f0; }
+.lrp-trail-h {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+  padding-bottom: 10px;
+  border-bottom: 1px dashed var(--hair);
+}
+.lrp-trail-eyebrow {
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  color: var(--ink-3);
+}
+.lrp-trail-sub {
+  font-family: var(--ui);
+  font-size: 11px;
+  font-style: italic;
+  color: var(--ink-4);
+}
+.lrp-trail-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+@media (max-width: 980px) { .lrp-trail-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 640px) { .lrp-trail-grid { grid-template-columns: 1fr; } }
+.lrp-pill {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 9px 12px;
+  background: var(--panel);
+  border: 1px solid var(--hair);
+  border-radius: 8px;
+  min-width: 0;
+}
+html.theme-light .lrp-pill { background: #ffffff; border-color: #e2e8f0; }
+.lrp-pill-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--green, #42e08b);
+  margin-top: 6px;
+  flex: 0 0 8px;
+}
+html.theme-light .lrp-pill-dot { background: var(--green, #15803d); }
+.lrp-pill-warn .lrp-pill-dot { background: var(--acc, #ffb15a); }
+.lrp-pill-icon {
+  width: 14px; height: 14px;
+  border-radius: 4px;
+  background: var(--green, #42e08b);
+  color: #0e1117;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 14px;
+  margin-top: 3px;
+}
+html.theme-light .lrp-pill-icon { background: var(--green, #15803d); color: #ffffff; }
+.lrp-pill-approval { border-color: rgba(66, 224, 139, 0.35); }
+html.theme-light .lrp-pill-approval { border-color: rgba(21, 128, 61, 0.30); }
+.lrp-pill-body { display: flex; flex-direction: column; gap: 2px; min-width: 0; flex: 1 1 auto; }
+.lrp-pill-l { font-family: var(--ui); font-size: 12px; font-weight: 700; color: var(--ink); }
+.lrp-pill-d { font-family: var(--mono); font-size: 10.5px; color: var(--ink-3); line-height: 1.4; font-feature-settings: "tnum"; }
+
+/* LIVE PERFORMANCE — 2-col grid of KPI cards. */
+.lrp-perf-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+@media (max-width: 880px) { .lrp-perf-grid { grid-template-columns: 1fr; } }
+.lrp-kpi-card {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 16px 18px 18px;
+  background: var(--panel);
+  border: 1px solid var(--hair);
+  border-radius: 10px;
+}
+html.theme-light .lrp-kpi-card { background: #ffffff; border-color: #e2e8f0; }
+
+/* TOP band — left = label + hero number, right = variance chip + support
+   figures. Compact (~80–90px tall) so the chart below gets the body of
+   the card. */
+.lrp-kpi-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.lrp-kpi-top-l {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.lrp-kpi-top-r {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+  min-width: 0;
+}
+.lrp-kpi-label {
+  font-family: var(--ui);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--ink);
+  letter-spacing: 0.01em;
+}
+.lrp-kpi-hero-k {
+  font-family: var(--mono);
+  font-size: 9.5px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+.lrp-kpi-hero-v {
+  font-family: var(--mono);
+  font-size: 26px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+  font-feature-settings: "tnum";
+  line-height: 1.05;
+}
+.lrp-kpi-hero-v-lift { color: var(--green, #42e08b); }
+.lrp-kpi-hero-v-tx   { color: var(--acq, #5b9dff); }
+html.theme-light .lrp-kpi-hero-v-lift { color: var(--green, #15803d); }
+html.theme-light .lrp-kpi-hero-v-tx   { color: #3b82f6; }
+
+/* SUPPORT — vertical stack on the right side. Right-aligned for visual
+   balance against the left-aligned hero number. */
+.lrp-kpi-support {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 3px;
+  font-family: var(--mono);
+  font-size: 10.5px;
+  font-feature-settings: "tnum";
+}
+.lrp-kpi-support > span {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+  white-space: nowrap;
+}
+.lrp-kpi-support-k {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-4);
+}
+.lrp-kpi-support-v { font-weight: 700; color: var(--ink-2); }
+.lrp-kpi-support-v-tx   { color: var(--acq, #5b9dff); }
+.lrp-kpi-support-v-ctrl { color: var(--ink-3); }
+html.theme-light .lrp-kpi-support-v-tx { color: #3b82f6; }
+
+/* CHART — body of the card, ~240px tall. The numbers above give precise
+   values; the chart shows the trajectory shape. */
+.lrp-chart-wrap {
+  width: 100%;
+  height: 240px;
+  display: flex;
+  align-items: stretch;
+}
+@media (max-width: 760px) {
+  .lrp-chart-wrap { height: 200px; }
+}
+.lrp-chart-wrap .wf-tracking-wrap {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+.lrp-chart-wrap .wf-tracking-svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* ============================================================================
+   ACCORDION SECTIONS — Integration / Approval, collapsed by default so the
+   live performance grid is the first substantive content the user sees.
+   ========================================================================= */
+.lrp-acc {
+  background: var(--bg-2);
+  border: 1px solid var(--hair);
+  border-radius: 10px;
+  overflow: hidden;
+}
+html.theme-light .lrp-acc { background: #f8fafc; border-color: #e2e8f0; }
+.lrp-acc-h {
+  list-style: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 12px 16px;
+  transition: background 0.12s;
+}
+.lrp-acc-h::-webkit-details-marker { display: none; }
+.lrp-acc-h:hover { background: var(--bg-1); }
+html.theme-light .lrp-acc-h:hover { background: #f1f5f9; }
+.lrp-acc-h-l {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.lrp-acc-title {
+  font-family: var(--ui);
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--ink);
+  margin: 0;
+  letter-spacing: 0.01em;
+}
+.lrp-acc-sub {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  color: var(--ink-3);
+  font-feature-settings: "tnum";
+}
+.lrp-acc-chev {
+  display: inline-flex;
+  width: 26px; height: 26px;
+  border-radius: 6px;
+  align-items: center;
+  justify-content: center;
+  color: var(--ink-3);
+  background: var(--panel);
+  border: 1px solid var(--hair);
+  transition: transform 0.18s, color 0.12s;
+}
+html.theme-light .lrp-acc-chev { background: #ffffff; border-color: #e2e8f0; }
+.lrp-acc[open] .lrp-acc-chev {
+  transform: rotate(180deg);
+  color: var(--acc, #ffb15a);
+}
+.lrp-acc-body {
+  padding: 0 14px 14px;
+  border-top: 1px dashed var(--hair);
+}
+
+/* INTEGRATION PILL — when the accordion is open, each pill can show a
+   sub-list of metric rows (k/v pairs). Keeps the dense detail one tap
+   away without crowding the surface. */
+.lrp-pill-metrics {
+  list-style: none;
+  margin: 8px 0 0;
+  padding: 8px 0 0;
+  border-top: 1px dashed var(--hair);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.lrp-pill-metrics li {
+  display: grid;
+  grid-template-columns: 96px 1fr;
+  gap: 8px;
+  align-items: baseline;
+  font-family: var(--mono);
+  font-size: 10.5px;
+  font-feature-settings: "tnum";
+}
+.lrp-pill-metric-k {
+  font-size: 8.5px;
+  font-weight: 800;
+  letter-spacing: 0.10em;
+  text-transform: uppercase;
+  color: var(--ink-4);
+}
+.lrp-pill-metric-v { color: var(--ink-2); }
+
+/* INTERIM LEARNINGS in the page (wraps the existing .wf-rct-interim-* item
+   styles further down). */
+.lrp-interim {
+  padding: 16px 18px 18px;
+  background: var(--bg-2);
+  border: 1px solid var(--hair);
+  border-radius: 10px;
+}
+html.theme-light .lrp-interim { background: #f8fafc; border-color: #e2e8f0; }
+
+/* FOOTER */
+.lrp-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 12px 16px;
+  background: var(--bg-2);
+  border: 1px solid var(--hair);
+  border-radius: 10px;
+}
+html.theme-light .lrp-foot { background: #f8fafc; border-color: #e2e8f0; }
+.lrp-foot-l { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.lrp-foot-k {
+  font-family: var(--mono);
+  font-size: 9.5px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-4);
+}
+.lrp-foot-v { font-family: var(--ui); font-size: 13px; font-weight: 600; color: var(--ink); }
+
+/* ============================================================================
+   COMPACT LINK PANEL — shown inside the expanded row when stage is
+   live-pilot, in place of the previously-inline chart grid.
+   ========================================================================= */
+.wf-live-link-body { display: flex; flex-direction: column; gap: 14px; }
+.wf-live-link-stats {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  padding: 12px;
+  background: var(--bg-2);
+  border: 1px solid var(--hair);
+  border-radius: 8px;
+}
+html.theme-light .wf-live-link-stats { background: #f8fafc; border-color: #e2e8f0; }
+@media (max-width: 720px) { .wf-live-link-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.wf-live-link-stat { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.wf-live-link-stat-k {
+  font-family: var(--mono);
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-4);
+}
+.wf-live-link-stat-v {
+  font-family: var(--mono);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--ink);
+  font-feature-settings: "tnum";
+}
+.wf-live-link-stat-ok {
+  color: var(--green, #42e08b);
+  display: inline-flex; align-items: center; gap: 4px;
+}
+html.theme-light .wf-live-link-stat-ok { color: var(--green, #15803d); }
+.wf-live-link-cta { align-self: flex-start; }
+.wf-live-link-hint {
+  font-family: var(--ui);
+  font-size: 11.5px;
+  font-style: italic;
+  color: var(--ink-3);
+  line-height: 1.5;
+}
+
+/* ============================================================================
+   ROW TABLE — "View live RCT" inline action button
+   ========================================================================= */
+.pt-col-action { width: 1%; white-space: nowrap; }
+.pt-live-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-family: var(--ui);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  padding: 5px 10px;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 177, 90, 0.40);
+  background: rgba(255, 177, 90, 0.10);
+  color: var(--acc, #ffb15a);
+  cursor: pointer;
+  transition: filter 0.12s, transform 0.08s;
+}
+html.theme-light .pt-live-action {
+  background: rgba(180, 83, 9, 0.08);
+  border-color: rgba(180, 83, 9, 0.35);
+  color: var(--acc, #b45309);
+}
+.pt-live-action:hover { filter: brightness(1.08); transform: translateY(-1px); }
+.pt-live-action .icon { display: block; }
+
+/* INTERIM LEARNINGS panel — only renders inside the full-screen
+   LivePilot view. Surfaces week-tagged observations captured during the
+   live pilot so the user sees both the live performance AND what's been
+   noted in one place, without crowding the inline row view. */
+.wf-rct-interim {
+  margin-top: 22px;
+  padding: 16px 18px 18px;
+  background: var(--bg-2);
+  border: 1px solid var(--hair);
+  border-radius: 10px;
+}
+html.theme-light .wf-rct-interim { background: #f8fafc; border-color: #e2e8f0; }
+.wf-rct-interim-h {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 14px;
+  padding-bottom: 10px;
+  border-bottom: 1px dashed var(--hair);
+}
+.wf-rct-interim-eyebrow {
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  color: var(--ink-3);
+}
+.wf-rct-interim-sub {
+  font-family: var(--ui);
+  font-size: 11.5px;
+  font-style: italic;
+  color: var(--ink-3);
+  line-height: 1.45;
+}
+.wf-rct-interim-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.wf-rct-interim-item {
+  display: grid;
+  grid-template-columns: 40px 14px 1fr;
+  align-items: baseline;
+  gap: 10px;
+  font-family: var(--ui);
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--ink-2);
+}
+.wf-rct-interim-wk {
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.10em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  align-self: flex-start;
+  padding-top: 4px;
+}
+.wf-rct-interim-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  margin-top: 6px;
+  flex: 0 0 8px;
+}
+.wf-rct-interim-dot-good    { background: var(--green, #42e08b); }
+.wf-rct-interim-dot-warn    { background: var(--acc, #ffb15a); }
+.wf-rct-interim-dot-neutral { background: var(--ink-3); }
+html.theme-light .wf-rct-interim-dot-good { background: var(--green, #15803d); }
+html.theme-light .wf-rct-interim-dot-warn { background: var(--acc, #b45309); }
+.wf-rct-interim-text {
+  color: var(--ink-2);
+}
+
+/* (Legacy .wf-rct-fullscreen-btn replaced by .lrp-back inside LiveRctPage
+   and .pt-live-action on the row. Kept as a placeholder comment so future
+   greps for the old class find this note instead of nothing.) */
+
+/* ============================================================================
+   LAUNCHING MODAL (`.lm-*`)
+   ----------------------------------------------------------------------------
+   Viewport-level modal rendered by DeployWorkspace while a row's
+   `_launching` flag is true. Replaces the inline launching panel.
+   Shows the SFMC + sentinel + audit + gateway handshake sequence with
+   the active step center-stage and the completed steps accumulating
+   below. The SFMC integration is unmistakably the story.
+   ========================================================================= */
+.lm-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 32px;
+}
+.lm-overlay-bg {
+  position: absolute;
+  inset: 0;
+  background: rgba(8, 11, 20, 0.82);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+html.theme-light .lm-overlay-bg { background: rgba(15, 23, 42, 0.52); }
+.lm-card {
+  position: relative;
+  width: 100%;
+  max-width: 640px;
+  background: var(--bg-1, #0e1117);
+  border: 1px solid var(--hair);
+  border-radius: 14px;
+  padding: 28px 30px 24px;
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.55);
+}
+html.theme-light .lm-card {
+  background: #ffffff;
+  border-color: #e2e8f0;
+  box-shadow: 0 30px 80px rgba(15, 23, 42, 0.20);
+}
+
+/* HEADER — status badge + title + sub */
+.lm-h {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 18px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--hair);
+}
+.lm-h-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  align-self: flex-start;
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--acc, #ffb15a);
+  padding: 5px 10px;
+  border-radius: 6px;
+  background: rgba(255, 177, 90, 0.12);
+  border: 1px solid rgba(255, 177, 90, 0.35);
+}
+html.theme-light .lm-h-status {
+  color: var(--acc, #b45309);
+  background: rgba(180, 83, 9, 0.08);
+  border-color: rgba(180, 83, 9, 0.30);
+}
+.lm-h-title {
+  font-family: var(--ui);
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--ink);
+  margin: 4px 0 0;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+}
+.lm-h-sub {
+  font-family: var(--ui);
+  font-size: 12px;
+  color: var(--ink-3);
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* ACTIVE STEP — the centerpiece. Big system chip, big action text,
+   meta line with the realistic IDs being exchanged with that system. */
+.lm-active {
+  padding: 18px 20px;
+  background: var(--bg-2);
+  border: 1px solid var(--hair);
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+html.theme-light .lm-active { background: #f8fafc; border-color: #e2e8f0; }
+.lm-active-system {
+  align-self: flex-start;
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  padding: 4px 10px;
+  border-radius: 5px;
+  background: var(--panel);
+  border: 1px solid var(--hair);
+  color: var(--ink-3);
+}
+html.theme-light .lm-active-system { background: #ffffff; border-color: #cbd5e1; }
+.lm-active-system-sfmc {
+  background: rgba(59, 130, 246, 0.14);
+  border-color: rgba(59, 130, 246, 0.40);
+  color: #60a5fa;
+}
+html.theme-light .lm-active-system-sfmc {
+  background: rgba(37, 99, 235, 0.10);
+  border-color: rgba(37, 99, 235, 0.32);
+  color: #2563eb;
+}
+.lm-active-system-sentinel,
+.lm-active-system-gateway,
+.lm-active-system-audit,
+.lm-active-system-cohort,
+.lm-active-system-live {
+  background: rgba(183, 148, 246, 0.14);
+  border-color: rgba(183, 148, 246, 0.40);
+  color: var(--violet, #b794f6);
+}
+html.theme-light .lm-active-system-sentinel,
+html.theme-light .lm-active-system-gateway,
+html.theme-light .lm-active-system-audit,
+html.theme-light .lm-active-system-cohort,
+html.theme-light .lm-active-system-live {
+  background: rgba(124, 58, 237, 0.10);
+  border-color: rgba(124, 58, 237, 0.32);
+  color: var(--violet, #7c3aed);
+}
+.lm-active-text {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--ui);
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--ink);
+  line-height: 1.35;
+}
+.lm-active-spinner {
+  width: 14px; height: 14px;
+  flex: 0 0 14px;
+  border-radius: 50%;
+  border: 2px solid var(--hair);
+  border-top-color: var(--acc, #ffb15a);
+  animation: lm-spin 0.7s linear infinite;
+}
+html.theme-light .lm-active-spinner { border-top-color: var(--acc, #b45309); }
+@keyframes lm-spin { to { transform: rotate(360deg); } }
+.lm-active-meta {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--ink-3);
+  padding: 8px 10px;
+  background: var(--bg-1);
+  border: 1px solid var(--hair);
+  border-radius: 6px;
+  font-feature-settings: "tnum";
+  word-break: break-all;
+  line-height: 1.5;
+}
+html.theme-light .lm-active-meta { background: #f1f5f9; border-color: #cbd5e1; }
+
+/* PROGRESS BAR */
+.lm-progress {
+  height: 6px;
+  background: var(--bg-2);
+  border: 1px solid var(--hair);
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: 18px;
+}
+html.theme-light .lm-progress { background: #f1f5f9; border-color: #e2e8f0; }
+.lm-progress-bar {
+  height: 100%;
+  background: linear-gradient(90deg, var(--acc, #ffb15a), var(--violet, #b794f6));
+  transition: width 0.30s ease;
+}
+
+/* HANDSHAKE TRAIL — completed steps accumulating below the active one. */
+.lm-trail {
+  padding-top: 16px;
+  border-top: 1px dashed var(--hair);
+}
+.lm-trail-h {
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  margin-bottom: 10px;
+}
+.lm-trail-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 200px;
+  overflow-y: auto;
+}
+.lm-trail-item {
+  display: grid;
+  grid-template-columns: 16px auto 1fr;
+  gap: 8px;
+  align-items: baseline;
+  font-family: var(--ui);
+  font-size: 11.5px;
+  color: var(--ink-2);
+  line-height: 1.4;
+}
+.lm-trail-check {
+  width: 14px; height: 14px;
+  border-radius: 4px;
+  background: var(--green, #42e08b);
+  color: #0e1117;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 14px;
+}
+html.theme-light .lm-trail-check { background: var(--green, #15803d); color: #ffffff; }
+.lm-trail-system {
+  font-family: var(--mono);
+  font-size: 8.5px;
+  font-weight: 800;
+  letter-spacing: 0.10em;
+  text-transform: uppercase;
+  padding: 1px 5px;
+  border-radius: 3px;
+  background: var(--bg-2);
+  border: 1px solid var(--hair);
+  color: var(--ink-3);
+  align-self: center;
+  white-space: nowrap;
+}
+html.theme-light .lm-trail-system { background: #f1f5f9; border-color: #e2e8f0; }
+.lm-trail-system-sfmc { color: #60a5fa; }
+html.theme-light .lm-trail-system-sfmc { color: #2563eb; }
+.lm-trail-text { color: var(--ink-2); }
+.lm-trail-meta {
+  grid-column: 2 / -1;
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--ink-4);
+  font-feature-settings: "tnum";
+  word-break: break-all;
+}
+
+/* ============================================================================
+   LEARNINGS · post-RCT retrospective panel
+   ========================================================================= */
+.wf-panel-learnings {
+  border-left-color: var(--green, #42e08b) !important;
+}
+.wf-learnings-headline {
+  font-family: var(--ui);
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--ink);
+  line-height: 1.4;
+  padding: 12px 14px;
+  margin-bottom: 14px;
+  background: rgba(66, 224, 139, 0.06);
+  border: 1px solid rgba(66, 224, 139, 0.25);
+  border-radius: 6px;
+}
+html.theme-light .wf-learnings-headline {
+  background: rgba(22, 163, 74, 0.05);
+  border-color: rgba(22, 163, 74, 0.20);
+}
+.wf-learnings-block { margin-bottom: 16px; }
+.wf-learnings-block-h {
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  margin-bottom: 8px;
+}
+.wf-learnings-block-h-good { color: var(--green, #42e08b); }
+.wf-learnings-block-h-warn { color: var(--acc, #ffb15a); }
+html.theme-light .wf-learnings-block-h-good { color: var(--green, #15803d); }
+html.theme-light .wf-learnings-block-h-warn { color: var(--acc, #b45309); }
+.wf-learnings-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+.wf-learnings-table thead th {
+  text-align: left;
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.10em;
+  text-transform: uppercase;
+  color: var(--ink-4);
+  padding: 6px 8px;
+  border-bottom: 1px solid var(--hair);
+}
+.wf-learnings-table tbody td {
+  padding: 8px;
+  border-bottom: 1px solid var(--hair);
+}
+.wf-learnings-table tbody tr:last-child td { border-bottom: 0; }
+.wf-learnings-k {
+  font-family: var(--ui);
+  font-weight: 600;
+  color: var(--ink);
+}
+.wf-learnings-pred {
+  font-family: var(--mono);
+  color: var(--ink-3);
+  font-feature-settings: "tnum";
+}
+.wf-learnings-actual {
+  font-family: var(--mono);
+  font-weight: 700;
+  color: var(--ink);
+  font-feature-settings: "tnum";
+}
+.wf-learnings-delta {
+  display: inline-block;
+  font-family: var(--mono);
+  font-size: 10.5px;
+  font-weight: 600;
+  padding: 2px 7px;
+  border-radius: 3px;
+  letter-spacing: 0.02em;
+}
+.wf-learnings-delta-ok   { color: var(--green, #42e08b); background: rgba(66, 224, 139, 0.10); }
+.wf-learnings-delta-warn { color: var(--acc, #ffb15a);   background: rgba(255, 177, 90, 0.10); }
+.wf-learnings-delta-bad  { color: var(--red, #ef4444);   background: rgba(239, 68, 68, 0.10); }
+html.theme-light .wf-learnings-delta-ok   { color: var(--green, #15803d); }
+html.theme-light .wf-learnings-delta-warn { color: var(--acc, #b45309); }
+html.theme-light .wf-learnings-delta-bad  { color: var(--red, #b91c1c); }
+
+.wf-learnings-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  margin-bottom: 16px;
+}
+@media (max-width: 760px) { .wf-learnings-grid { grid-template-columns: 1fr; } }
+.wf-learnings-list {
+  margin: 0;
+  padding-left: 18px;
+  list-style: disc;
+}
+.wf-learnings-list li {
+  font-family: var(--ui);
+  font-size: 12.5px;
+  color: var(--ink-2);
+  line-height: 1.55;
+  margin-bottom: 6px;
+}
+.wf-learnings-verdict {
+  display: flex;
+  align-items: flex-start;
+  gap: 18px;
+  padding: 14px 16px;
+  border-radius: 8px;
+  border-left: 4px solid;
+}
+.wf-learnings-verdict-ok {
+  background: rgba(66, 224, 139, 0.07);
+  border-left-color: var(--green, #42e08b);
+}
+.wf-learnings-verdict-warn {
+  background: rgba(255, 177, 90, 0.07);
+  border-left-color: var(--acc, #ffb15a);
+}
+.wf-learnings-verdict-bad {
+  background: rgba(239, 68, 68, 0.07);
+  border-left-color: var(--red, #ef4444);
+}
+html.theme-light .wf-learnings-verdict-ok { background: rgba(22, 163, 74, 0.05); }
+html.theme-light .wf-learnings-verdict-warn { background: rgba(180, 83, 9, 0.05); }
+html.theme-light .wf-learnings-verdict-bad { background: rgba(185, 28, 28, 0.05); }
+.wf-learnings-verdict-l {
+  min-width: 160px;
+}
+.wf-learnings-verdict-k {
+  font-family: var(--mono);
+  font-size: 9.5px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+.wf-learnings-verdict-v {
+  font-family: var(--ui);
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--ink);
+  margin-top: 2px;
+}
+.wf-learnings-verdict-rationale {
+  font-family: var(--ui);
+  font-size: 12.5px;
+  color: var(--ink-2);
+  line-height: 1.55;
+  flex: 1;
+}

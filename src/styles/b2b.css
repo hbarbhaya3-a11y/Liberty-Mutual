@@ -1,0 +1,196 @@
+/* ============================================================================
+   B2B (SMB) flow — shared styles for B2BClusterView, B2BSimulateView and
+   MicroSegmentResults. Uses the same tokens as analyse-workspace.css
+   (--panel, --hair, --ink*, --acc) so it inherits dark/light themes. 10px
+   radii, 1px hair borders, no glass/gradients — matches the terminal look.
+   Lives under the existing `.aw .wrap` container.
+   ========================================================================= */
+
+/* ---- B2B / SMB badge ---- */
+.b2b-badge {
+  display: inline-flex; align-items: center; gap: 5px;
+  font: 600 10px/1 var(--ui); letter-spacing: .08em; text-transform: uppercase;
+  color: var(--acc); border: 1px solid var(--acc);
+  padding: 4px 8px; border-radius: 999px; opacity: .92;
+}
+
+/* ---- generic panel (Screen 1 stacks, config groups) ---- */
+.b2b-panel { border: 1px solid var(--hair); border-radius: 10px; background: var(--panel); margin-top: 16px; }
+.b2b-panel-h {
+  display: flex; align-items: baseline; gap: 10px;
+  padding: 13px 16px; border-bottom: 1px solid var(--hair);
+}
+.b2b-panel-t { font: 600 13px/1.2 var(--ui); color: var(--ink); }
+.b2b-panel-s { font: 400 11.5px/1.3 var(--ui); color: var(--ink-3); }
+.b2b-panel-x { margin-left: auto; font: 500 11px/1 var(--mono); color: var(--ink-4); }
+.b2b-panel-body { padding: 8px 16px 16px; }
+
+/* ---- Panel A · triggers ---- */
+.b2b-trigger-row {
+  display: grid; grid-template-columns: 1fr auto; gap: 10px 14px; align-items: center;
+  padding: 11px 2px; border-bottom: 1px solid var(--hair);
+}
+.b2b-trigger-row:last-child { border-bottom: 0; }
+.b2b-trigger-main { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.b2b-trigger-label { font: 500 13px/1.3 var(--ui); color: var(--ink); }
+.b2b-trigger-plain { font: 400 11.5px/1.3 var(--ui); color: var(--ink-3); }
+.b2b-trigger-count { font: 600 14px/1 var(--mono); color: var(--ink); white-space: nowrap; }
+.b2b-trigger-row.urgent .b2b-trigger-count { color: var(--acc); }
+.b2b-trigger-flag {
+  display: inline-block; margin-left: 8px; font: 600 9px/1 var(--ui);
+  letter-spacing: .06em; text-transform: uppercase; color: #0a0e16;
+  background: var(--acc); padding: 3px 6px; border-radius: 4px; vertical-align: middle;
+}
+.b2b-exclusions { margin-top: 12px; padding-top: 11px; border-top: 1px dashed var(--hair); font: 400 11.5px/1.5 var(--ui); color: var(--ink-3); }
+.b2b-excl-chip {
+  display: inline-block; margin: 0 5px 5px 0; padding: 3px 8px; border-radius: 999px;
+  border: 1px dashed var(--hair-2); color: var(--ink-3); font: 500 11px/1 var(--ui);
+}
+.b2b-excl-chip::before { content: "✕ "; color: var(--ink-4); }
+
+/* ---- Panel B · cohort summary + holdings ---- */
+.b2b-summary { display: flex; flex-wrap: wrap; gap: 18px 28px; padding: 4px 0 14px; }
+.b2b-summary-item { display: flex; flex-direction: column; gap: 2px; }
+.b2b-summary-v { font: 600 17px/1 var(--mono); color: var(--ink); }
+.b2b-summary-k { font: 400 11px/1 var(--ui); color: var(--ink-4); }
+.b2b-holding-row { display: grid; grid-template-columns: 150px 1fr 42px; gap: 12px; align-items: center; padding: 6px 0; }
+.b2b-holding-p { font: 500 12px/1.2 var(--ui); color: var(--ink-2); }
+.b2b-holding-bar { height: 7px; border-radius: 4px; background: var(--bg-2); overflow: hidden; }
+.b2b-holding-fill { height: 100%; border-radius: 4px; background: var(--acc); opacity: .85; }
+.b2b-holding-pct { font: 600 12px/1 var(--mono); color: var(--ink-3); text-align: right; }
+.b2b-read { margin-top: 12px; padding-top: 11px; border-top: 1px dashed var(--hair); font: 400 12.5px/1.5 var(--ui); color: var(--ink-2); }
+.b2b-read b { color: var(--ink); }
+
+/* ---- Panel C · hypotheses ---- */
+.b2b-hyps { display: flex; flex-direction: column; gap: 10px; padding-top: 4px; }
+.b2b-hyp-card {
+  text-align: left; width: 100%; cursor: pointer;
+  border: 1px solid var(--hair); border-left: 3px solid var(--hair); border-radius: 8px;
+  background: var(--bg-1); padding: 13px 15px; transition: border-color .12s, background .12s;
+}
+.b2b-hyp-card:hover { border-color: var(--hair-2); }
+.b2b-hyp-card.star { border-left-color: var(--acc); }
+.b2b-hyp-card.sel { border-color: var(--acc); border-left-color: var(--acc); background: var(--acc-soft, rgba(79,209,197,.08)); }
+.b2b-hyp-top { display: flex; align-items: center; gap: 8px; margin-bottom: 5px; }
+.b2b-hyp-name { font: 600 13.5px/1.2 var(--ui); color: var(--ink); }
+.b2b-hyp-rec { font: 600 9.5px/1 var(--ui); letter-spacing: .05em; color: var(--acc); border: 1px solid var(--acc); padding: 3px 6px; border-radius: 4px; }
+.b2b-hyp-desc { font: 400 12px/1.5 var(--ui); color: var(--ink-3); }
+
+/* ---- Screen 2 · configuration sections ---- */
+.b2b-cfg-section { margin-top: 18px; }
+.b2b-cfg-h { display: flex; align-items: baseline; gap: 9px; margin-bottom: 9px; }
+.b2b-cfg-num { font: 600 11px/1 var(--mono); color: var(--acc); }
+.b2b-cfg-label { font: 600 13px/1.2 var(--ui); color: var(--ink); }
+.b2b-cfg-help { font: 400 11.5px/1.2 var(--ui); color: var(--ink-4); }
+.b2b-opts { display: flex; flex-wrap: wrap; gap: 8px; }
+.b2b-opt {
+  display: inline-flex; align-items: center; gap: 8px; cursor: pointer;
+  border: 1px solid var(--hair); border-radius: 8px; background: var(--bg-1);
+  padding: 9px 12px; font: 500 12.5px/1.3 var(--ui); color: var(--ink-2);
+  transition: border-color .12s, color .12s, background .12s;
+}
+.b2b-opt:hover { border-color: var(--hair-2); }
+.b2b-opt.on { border-color: var(--acc); color: var(--ink); background: var(--acc-soft, rgba(79,209,197,.08)); }
+.b2b-opt-box { width: 14px; height: 14px; border-radius: 4px; border: 1px solid var(--hair-2); flex: none; display: grid; place-items: center; }
+.b2b-opt.radio .b2b-opt-box { border-radius: 50%; }
+.b2b-opt.on .b2b-opt-box { border-color: var(--acc); background: var(--acc); color: #0a0e16; }
+
+/* toggle-rows (A vs B) */
+.b2b-toggle-row { display: grid; grid-template-columns: 1fr; gap: 8px; padding: 8px 0; }
+.b2b-toggle-pair { display: inline-flex; border: 1px solid var(--hair); border-radius: 8px; overflow: hidden; width: fit-content; }
+.b2b-toggle-opt {
+  cursor: pointer; padding: 8px 13px; font: 500 12px/1.2 var(--ui); color: var(--ink-3);
+  background: var(--bg-1); border: none; border-right: 1px solid var(--hair);
+}
+.b2b-toggle-opt:last-child { border-right: none; }
+.b2b-toggle-opt.on { background: var(--acc); color: #0a0e16; font-weight: 600; }
+
+/* slider */
+.b2b-slider-wrap { display: flex; align-items: center; gap: 14px; padding: 6px 0; }
+.b2b-slider { flex: 1; accent-color: var(--acc); }
+.b2b-slider-val { font: 600 15px/1 var(--mono); color: var(--acc); min-width: 56px; }
+
+/* checklist (read-only guardrails) */
+.b2b-checklist { display: flex; flex-direction: column; gap: 7px; }
+.b2b-guard { display: flex; align-items: center; gap: 9px; font: 500 12.5px/1.4 var(--ui); color: var(--ink-2); }
+.b2b-guard::before { content: "🛡"; font-size: 12px; opacity: .8; }
+
+/* ---- Screen 3 · results headline ---- */
+.b2b-headline {
+  border: 1px solid var(--acc); border-radius: 10px;
+  background: var(--acc-soft, rgba(79,209,197,.07)); padding: 16px 18px; margin-top: 16px;
+}
+.b2b-headline-lead { font: 500 13px/1.4 var(--ui); color: var(--ink-2); }
+.b2b-headline-metric { display: flex; align-items: baseline; gap: 10px; margin: 8px 0 12px; }
+.b2b-headline-from { font: 500 16px/1 var(--mono); color: var(--ink-4); text-decoration: line-through; }
+.b2b-headline-arrow { color: var(--ink-4); }
+.b2b-headline-to { font: 700 28px/1 var(--mono); color: var(--acc); }
+.b2b-headline-note { font: 400 11.5px/1 var(--ui); color: var(--ink-3); }
+.b2b-headline-points { display: flex; flex-wrap: wrap; gap: 20px; }
+.b2b-headline-pt { display: flex; flex-direction: column; gap: 2px; }
+.b2b-headline-pt-v { font: 600 15px/1 var(--mono); color: var(--ink); text-transform: capitalize; }
+.b2b-headline-pt-l { font: 400 11px/1.2 var(--ui); color: var(--ink-4); }
+
+/* ---- Screen 3 · micro-segment table ---- */
+.b2b-segtable { margin-top: 18px; border: 1px solid var(--hair); border-radius: 10px; overflow: hidden; }
+.b2b-seghead, .b2b-segrow {
+  display: grid; grid-template-columns: 1.6fr 1.9fr 1.1fr 1fr 1.2fr; gap: 12px; align-items: center;
+  padding: 11px 14px;
+}
+.b2b-seghead { background: var(--bg-2); border-bottom: 1px solid var(--hair); }
+.b2b-seghead span { font: 600 10px/1.2 var(--ui); letter-spacing: .04em; text-transform: uppercase; color: var(--ink-4); }
+.b2b-segrow { border-bottom: 1px solid var(--hair); cursor: pointer; background: var(--panel); transition: background .12s; border-left: 3px solid transparent; }
+.b2b-segrow:last-child { border-bottom: 0; }
+.b2b-segrow:hover { background: var(--bg-1); }
+.b2b-segrow.go { border-left-color: #4fd1c5; }
+.b2b-segrow.hold { border-left-color: #ffb15a; }
+.b2b-segrow.blocked { border-left-color: #ff6b6b; opacity: .72; }
+.b2b-segrow.sel { background: var(--acc-soft, rgba(79,209,197,.08)); }
+.b2b-seg-name { font: 600 13px/1.2 var(--ui); color: var(--ink); }
+.b2b-seg-n { font: 400 11px/1 var(--mono); color: var(--ink-4); }
+.b2b-seg-sig { font: 400 11px/1.35 var(--ui); color: var(--ink-3); margin-top: 3px; }
+.b2b-seg-cell { font: 500 12px/1.35 var(--ui); color: var(--ink-2); }
+.b2b-seg-conv { font: 600 13px/1 var(--mono); color: var(--ink); }
+.b2b-seg-conv-base { font: 400 11px/1 var(--mono); color: var(--ink-4); }
+.b2b-seg-tag { display: inline-block; font: 600 9px/1 var(--ui); letter-spacing: .05em; text-transform: uppercase; padding: 3px 6px; border-radius: 4px; }
+.b2b-seg-tag.hold { color: #ffb15a; border: 1px solid #ffb15a; }
+.b2b-seg-tag.blocked { color: #ff6b6b; border: 1px solid #ff6b6b; }
+
+/* per-segment recommendation card (expanded) */
+.b2b-segcard { border: 1px solid var(--acc); border-radius: 10px; background: var(--panel); padding: 16px 18px; margin-top: 12px; }
+.b2b-segcard-h { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+.b2b-segcard-name { font: 600 15px/1.2 var(--ui); color: var(--ink); }
+.b2b-segcard-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px 24px; }
+.b2b-segcard-row { display: flex; flex-direction: column; gap: 3px; }
+.b2b-segcard-k { font: 600 10px/1 var(--ui); letter-spacing: .05em; text-transform: uppercase; color: var(--ink-4); }
+.b2b-segcard-v { font: 400 12.5px/1.5 var(--ui); color: var(--ink-2); }
+.b2b-segcard-v b { color: var(--ink); }
+.b2b-segcard-cf { grid-column: 1 / -1; margin-top: 4px; padding-top: 11px; border-top: 1px dashed var(--hair); font: 400 12px/1.5 var(--ui); color: var(--ink-3); }
+
+/* ---- governance / activation strip ---- */
+.b2b-gov { border: 1px solid var(--hair); border-radius: 10px; background: var(--bg-1); padding: 15px 18px; margin-top: 18px; }
+.b2b-gov-h { font: 600 12px/1 var(--ui); letter-spacing: .04em; text-transform: uppercase; color: var(--ink-3); margin-bottom: 10px; }
+.b2b-gov-trace { display: flex; flex-direction: column; gap: 6px; margin-bottom: 12px; }
+.b2b-gov-item { font: 500 12px/1.4 var(--ui); color: var(--ink-2); display: flex; gap: 8px; }
+.b2b-gov-item::before { content: "✓"; color: #4fd1c5; font-weight: 700; }
+.b2b-gov-note { font: 400 11.5px/1.5 var(--ui); color: var(--ink-4); }
+
+/* ---- sticky action bar (Run / Stage) ---- */
+.b2b-actionbar {
+  position: sticky; bottom: 0; display: flex; align-items: center; gap: 14px;
+  margin-top: 22px; padding: 14px 0; border-top: 1px solid var(--hair);
+  background: linear-gradient(transparent, var(--bg-0) 38%);
+}
+.b2b-actionbar-hint { font: 400 12px/1.3 var(--ui); color: var(--ink-3); }
+.b2b-actionbar .b2b-go { margin-left: auto; }
+.b2b-go {
+  cursor: pointer; border: 1px solid var(--acc); background: var(--acc); color: #0a0e16;
+  font: 600 13px/1 var(--ui); padding: 11px 20px; border-radius: 8px;
+}
+.b2b-back { cursor: pointer; border: 1px solid var(--hair); background: transparent; color: var(--ink-2); font: 500 12.5px/1 var(--ui); padding: 11px 16px; border-radius: 8px; }
+
+/* Selectable hypothesis cards reuse the analyse-workspace .reason-card look,
+   but render as full-width selectable buttons (no leading pct column). */
+button.reason-card { grid-template-columns: 1fr; width: 100%; text-align: left; cursor: pointer; font-family: inherit; }
+button.reason-card .reason-title { display: flex; align-items: center; gap: 8px; }
+button.reason-card.sel { border-color: var(--acc); }
