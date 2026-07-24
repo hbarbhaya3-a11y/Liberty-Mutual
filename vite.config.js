@@ -6,9 +6,9 @@ import { fileURLToPath } from "node:url";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 export default defineConfig({
-  // Served from https://<user>.github.io/liberty-mutual/ on GitHub Pages.
-  // Override with BASE_PATH for a custom domain / user site (e.g. "/").
-  base: process.env.BASE_PATH || "/liberty-mutual/",
+  // Relative base so built asset URLs resolve no matter what path/case the
+  // GitHub Pages project site is served under (avoids blank-page 404s).
+  base: "./",
   plugins: [react()],
   resolve: {
     alias: { "@": path.resolve(__dirname, "src") },

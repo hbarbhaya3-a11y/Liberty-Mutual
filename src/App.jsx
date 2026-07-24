@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { HashRouter, Routes, Route } from "react-router-dom";
 import { AppShellProvider } from "@/state/AppShell";
 import Shell from "@/Shell";
 import Cockpit from "@/pages/Cockpit";
@@ -15,7 +15,7 @@ import Pipeline from "@/pages/Pipeline";
    and share state. */
 export default function App() {
   return (
-    <BrowserRouter basename={import.meta.env.BASE_URL.replace(/\/$/, "")}>
+    <HashRouter>
       <AppShellProvider>
         <Routes>
           <Route path="/" element={<Shell />} />
@@ -33,6 +33,6 @@ export default function App() {
           <Route path="*" element={<Shell />} />
         </Routes>
       </AppShellProvider>
-    </BrowserRouter>
+    </HashRouter>
   );
 }
