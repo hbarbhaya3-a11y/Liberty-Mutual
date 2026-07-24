@@ -3,7 +3,7 @@ name: Deploy frontend to GitHub Pages
 on:
   push:
     branches:
-      - claude/application-url-sharing-r5ykjr
+      - master
   workflow_dispatch:
 
 # Allow the workflow to publish to Pages.
