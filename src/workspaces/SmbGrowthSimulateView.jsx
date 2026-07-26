@@ -1,9 +1,9 @@
 /* ============================================================================
-   SmbGrowthSimulateView — SMB Growth / Re-bundle Simulate workbench.
+   SmbGrowthSimulateView — Small Commercial Growth Simulate workbench.
 
    Forked from SmbRateSimulateView.jsx structure but re-domained from
-   SMB operating-deposit retention via rate to SMB growth / re-bundle —
-   a cross-sell capture play (credit + payments win-back):
+   renewal-retention via rate to Small Commercial growth-capture —
+   a bind + cross-line capture play (win the growing account back):
      - 6 lever sections (CUSTOMER / ELIGIBILITY / OFFER / EXPANSION NUDGES /
        CHANNEL / SIMULATION DURATION)
      - Single-column lever layout
@@ -17,9 +17,9 @@
 
    The model reads SMBGROWTH_CALIBRATION, whose field names mirror the rate
    calibration so simulateOutcomes() forks mechanically; semantics are
-   re-labelled for growth: "incremental Yr-1 revenue", "cross-sell conversion"
-   (which RISES base→best), and offerCeilingBps is the INTRO-PRICING /
-   FEE-WAIVER DEPTH (bps) lever.
+   re-labelled for growth: "incremental Yr-1 NWP", "quote-to-bind conversion"
+   (which RISES base→best), and offerCeilingBps is the RATE-FLEXIBILITY
+   (bps) lever.
    ========================================================================= */
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -109,9 +109,9 @@ const PILOT_DEFAULTS = {
    Anchors at recommended defaults (per SMBGROWTH_CALIBRATION):
      - eligibleAfterGate = 35,500 accounts (excludes watch/hold)
      - treatmentN/controlN = 34,560 / 3,840
-     - Incremental Yr-1 revenue = $31M (at +75 bps intro depth default)
-     - Cross-sell conversion: 8.4% (base) → 19.1% (with policy) → +10.7pp lift
-     - +$13M more revenue than a blanket bundle-discount
+     - Incremental Yr-1 NWP = $31M (at +75 bps rate-flexibility default)
+     - Quote-to-bind conversion: 8.4% (base) → 19.1% (with policy) → +10.7pp lift
+     - +$13M more NWP than a blanket rate concession
      - Spread protected = $640K / yr
      - Pricing-consistency margin = 0.92 (held by the price floor)
 
@@ -188,7 +188,7 @@ function simulateOutcomes(opts) {
                   * servicesFactor
                   * triggerFactor;
 
-  /* Cross-sell conversion RISES from the base toward the best-configuration
+  /* Quote-to-bind conversion RISES from the base toward the best-configuration
      ceiling as the offer strengthens. strengthFactor blends offer depth and
      channel reach; conversion is clamped at the best-config ceiling. */
   const strengthFactor = Math.max(
