@@ -134,7 +134,9 @@ function Treemap({ mode, modeData, sizeMetric, activeObj, onOpen }) {
           rect={{ ready: true }}
           sizeClass=""
           dim={!!activeObj && t.obj !== activeObj}
-          locked={!ACTIVE_USECASES.has(t.id)}
+          /* Every card routes to the sector's canonical use case, so none are
+             dead "coming soon" previews — all are enterable. */
+          locked={false}
           modeData={modeData}
           onOpen={onOpen}
           gridMode
@@ -336,11 +338,15 @@ export default function Cockpit({ embedded = false, onOpenTheme }) {
     return t;
   }, [modeData]);
 
-  /* In embedded mode the caller (HubWorkspace) provides a custom theme
-     handler via `onOpenTheme` that updates global state and opens a drawer
-     instead of doing a hard navigate. Standalone mode keeps the old URL
-     navigate so /cockpit-legacy continues to work as before. */
-  const openTheme = (id) => {
+  /* Every signal card routes to the sector's canonical, fully-built use case
+     — Retail (B2C) → auto renewal retention; Commercial (B2B) → Small
+     Commercial growth — so any tile leads into the same end-to-end flow for
+     that sector rather than a partially-built / off-context journey.
+     In embedded mode the caller (HubWorkspace) provides a custom theme
+     handler via `onOpenTheme`; standalone keeps the URL navigate. */
+  const SECTOR_USECASE = { retail: "retention", commercial: "smbgrowth" };
+  const openTheme = (clickedId) => {
+    const id = SECTOR_USECASE[sector] || clickedId;
     if (typeof onOpenTheme === "function") { onOpenTheme(id, mode); return; }
     navigate(`/theme?id=${encodeURIComponent(id)}&mode=${encodeURIComponent(mode)}`);
   };
