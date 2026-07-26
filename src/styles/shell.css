@@ -175,6 +175,34 @@ html.theme-light .global-topbar .gtb-chip-hyp .gtb-chip-v { color: #d97706; }
   background: var(--live, #42e08b); box-shadow: 0 0 6px var(--live, #42e08b);
 }
 
+/* Sector toggle (row 1) — segmented control for the business-line switch.
+   Retail / Commercial. Sits between the spacer and the notification bell. */
+.global-topbar .gtb-sector {
+  display: inline-flex; align-items: center;
+  gap: 2px;
+  padding: 2px;
+  background: var(--bg-2); border: 1px solid var(--hair);
+  border-radius: 8px;
+}
+html.theme-light .global-topbar .gtb-sector {
+  background: #f1f5f9; border-color: #e2e8f0;
+}
+.global-topbar .gtb-sector-opt {
+  font-family: var(--ui);
+  font-size: 12px; font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--ink-3);
+  background: transparent; border: none; cursor: pointer;
+  padding: 5px 12px; border-radius: 6px;
+  transition: background .15s ease, color .15s ease;
+}
+.global-topbar .gtb-sector-opt:hover { color: var(--ink); }
+.global-topbar .gtb-sector-opt.is-active {
+  color: #ffffff;
+  background: linear-gradient(135deg, #7c3aed, #5b21b6);
+  box-shadow: var(--shadow-sm, 0 1px 2px rgba(15,23,42,.12));
+}
+
 /* Profile (row 1, flush right) — standard format: avatar + name + role.
    Theme toggle sits to the LEFT of this block. Constant on every screen. */
 .global-topbar .gtb-profile {
