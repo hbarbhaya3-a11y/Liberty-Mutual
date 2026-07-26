@@ -40,26 +40,26 @@ const RET_SEG_MODEL = {
 };
 
 const OBJECTIVES = [
-  { id: "retained_deposits", label: "Maximize retained deposits" },
-  { id: "runoff_reduction",  label: "Minimize % deposits leaving" },
-  { id: "primacy_return",    label: "Maximize payroll returns" },
+  { id: "retained_deposits", label: "Maximize NWP protected" },
+  { id: "runoff_reduction",  label: "Minimize % renewals lapsing" },
+  { id: "primacy_return",    label: "Maximize bundle penetration" },
 ];
 
 const COHORT_OPTIONS = [
   { id: "full",               name: "Full cohort",              count: 75000, share: 0.095, sig: "Every customer showing one or more drift signals." },
-  { id: "rate-sensitive",     name: "Rate-sensitive eligible",  count: 22000, share: 0.028, sig: "Balance dropping >10% · responsive to rate · not operationally anchored." },
-  { id: "operating-decliner", name: "Operating Decliner",       count: 18000, share: 0.023, sig: "DDA activity falling · direct-deposit decaying · no rate-shopping signal yet." },
-  { id: "high-value",         name: "High-value at-risk",       count:  3000, share: 0.004, sig: "Balance >$85K · top attrition decile · single-product depth." },
-  { id: "long-tenured",       name: "Long-tenured drifters",    count:  8000, share: 0.010, sig: "10+ years tenure · balance eroded in the last 6 months." },
-  { id: "multi-product",      name: "Multi-product drifters",   count: 12000, share: 0.015, sig: "3+ products held · early drift signals on the primary deposit account." },
+  { id: "rate-sensitive",     name: "Shopping-elastic eligible", count: 22000, share: 0.028, sig: "Engagement dropping >20% · price-elastic · not deeply bundled."  },
+  { id: "operating-decliner", name: "Silent Pre-Shopper", count: 18000, share: 0.023, sig: "Portal logins falling · paperless-opens decaying · no competitor quote yet."  },
+  { id: "high-value",         name: "High-value at-risk", count: 3000, share: 0.004, sig: "LTV >$12K · top shopping decile · single-line (unbundled)."  },
+  { id: "long-tenured",       name: "Long-tenured shoppers", count: 8000, share: 0.010, sig: "10+ years tenure · rate action landed in the last 6 months."  },
+  { id: "multi-product",      name: "Multi-policy shoppers", count: 12000, share: 0.015, sig: "3+ policies held · early shopping signals on the auto policy."  },
 ];
 
 const OFFER_PRODUCT_OPTIONS = [
-  { id: "cd_6mo",          label: "Standard CD · 6-month" },
-  { id: "cd_12mo",         label: "Standard CD · 12-month" },
-  { id: "cd_18mo",         label: "Standard CD · 18-month" },
-  { id: "cd_trade_up_24",  label: "Trade Up CD · 24-month" },
-  { id: "elite_mma",       label: "Elite Money Market" },
+  { id: "cd_6mo",          label: "Rate cap · light" },
+  { id: "cd_12mo",         label: "Rate cap + $100 offer" },
+  { id: "cd_18mo",         label: "Rate cap + $150 offer" },
+  { id: "cd_trade_up_24",  label: "Multi-year rate lock" },
+  { id: "elite_mma",       label: "Deductible-adjusted" },
   { id: "smart_savings",   label: "Smart Savings" },
 ];
 
@@ -67,19 +67,19 @@ const CHANNEL_OPTIONS = [
   { id: "app",    label: "App notification" },
   { id: "email",  label: "Email" },
   { id: "mail",   label: "Direct mail" },
-  { id: "banker", label: "Banker outreach" },
+  { id: "banker", label: "Comparion agent call" },
 ];
 
 const ALWAYS_ON_CONSTRAINTS = [
-  { id: "fairness",      label: "Deposit-pricing fairness (UDAAP) ≥ 0.85" },
+  { id: "fairness",      label: "Renewal-pricing fairness (disparate-impact) ≥ 0.85" },
   { id: "profitability", label: "Profitability floor · every retained dollar margin-positive" },
   { id: "model-risk",    label: "Model risk approved · drift state stable" },
-  { id: "fraud",         label: "Fraud envelope · deposit-offer Q2 bound" },
+  { id: "fraud",         label: "Loss-ratio envelope · retention-offer Q2 bound" },
 ];
 
 const DEFAULT_RANGES = {
-  minBalanceK:     { low: 25, high: 60, min: 20, max: 100, step: 5, unit: "K",   label: "Min balance to qualify", caption: "Customers below this aren't worth the offer cost." },
-  offerCeilingBps: { low: 25, high: 60, min: 0, max: 80,  step: 5, unit: "bps", label: "Rate uplift ceiling",     caption: "Market rate 4.15% · BPS = increment over market" },
+  minBalanceK:     { low: 25, high: 60, min: 20, max: 100, step: 5, unit: "K",   label: "Min household LTV to qualify", caption: "Households below this arent worth the offer cost."  },
+  offerCeilingBps: { low: 25, high: 60, min: 0, max: 80,  step: 5, unit: "bps", label: "Retention-offer ceiling", caption: "Avg auto premium ~$1,650/yr · bps = increment over renewal"  },
 };
 
 /* ----------------------------------------------------------------------------
@@ -253,7 +253,7 @@ function runOptimizer(objective, ranges, productOffers, allowedChannels, cohortP
   if (objective === "retained_deposits") {
     return [
       mkRec("balanced", 1, "Balanced defender",
-        "Mid-range offer · 12-month CD · keeps net annualised firmly positive.",
+        "Mid-range rate cap + $100 offer · keeps net annualised firmly positive.",
         { productOffers: offerMap(40), minBalanceK: clamp(ranges.minBalanceK, 25),
           offerTerm: pickProduct("cd_12mo", "cd_6mo") }, 1.05, 1.00),
       mkRec("aggressive", 2, "Aggressive defender",
@@ -261,7 +261,7 @@ function runOptimizer(objective, ranges, productOffers, allowedChannels, cohortP
         { productOffers: offerMap("high"), minBalanceK: ranges.minBalanceK.low,
           offerTerm: pickProduct("cd_18mo", "cd_12mo") }, 1.18, 1.12),
       mkRec("selective", 3, "Selective defender",
-        "Higher balance floor + lower offer — narrower cohort, highest cost-efficiency.",
+        "Higher LTV floor + lower offer — narrower cohort, highest cost-efficiency.",
         { productOffers: offerMap(30), minBalanceK: clamp(ranges.minBalanceK, 50),
           offerTerm: pickProduct("cd_12mo", "cd_6mo") }, 0.78, 0.85),
     ];
@@ -269,7 +269,7 @@ function runOptimizer(objective, ranges, productOffers, allowedChannels, cohortP
   if (objective === "runoff_reduction") {
     return [
       mkRec("steepest", 1, "Steepest runoff cut",
-        "Highest offer + broadest eligibility — maximum reduction in deposits leaving.",
+        "Highest offer + broadest eligibility — maximum reduction in renewals lapsing.",
         { productOffers: offerMap("high"), minBalanceK: ranges.minBalanceK.low,
           offerTerm: pickProduct("cd_18mo", "cd_12mo") }, 1.20, 1.25),
       mkRec("broad", 2, "Broad reach",
@@ -283,8 +283,8 @@ function runOptimizer(objective, ranges, productOffers, allowedChannels, cohortP
     ];
   }
   return [
-    mkRec("primacy", 1, "Primacy-leveraged",
-      "Elite Money Market offer prompts customers to re-route payroll back — primary mechanism for direct-deposit recovery.",
+    mkRec("primacy", 1, "Bundle-leveraged",
+      "Bundle nudge prompts households to add a home/umbrella policy at the save moment — primary mechanism for bundle penetration.",
       { productOffers: offerMap(50), minBalanceK: ranges.minBalanceK.low,
         offerTerm: pickProduct("elite_mma", "smart_savings") }, 0.90, 0.95),
     mkRec("mixed", 2, "Mixed approach",
@@ -414,13 +414,13 @@ function RetentionPareto({ recs, selectedId, onSelect }) {
             {/* Axis labels */}
             <text x={(PL + W - PR) / 2} y={H - 10} textAnchor="middle" fontSize="9.5"
                   fontFamily="var(--mono)" fill="var(--ink-3)">
-              Retained deposits · $M / yr →
+              NWP protected · $M / yr →
             </text>
             <text x={-((PT + H - PB) / 2)} y={14} textAnchor="middle" fontSize="9.5"
                   fontFamily="var(--mono)" fill="var(--ink-3)"
                   transform={`rotate(-90, ${-((PT + H - PB) / 2)}, 14)`}
                   style={{ transformOrigin: "0 0" }}>
-              ← Pricing fairness (UDAAP)
+              ← Renewal-pricing fairness
             </text>
 
             {/* Infeasible region — below 0.85 floor, soft red wash */}
@@ -569,7 +569,7 @@ export default function RetentionIfWhatView() {
       id: `p-${stagedAt}`,
       name: rec.name,
       hypothesis: activeHypId,
-      cluster: "mass-affluent-deposit-drift",
+      cluster: "high-ltv-renewal-shopping",
       themeId: "retention",
       experimentType: "retention",
       source: "ifwhat-optimizer",
@@ -628,21 +628,21 @@ export default function RetentionIfWhatView() {
     const _withPp = selected ? Math.max(_baseRunoffPp - _o.runoffReductionPp, 2) : _baseRunoffPp;
     // KPI strip — the LEAD KPI (Tier 1) MUST match the optimized objective and
     // the rank-card hero. The other three are supporting context.
-    const _mRet   = { label: "Retained deposits", value: `+$${_o ? _o.retainedM.toFixed(1) : 0}M`, baseline: "$0" };
-    const _mLeave = { label: "% deposits leaving", value: `${_withPp.toFixed(1)}%`, baseline: `${_baseRunoffPp.toFixed(1)}%` };
-    const _mDD    = { label: "Direct-deposit recovery", value: `+${_o ? _o.ddRecoveryPp : 0}pp`, baseline: "0pp" };
+    const _mRet   = { label: "NWP protected", value: `+$${_o ? _o.retainedM.toFixed(1) : 0}M`, baseline: "$0" };
+    const _mLeave = { label: "% renewals lapsing", value: `${_withPp.toFixed(1)}%`, baseline: `${_baseRunoffPp.toFixed(1)}%` };
+    const _mDD    = { label: "Bundle penetration", value: `+${_o ? _o.ddRecoveryPp : 0}pp`, baseline: "0pp" };
     const _mRelVal   = { label: "Annualized relationship value", value: `+$${(_o ? _o.retainedM * 2.5 : 0).toFixed(1)}M`, baseline: "$0" };
     const _mDefended = { label: "Customers retained", value: `${_o ? Math.round(_o.treatmentN * (_baseRunoffPp - _withPp) / 100).toLocaleString() : 0}`, baseline: "0" };
     const _kpis = !selected ? [] :
       objective === "retained_deposits"
         ? [_mRet, _mRelVal, _mLeave, _mDD, _mDefended]
         : objective === "primacy_return"
-          ? [{ label: "Payroll returns", value: `+${_o.ddRecoveryPp}pp`, baseline: "0pp" }, _mRet, _mRelVal, _mLeave, _mDefended]
-          : [{ label: "Deposits-leaving reduction", value: `−${_o.runoffReductionPp.toFixed(1)}pp`, baseline: `${_baseRunoffPp.toFixed(1)}%` }, _mRet, _mRelVal, _mDD, _mDefended];
+          ? [{ label: "Bundle adds", value: `+${_o.ddRecoveryPp}pp`, baseline: "0pp" }, _mRet, _mRelVal, _mLeave, _mDefended]
+          : [{ label: "Lapse-rate reduction", value: `−${_o.runoffReductionPp.toFixed(1)}pp`, baseline: `${_baseRunoffPp.toFixed(1)}%` }, _mRet, _mRelVal, _mDD, _mDefended];
     // Policy band (the levers that produced this) — shown atop the Aggregate tab.
     const _policy = selected ? [
       { k: "Cohort", v: (selected.picks.cohortPresets || []).map((id) => COHORT_OPTIONS.find((c) => c.id === id)?.name).filter(Boolean).join(", ") || "All" },
-      { k: "Min balance", v: `$${selected.picks.minBalanceK}K` },
+      { k: "Min LTV", v: `$${selected.picks.minBalanceK}K` },
       { k: "Product × Offer", v: Object.entries(selected.picks.productOffers || {})
           .map(([id, bps]) => `${fmtProduct(id)} ${((PRODUCT_MARKET[id] ?? 0) + bps / 100).toFixed(2)}%`)
           .join(" · ") || "—" },
@@ -654,12 +654,12 @@ export default function RetentionIfWhatView() {
         <ResultTileNII
           outcomes={{ NII_8wk_M: _o.retainedM * (8 / 52) }}
           progress={1}
-          title="Retained deposits accumulation"
+          title="NWP protected accumulation"
           subhead="projected · cumulative over an 8-wk pilot"
           insight="Most of the effect lands inside the first 4 weeks."
         />
         <ResultTileBars
-          title="% of deposits leaving / wk"
+          title="% renewals lapsing / wk"
           subhead={`${_baseRunoffPp.toFixed(1)}% today → ${_withPp.toFixed(1)}% with policy`}
           steady={_o.runoffReductionPp / 8}
           baselinePerWk={_baseRunoffPp / 8}
@@ -672,7 +672,7 @@ export default function RetentionIfWhatView() {
           accent="var(--acc,#ffb15a)"
         />
         <ResultTileBars
-          title="Direct-deposit recovery / wk"
+          title="Bundle penetration / wk"
           subhead="projected ramp"
           steady={_o.ddRecoveryPp / 8}
           baselinePerWk={0}
@@ -747,9 +747,9 @@ export default function RetentionIfWhatView() {
                     <div className="iw-rank-name">{rec.name}</div>
                     <div className="iw-rank-hero iw-rank-kpi-good">
                       <div className="iw-rank-hero-k">
-                        {objective === "retained_deposits" ? "Retained deposits / yr"
-                         : objective === "runoff_reduction" ? "Deposits-leaving reduction"
-                         : "Payroll returns / qtr"}
+                        {objective === "retained_deposits" ? "NWP protected / yr"
+                         : objective === "runoff_reduction" ? "Lapse-rate reduction"
+                         : "Bundle adds / qtr"}
                       </div>
                       <div className="iw-rank-hero-v">
                         {objective === "retained_deposits" ? `+$${rec.outcomes.retainedM.toFixed(1)}M`
@@ -835,8 +835,8 @@ export default function RetentionIfWhatView() {
                   <div className="sim-guardrails-pills">
                     <span className="sim-guardrail-pill sim-guardrail-pass">
                       <span className="sim-guardrail-pill-dot" />
-                      <span className="sim-guardrail-pill-l">Deposit-pricing fairness</span>
-                      <span className="sim-guardrail-pill-d">UDAAP margin {selected.outcomes.fairnessMargin.toFixed(2)} vs 0.85 floor</span>
+                      <span className="sim-guardrail-pill-l">Renewal-pricing fairness</span>
+                      <span className="sim-guardrail-pill-d">Fair-lending margin {selected.outcomes.fairnessMargin.toFixed(2)} vs 0.85 floor</span>
                     </span>
                     <span className="sim-guardrail-pill sim-guardrail-pass">
                       <span className="sim-guardrail-pill-dot" />
@@ -970,11 +970,11 @@ export default function RetentionIfWhatView() {
                     {customRules.map((r, i) => (
                       <div key={i} className="sim-cohort-custom-rule">
                         <select value={r.feature} onChange={(e) => updateRule(i, { feature: e.target.value })} disabled={isAutopilot}>
-                          <option value="balance_min">Avg deposit balance</option>
-                          <option value="balance_decline_90d">Balance decline (90d)</option>
-                          <option value="ach_outflow_90d">Outbound ACH (90d)</option>
-                          <option value="dda_activity_decline">DDA activity decline</option>
-                          <option value="direct_deposit_decay">Direct-deposit decay</option>
+                          <option value="balance_min">Household LTV</option>
+                          <option value="balance_decline_90d">Engagement decline (90d)</option>
+                          <option value="ach_outflow_90d">Competitor quote-shopping (90d)</option>
+                          <option value="dda_activity_decline">Portal-login decline</option>
+                          <option value="direct_deposit_decay">Coverage-reduction request</option>
                           <option value="tenure_months">Tenure (months)</option>
                           <option value="product_depth">Product depth (count)</option>
                         </select>
@@ -1001,7 +1001,7 @@ export default function RetentionIfWhatView() {
           <div className="sim-lever-section-band">
             <span className="sim-lever-section-num">3</span>
             <span className="sim-lever-section-name">ELIGIBILITY</span>
-            <span className="sim-lever-section-meta">The minimum balance to qualify</span>
+            <span className="sim-lever-section-meta">The minimum household LTV to qualify</span>
           </div>
           <MinRow
             label={ranges.minBalanceK.label}
@@ -1030,7 +1030,7 @@ export default function RetentionIfWhatView() {
               <span className="lever-name">Products & offer ranges</span>
               <span className="lever-value">{allowedProducts.length} of {OFFER_PRODUCT_OPTIONS.length}</span>
             </div>
-            <div className="lever-caption">Different products trade in different markets. Select the products to allow; each reveals its own uplift range, anchored to that product's market, that the optimizer sweeps within. At-risk deposits earn ~3.50% today.</div>
+            <div className="lever-caption">Select the offers to allow; each reveals its own range, anchored to the renewal premium, that the optimizer sweeps within. Avg at-risk auto premium ~$1,650/yr today.</div>
             <div className="px-offer-list">
               {OFFER_PRODUCT_OPTIONS.map((p) => {
                 const rng = productOffers[p.id];
