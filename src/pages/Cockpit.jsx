@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { MODES, OBJ, STLAB, fmtUSD, area, ALL_THEMES } from "@/data/themes";
+import { useAppShell } from "@/state/AppShell";
 import { CxoCompanion } from "@/components/CxoCompanion";
 import PageShell from "@/components/PageShell";
 import { Logo, ThemeToggle } from "@/components/Logo";
@@ -34,7 +35,7 @@ function Sparkline({ theme }) {
    remaining use cases (SMB) and all the ambient / macro signal themes — renders
    locked ("Coming soon"): visible so the roadmap reads, but not yet enterable.
    These three are the only ids that stay active in either radar mode. */
-export const ACTIVE_USECASES = new Set(["gig", "liquidity", "retention", "wealth"]);
+export const ACTIVE_USECASES = new Set(["gig", "liquidity", "retention", "wealth", "smbgrowth", "smbrate"]);
 
 function ThemeTile({ theme, rect, sizeClass, dim, modeData, onOpen, gridMode, locked }) {
   const o = OBJ[theme.obj];
@@ -292,7 +293,24 @@ export default function Cockpit({ embedded = false, onOpenTheme }) {
   // useful context but visually dense. User can expand on demand.
   const [meterOpen, setMeterOpen] = useState(false);
   const navigate = useNavigate();
-  const modeData = MODES[mode];
+  const { sector } = useAppShell();
+  const baseModeData = MODES[mode];
+  /* Sector switch (Retail / Commercial) scopes the Sense home: commercial
+     surfaces the b2b-tagged themes (Small Commercial) + their signals;
+     retail surfaces everything else. Tiles, treemap, signal stream, legend
+     totals and counts all read this filtered view — so the toggle actually
+     changes the experience rather than just the header chip. */
+  const modeData = useMemo(() => {
+    const wantCommercial = sector === "commercial";
+    const themes = baseModeData.themes.filter((t) => !!t.b2b === wantCommercial);
+    const ids = new Set(themes.map((t) => t.id));
+    const sigs = baseModeData.sigs.filter(([, , , themeId]) => ids.has(themeId));
+    return {
+      ...baseModeData,
+      themes: themes.length ? themes : baseModeData.themes,
+      sigs: sigs.length ? sigs : baseModeData.sigs,
+    };
+  }, [baseModeData, sector]);
   // Resolve signal links against ALL themes (not just the rendered tiles) so the
   // macro stream — whose signals point at macro themes — still links in both modes.
   const themesById = useMemo(() => Object.fromEntries(ALL_THEMES.map((t) => [t.id, t])), []);
