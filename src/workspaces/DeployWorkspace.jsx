@@ -41,7 +41,7 @@ const MOCK_HISTORY = [
     stagedAt: dayBack(56),
     approvedAt: dayBack(52),
     approverName: "Maria Chen",
-    approverRole: "Director · Retail & Business Banking",
+    approverRole: "Director · USRM Personal Lines",
     approverDecision: "Approve · proceed to compliance",
     complianceAt: dayBack(48),
     complianceReviewer: "Risk &amp; Compliance · J. Reyes",
@@ -70,7 +70,7 @@ const MOCK_HISTORY = [
     stagedAt: dayBack(34),
     approvedAt: dayBack(31),
     approverName: "Daniel Park",
-    approverRole: "MD · Commercial Banking",
+    approverRole: "MD · Small Commercial",
     approverDecision: "Approve · monitor wk 4 ticket-size variance",
     approverConditions: "Hold-back at $10M+ tier until wk 4 readout",
     complianceAt: dayBack(28),
@@ -98,7 +98,7 @@ const MOCK_HISTORY = [
     stagedAt: dayBack(16),
     approvedAt: dayBack(13),
     approverName: "Priya Iyer",
-    approverRole: "Director · Retail & Business Banking",
+    approverRole: "Director · USRM Personal Lines",
     approverDecision: "Approve · proceed to compliance",
     /* compliance in progress — no date yet */
     complianceReviewer: "Risk &amp; Compliance · L. Tanaka (in review)",
@@ -113,7 +113,7 @@ const MOCK_HISTORY = [
     stage: "approval",
     stagedBy: "user",
     stagedAt: dayBack(4),
-    pendingApprover: "Maria Chen, Director · Retail & Business Banking",
+    pendingApprover: "Maria Chen, Director · USRM Personal Lines",
     blurb: "Variant of Trust-Aware Lift with +10% cap and 24-month gate. Awaiting approval.",
   },
   {
@@ -129,7 +129,7 @@ const MOCK_HISTORY = [
     stagedAt: dayBack(38),
     approvedAt: dayBack(35),
     approverName: "Marcus Wei",
-    approverRole: "VP · Consumer Lending",
+    approverRole: "VP · Personal Lines Product",
     approverDecision: "Approve · standard pilot terms",
     complianceAt: dayBack(32),
     complianceReviewer: "Risk &amp; Compliance · S. Park",
@@ -158,7 +158,7 @@ const MOCK_HISTORY = [
     stagedAt: dayBack(64),
     approvedAt: dayBack(60),
     approverName: "Priya Iyer",
-    approverRole: "Director · Retail & Business Banking",
+    approverRole: "Director · USRM Personal Lines",
     approverDecision: "Approve · close-out review at wk 8",
     complianceAt: dayBack(57),
     complianceReviewer: "Risk &amp; Compliance · D. Roberts",
@@ -185,7 +185,7 @@ const MOCK_HISTORY = [
     stagedAt: dayBack(12),
     approvedAt: dayBack(9),
     approverName: "Daniel Park",
-    approverRole: "MD · Commercial Banking",
+    approverRole: "MD · Small Commercial",
     approverDecision: "Approve · proceed to compliance",
     complianceReviewer: "Risk &amp; Compliance · L. Tanaka (in review)",
     blurb: "Dynamic overdraft buffer for SMB checking. In compliance review.",
@@ -199,7 +199,7 @@ const MOCK_HISTORY = [
     stage: "approval",
     stagedBy: "autopilot",
     stagedAt: dayBack(2),
-    pendingApprover: "Maria Chen, Director · Retail & Business Banking",
+    pendingApprover: "Maria Chen, Director · USRM Personal Lines",
     blurb: "When a pre-payday RTP payment hits the send-limit, auto-offers ACH-Same-Day to the verified payee. Awaiting approval.",
   },
   {
@@ -211,7 +211,7 @@ const MOCK_HISTORY = [
     stage: "approval",
     stagedBy: "user",
     stagedAt: dayBack(1),
-    pendingApprover: "Daniel Park, MD · Commercial Banking",
+    pendingApprover: "Daniel Park, MD · Small Commercial",
     blurb: "Variable-rate sweep ladder for $5M+ treasury balances. Awaiting MD review.",
   },
   {
@@ -256,7 +256,7 @@ const MOCK_HISTORY = [
     stagedAt: dayBack(98),
     approvedAt: dayBack(95),
     approverName: "Maria Chen",
-    approverRole: "Director · Retail & Business Banking",
+    approverRole: "Director · USRM Personal Lines",
     approverDecision: "Approve · proceed to compliance",
     complianceAt: dayBack(92),
     complianceReviewer: "Risk & Compliance · J. Reyes",
@@ -304,7 +304,7 @@ const MOCK_HISTORY = [
     stagedAt: dayBack(196),
     approvedAt: dayBack(193),
     approverName: "Maria Chen",
-    approverRole: "Director · Retail & Business Banking",
+    approverRole: "Director · USRM Personal Lines",
     approverDecision: "Approve · proceed to compliance",
     complianceAt: dayBack(190),
     complianceReviewer: "Risk & Compliance · J. Reyes",
@@ -427,7 +427,7 @@ const CASCADE = {
   pilotStartDelayMs: 3600,
   defaultApprover: {
     approverName: PERSONA.name,   // the signed-in user is the one approving
-    approverRole: "Director · Retail & Business Banking (Sandbox)",
+    approverRole: "Director · USRM Personal Lines (Sandbox)",
     approverDecision: "Approve · proceed to compliance",
   },
 };
@@ -465,12 +465,12 @@ export default function DeployWorkspace() {
     // The approving line of business follows the use case, not always Money Movement.
     const theme = row.themeId || CLUSTER_TO_THEME[row.cluster] || "gig";
     const sandboxRole = {
-      liquidity: "Director · Retail & Business Banking (Sandbox)",
-      retention: "Director · Retail & Business Banking (Sandbox)",
-      wealth:    "Director · Wealth Management & Advisory (Sandbox)",
-      smbrate:   "MD · Commercial Banking (Sandbox)",
-      smbgrowth: "MD · Commercial Banking (Sandbox)",
-      gig:       "Director · Retail & Business Banking (Sandbox)",
+      liquidity: "Director · USRM Personal Lines (Sandbox)",
+      retention: "Director · USRM Personal Lines (Sandbox)",
+      wealth:    "Director · USRM Personal Lines (Sandbox)",
+      smbrate:   "MD · Small Commercial (Sandbox)",
+      smbgrowth: "MD · Small Commercial (Sandbox)",
+      gig:       "Director · USRM Personal Lines (Sandbox)",
     }[theme] || CASCADE.defaultApprover.approverRole;
     applyAdvancement(row.id, { ...CASCADE.defaultApprover, approverRole: sandboxRole, approvedAt: now, _rejected: false });
     pushAgentEvent({ kind: "good", src: "Deploy", text: `Approved · ${row.name}` });

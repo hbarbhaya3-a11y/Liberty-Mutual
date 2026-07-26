@@ -42,7 +42,7 @@ const KB = [
     tr: ["Value×feasibility", "Portfolio", "allocation"], cta: { t: "Retention pipeline", theme: "churn" } },
   { id: "feegap", lens: "CO", keys: ["bundle", "cross-sell", "gap", "lag", "lags", "behind", "penetration", "attach"],
     head: "Turn a renewal signal into a bundled household.",
-    body: <>Bundled households retain <B2>7.0 yrs vs 5.5</B2> — Mirza's #1 priority. <H>Bundle-at-home-purchase</H> converts a property signal into auto+home; the save moment surfaces a pre-filled home/umbrella quote. Same signal retains and cross-sells (+15–25% uplift).</>,
+    body: <>Bundled households retain <B2>7.0 yrs vs 5.5</B2> — the USRM President's #1 priority. <H>Bundle-at-home-purchase</H> converts a property signal into auto+home; the save moment surfaces a pre-filled home/umbrella quote. Same signal retains and cross-sells (+15–25% uplift).</>,
     ev: [{ c: "s", v: "+15–25%", l: "cross-sell" }, { c: "a", v: "+$87M", l: "home" }, { c: "v", v: "+18pp", l: "attach" }],
     tr: ["Home-purchase signals", "Home", "bundle + retention"], cta: { t: "Bundle pipeline", theme: "home" } },
   { id: "efficiency", lens: "CA", keys: ["combined ratio", "cr", "efficiency", "loss ratio", "cost", "expense", "productivity", "cost-to-serve"],
