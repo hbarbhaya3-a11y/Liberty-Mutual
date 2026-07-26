@@ -34,7 +34,7 @@ import {
 import "@/styles/analyse-workspace.css";
 
 /* The compact data + model streams that sense this cohort. Brief by design —
-   a short list of the streams that feed the cross-sell propensity model plus the
+   a short list of the streams that feed the cross-line propensity model plus the
    model + guardrail themselves, grouped the same way the rate view groups them. */
 const GROUPS = [
   {
@@ -42,9 +42,9 @@ const GROUPS = [
     title: "data streams composed",
     expandedTitle: "Data streams",
     items: [
-      "Business-banking product-holding ledger",
-      "Off-us card & merchant-acquirer signal",
-      "Recurring-cost & payroll telemetry",
+      "CI-Exposure Detail · coverage-holding ledger",
+      "Off-us placement & prior-carrier signal",
+      "Payroll / employee-count & location telemetry",
     ],
   },
   {
@@ -52,8 +52,8 @@ const GROUPS = [
     title: "detection + context models",
     expandedTitle: "Detection and context models",
     items: [
-      "Expansion-trigger model (real-estate / asset / recurring-cost)",
-      "Cross-sell propensity model",
+      "Expansion-trigger model (location / fleet / payroll)",
+      "Cross-line propensity + win-probability model",
     ],
   },
   {
@@ -61,7 +61,7 @@ const GROUPS = [
     title: "guardrail + predictive models",
     expandedTitle: "Guardrail and predictive models",
     items: [
-      "Credit-risk & price-floor guardrail",
+      "Loss-ratio & rate-adequacy guardrail",
     ],
   },
 ];
@@ -354,10 +354,10 @@ export default function SmbGrowthAnalyzeView() {
             ))}
           </div>
 
-          {/* Current holdings — white space for the re-bundle. Brief mini-bars-h
+          {/* Current lines on the book — cross-line white space. Brief mini-bars-h
               strip showing how thin the cohort's on-us product mix is today. */}
           <div className="aw-holdings">
-            <div className="aw-holdings-title">Current holdings — white space for the re-bundle</div>
+            <div className="aw-holdings-title">Current lines on the book — cross-line white space</div>
             <div className="mini-chart">
               <div className="mini-bars-h">
                 {SMBGROWTH_HOLDINGS.map((h, i) => (
@@ -374,7 +374,7 @@ export default function SmbGrowthAnalyzeView() {
                 ))}
               </div>
               <div className="mini-chart-foot">
-                Share of the cohort holding each product on-us today — everything below checking is open re-bundle white space.
+                Share of the cohort carrying each line with Liberty today — everything below BOP is open cross-line white space.
               </div>
             </div>
           </div>
