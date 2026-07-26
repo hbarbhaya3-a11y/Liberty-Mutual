@@ -8,42 +8,42 @@
 export const RETENTION_REASON_CARDS = [
   {
     n: "R1",
-    t: "Balance slope + outbound ACH joint signal",
-    d: "The joint occurrence of balance decline and ACH-out acceleration is 2.3× more predictive than either signal alone — the combination identifies genuine drift-onset, not noise.",
+    t: "Engagement drop + competitor-quote joint signal",
+    d: "The joint occurrence of digital-engagement decline and a competitor quote-request is 2.3× more predictive than either signal alone — the combination identifies genuine shopping-onset, not noise.",
     pct: 84,
     a: "joint signal precision 0.84",
     chart: "joint-signal",
   },
   {
     n: "R2",
-    t: "Operating-balance volatility 2.1× cohort median",
-    d: "Month-to-month operating-balance swings exceeding 2× median are a reliable predictor of 90-day runoff in the mass-affluent segment.",
+    t: "Coverage-question volatility 2.1× cohort median",
+    d: "Month-to-month coverage-inquiry and portal-visit swings exceeding 2× median are a reliable predictor of 90-day lapse in the high-LTV segment.",
     pct: 78,
     a: "volatility ratio 2.1×",
     chart: "volatility-bars",
   },
   {
     n: "R3",
-    t: "Direct-deposit + bill-pay decay joint",
-    d: "Direct-deposit frequency decline combined with bill-pay deactivation marks the operating-decliner sub-segment — intervening before rate-shopping develops.",
+    t: "Engagement + paperless-open decay joint",
+    d: "Portal-login decline combined with paperless-statement open decay marks the silent-pre-shopper sub-segment — intervening before competitor shopping develops.",
     pct: 71,
-    a: "DD+BP decay joint",
+    a: "engagement decay joint",
     chart: "primacy-decay",
   },
   {
     n: "R4",
-    t: "Drift distinguishable from rate-shopping",
-    d: "The drift classification model separates primacy-weakening (upstream behavioural) from active rate-shopping (aggregator logins + probing transfers) — different intervention windows.",
+    t: "Elastic shoppers distinguishable from sticky bundled",
+    d: "The shopping-risk model separates price-elastic shoppers (competitor quotes + coverage questions) from operationally-loyal bundled households (auto-pay, long tenure) — different intervention windows.",
     pct: 66,
-    a: "drift vs shopping separability",
+    a: "elastic vs sticky separability",
     chart: "stickiness-distribution",
   },
   {
     n: "R5",
-    t: "Low product depth amplifier",
-    d: "Single-product customers with no secondary anchor have a 1.9× higher 12-month attrition probability — product depth is not the cause but amplifies every other signal.",
+    t: "Single-line (unbundled) amplifier",
+    d: "Auto-only customers with no home/umbrella anchor have a 1.9× higher 12-month lapse probability — bundle depth is not the cause but amplifies every other signal.",
     pct: 62,
-    a: "depth multiplier 1.9×",
+    a: "unbundled multiplier 1.9×",
     chart: "product-depth",
   },
 ];
@@ -71,13 +71,13 @@ export const VOLATILITY_BARS = [
 /* Primacy-decay overlay: DD frequency + bill-pay count per archetype.
    Higher values = more decayed (worse primacy). */
 export const PRIMACY_DECAY = [
-  { archetype: "Drifting Saver",     dd: 0.55, bp: 0.62 },
-  { archetype: "Operating Decliner", dd: 0.84, bp: 0.78 },
-  { archetype: "Anchored Saver",     dd: 0.22, bp: 0.15 },
+  { archetype: "Shopping Renewer",   dd: 0.55, bp: 0.62 },
+  { archetype: "Silent Pre-Shopper", dd: 0.84, bp: 0.78 },
+  { archetype: "Sticky Bundled",     dd: 0.22, bp: 0.15 },
 ];
 
-/* Stickiness-score distribution. Target gate at 0.70 — bins above are sticky
-   (UDAAP-protected, NOT offered the rate); bins below are elastic (eligible). */
+/* Loyalty-score distribution. Target gate at 0.70 — bins above are sticky
+   (fair-lending-protected, NOT offered the discount); bins below are elastic (eligible). */
 export const STICKINESS_DISTRIBUTION = [
   { bin: "0.0-0.2", pct:  4, eligible: true  },
   { bin: "0.2-0.4", pct: 12, eligible: true  },

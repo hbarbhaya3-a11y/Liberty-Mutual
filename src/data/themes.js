@@ -26,7 +26,7 @@ export const INTERNAL_CATS = [
 ];
 
 export const INTERNAL_THEMES = [
-  { id: "retention", type: "Deposit Retention", name: "Mass affluent · deposit drift", obj: "ret", status: "confirmed", valueM: 2100, vq: "deposits under observation", count: 241, vel: 7, conf: 87, urg: 0.80, desc: "Balance decline, outbound ACH acceleration and weakened operating behaviour — three joint signals marking a cohort whose deposit primacy is eroding before it shops for rate.", macro: "Rate-cut cycle + open-banking switching friction falling", pinned: true, pinOrder: 0 },
+  { id: "retention", type: "Auto Retention", name: "High-LTV auto · renewal shopping risk", obj: "ret", status: "confirmed", valueM: 2100, vq: "NWP under observation", count: 241, vel: 7, conf: 87, urg: 0.80, desc: "Digital engagement drop, competitor quote-shopping and coverage-reduction requests — three joint signals marking high-LTV, claims-free auto customers whose renewal is at risk ~45 days before they shop for rate.", macro: "Record 57% auto shopping + Progressive/GEICO rate pressure", pinned: true, pinOrder: 0 },
   { id: "branch", type: "Acquisition Window", name: "Competitor branch exits", obj: "acq", status: "spiking", valueM: 1900, vq: "inflow opportunity", count: 134, vel: 8, conf: 81, urg: 1.0, desc: "Rival closures open a short capture window across four markets — app-starts already surging in affected ZIPs.", macro: "Regional bank consolidation wave" },
   { id: "gig", type: "New Segment Emerging", name: "Gig & creator-economy depositors", obj: "deep", status: "spiking", valueM: 140, vq: "deepening opportunity", count: 312, vel: 9, conf: 88, urg: 0.90, desc: "A coherent cohort of irregular-cadence, multi-platform inflows is forming outside existing segment definitions — high velocity, currently unowned.", macro: "Fintech deposit disintermediation", pinned: true, pinOrder: 1 },
   { id: "liquidity", type: "Liquidity Activation", name: "Idle-cash liquidity activation", obj: "deep", status: "strengthening", valueM: 46, vq: "deepening opportunity", count: 388, vel: 6, conf: 84, urg: 0.60, desc: "Idle cash sitting at near-zero yield while high-yield competitors pull — route it into the right product at the minimum rate that holds it, before it leaves.", macro: "Falling-rate cycle · high-yield competition", pinned: true, pinOrder: 2 },
@@ -81,10 +81,10 @@ export const INTERNAL_SIGS = [
   ["#63b3ed", "Thin-file app-start · mobile-first", "onboarding", "gig"],
   ["#5b9dff", "Idle balance >$25k · 90d dormant cash", "core-dda", "sweep"],
   ["#4fd1c5", "In-app search: high-yield savings", "app-telemetry", "sweep"],
-  ["#ffb15a", "Balance decline −14% · mass-affluent cohort", "deposit-ledger", "retention"],
-  ["#ffb15a", "Outbound ACH spike +21% · 90d rolling", "ach-monitor", "retention"],
-  ["#ff6b6b", "Attrition decile elevated · scoring engine", "risk-model", "retention"],
-  ["#4fd1c5", "DDA activity −12% · operating-balance erosion", "core-dda", "retention"],
+  ["#ffb15a", "Competitor quote-request captured · 42d pre-renewal", "shopping-feed", "retention"],
+  ["#ffb15a", "Digital engagement −21% MoM · high-LTV auto", "contentsquare", "retention"],
+  ["#ff6b6b", "Shopping-propensity decile elevated · scoring engine", "risk-model", "retention"],
+  ["#4fd1c5", "Coverage-reduction request · value-perception drop", "csw", "retention"],
   ["#ffb15a", "Mobile deposit failed · 3rd retry", "mobile-sdk", "mobile"],
   ["#ffb15a", "Complaint: check will not scan", "care-nlp", "mobile"],
   ["#5b9dff", "Zelle limit hit · SMB twin", "movement-engine", "limits"],
@@ -100,7 +100,7 @@ export const INTERNAL_SIGS = [
 ];
 
 export const INTERNAL_FORMING = [
-  { nm: "Direct-deposit decay ahead of primacy loss", em: "payroll-inflow decline detected 60 days before rate-shopping in the operating-decliner sub-segment", obj: "ret" },
+  { nm: "Engagement decay ahead of renewal shopping", em: "digital-engagement decline detected 60 days before competitor quote-shopping in the silent-pre-shopper sub-segment", obj: "ret" },
   { nm: "Subscription-stacking fatigue", em: "recurring-debit clustering across the under-35 base", obj: "deep" },
   { nm: "Early payroll-advance demand", em: "pre-payday balance dips meeting advance-app inflows", obj: "acq" },
   { nm: "Branch-to-digital migration", em: "foot-traffic decline meeting app-adoption rise", obj: "ret" },
