@@ -10,6 +10,7 @@
    ========================================================================= */
 import { LIQUIDITY_CALIBRATION } from "@/data/liquidityConfig";
 import { WEALTH_CALIBRATION } from "@/data/wealthConfig";
+import { RETENTION_CALIBRATION } from "@/data/retentionConfig";
 
 const pct = (x, d = 1) => `${(x * 100).toFixed(d)}%`;
 const k = (n) => `${Math.round(n / 1000)}K`;
@@ -61,9 +62,36 @@ GUARDRAILS (hard constraints): suitability / Reg BI advice-readiness gate (${C.s
 GLOSSARY: "AUM" = assets under management attached. "Motion" = how the conversation is run (portfolio review, senior-FA 1:1, banker→FA hand-off, digital starter). "Advice-ready" = passes the suitability/readiness gate. "External flight" = held-away assets committing permanently elsewhere.`;
 }
 
+/* ---- Auto renewal-retention pack ----------------------------------------- */
+function retentionPack(C) {
+  return `USE CASE — Auto Renewal Retention (theme id "retention").
+THESIS: Liberty's best auto customers — high-LTV, low-loss, mature — shop first when a broad-brush rate action hits them uniformly, driving the 7.1pt retention collapse (73.5% → 66.4%). The bet: hold the genuinely price-elastic renewals with the SMALLEST incentive that works (a capped rate + retention offer, deductible-adjusted premium, or a bundle nudge), while NOT discounting the operationally-loyal, deeply-bundled majority who would renew anyway.
+
+COHORT FUNNEL (canonical):
+- ${C.cohortTotal.toLocaleString()} auto policies flagged with one or more renewal-shopping signals.
+- → ~${(C.eligibleAfterGate/1000).toFixed(0)}K are ELIGIBLE after a ${C.stickinessThreshold} loyalty/elasticity gate (genuinely price-elastic, not sticky-bundled); ~$${C.balancesUnderTestM}M NWP "under test".
+- → RCT split ${C.treatmentN.toLocaleString()} treatment / ${C.controlN.toLocaleString()} control (80/20 holdout).
+
+VALUE CHAIN (nothing hardcoded — every result derives from the levers):
+cohort → each selected retention action's offer RANGE sets the incentive → reach-weighted BLENDED save-rate → LAPSE falls (${(C.runoffBau*100).toFixed(1)}% BAU → ${(C.runoffWithPolicy*100).toFixed(1)}% with policy, −${(C.runoffReductionPp*100).toFixed(1)}pp) → policies held + NWP protected (≈ +$${C.retainedDepositsAnnualM}M / yr at recommended defaults, net of ~$${(C.offerCostM*1000).toFixed(0)}K retention-offer cost).
+
+THE THREE OPTIMIZER POLICIES (points on one trade-off curve):
+- Balanced — all actions, moderate incentive, routes each segment to its best-fit action. Best TOTAL NWP protected. Recommended default (#1).
+- Margin-optimised — lower incentive, capped-rate/deductible-weighted. FEWER but higher-LTV saves; best margin per policy; lowest rate give-up.
+- Conversion-optimised — higher incentive, retention-offer + bundle-weighted. The MOST renewals held, lower value each.
+
+GUARDRAILS (hard constraints — any policy shown has already passed them):
+- Fair-lending gate (${C.stickinessThreshold}): the elasticity model must evidence the targeted policy is genuinely price-elastic, not a loyal household priced away — a disparate-impact / NAIC Model Bulletin 24-08 failure otherwise.
+- Combined-ratio / loss floor: the retention give-up must stay within the margin the policy earns.
+- Model-risk approval + a loss-ratio envelope.
+
+GLOSSARY: "save-rate" = share of treated renewals held vs lapsed. "Lapse / shopping" = renewals leaving for a competitor quote. "NWP protected" = net written premium retained. "Loyalty gate" = the ${C.stickinessThreshold} score separating price-elastic shoppers from operationally-loyal bundled households.`;
+}
+
 export const USE_CASE_PACKS = {
   liquidity: liquidityPack(LIQUIDITY_CALIBRATION),
   wealth: wealthPack(WEALTH_CALIBRATION),
+  retention: retentionPack(RETENTION_CALIBRATION),
 };
 
 /* The strategic context of the current question + what a good answer focuses on.
@@ -81,6 +109,7 @@ export const PAGE_STAGES = {
 export const CHART_METRICS_BY_USECASE = {
   liquidity: "netValueM ($M Incremental relationship value), fundedConversionPct (%), fundedBalancesM ($M), flightReductionPp (leakage reduction, pp)",
   wealth:    "incrementalAumM ($M), newRelationships (count), conversionPct (%), feeRevenueK ($K fee revenue)",
+  retention: "nwpProtectedM ($M NWP protected), retentionLiftPp (retention lift, pp), lapseReductionPp (lapse reduction, pp), bundleLiftPp (bundle-penetration lift, pp)",
 };
 
 /* Named, higher-level visuals. Each is tagged COMPLEMENTS (adds something the
@@ -97,13 +126,13 @@ export const FEWSHOT = {
   q: "What's the difference between the three policies?",
   a: `All three maximise the same objective — they're three points on the value↔volume↔margin trade-off curve, not weaker copies of one answer.
 
-- **Balanced (recommended, #1)** routes each segment to its best-fit product at a moderate incentive. It wins the highest TOTAL Incremental relationship value, so it's the safe default when no single constraint dominates.
-- **Margin-optimised** sits lower in the offer ranges and weights MMA/CD. It converts fewer but higher-balance customers, giving the best margin per customer and the lowest rate give-up.
-- **Conversion-optimised** sits higher and weights savings. It lands the most funded conversions but lower value each.
+- **Balanced (recommended, #1)** routes each segment to its best-fit retention action at a moderate incentive. It wins the highest TOTAL NWP protected, so it's the safe default when no single constraint dominates.
+- **Margin-optimised** sits lower in the offer ranges and weights capped-rate / deductible-adjusted actions. It saves fewer but higher-LTV renewals, giving the best margin per policy and the lowest rate give-up.
+- **Conversion-optimised** sits higher and weights the retention offer + bundle nudge. It holds the most renewals but lower value each.
 
 [[chart:tradeoff]]
 
-Mechanically, the incentive posture within your offer ranges sets the blended uplift → conversion → relationships, funded balances and residual leakage; every policy already clears the suitability, liquidity-risk and profitability guardrails. The choice isn't only this quarter's value, though — Conversion-optimised wins the most new funded relationships, a bigger cross-sell base next year, but it pulls the most balances into savings, so deposit-beta and the rate give-up are worth watching if the rate cycle turns. Margin-optimised banks safer margin now yet leaves the most idle cash exposed to external flight, raising the odds you revisit this cohort sooner. If franchise growth is the goal, the slightly-lower-value Conversion policy can be the better call once the follow-on attach is counted.`,
+Mechanically, the incentive posture within your offer ranges sets the blended save-rate → retention → policies held, NWP protected and residual lapse; every policy already clears the fair-lending, combined-ratio and loss guardrails. The choice isn't only this quarter's value, though — Conversion-optimised holds the most renewals and seeds a bigger bundle base next year, but it spends the most in retention offers, so the combined ratio and rate give-up are worth watching if the loss trend turns. Margin-optimised banks safer margin now yet leaves the most high-LTV renewals exposed to competitor shopping, raising the odds you revisit this cohort sooner. If growth restoration is the goal, the slightly-lower-value Conversion policy can be the better call once the follow-on bundle attach is counted.`,
 };
 
 /* Assemble the full grounded context for one question. */
