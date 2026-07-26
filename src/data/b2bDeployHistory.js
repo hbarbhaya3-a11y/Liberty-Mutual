@@ -12,8 +12,8 @@ const dayBack = (n) => {
 export const B2B_DEPLOY_HISTORY = [
   {
     id: "mock-smbgrowth-1",
-    name: "Re-bundle the off-us flows · v1",
-    hypothesis: "H-SMB-GROWTH-2026-01-15",
+    name: "Win back the growing account · v1",
+    hypothesis: "H-SC-GROWTH-2026-01-15",
     cluster: "smb-growth-expansion",
     themeName: "Growth Signal",
     themeId: "smbgrowth",
@@ -31,22 +31,22 @@ export const B2B_DEPLOY_HISTORY = [
     pilotEndReason: "duration-complete",
     treatmentN: 34560,
     controlN: 3840,
-    blurb: "Per-segment re-bundle (line + card win-back + merchant) routed by channel · 10% holdout · 8-week pilot. Promoted to full rollout.",
+    blurb: "Per-segment growth-capture quote (lead line + cross-line bundle) routed by channel · 10% holdout · 8-week pilot. Promoted to full rollout.",
     learnings: {
-      headline: "Cross-sell conversion landed inside CI (8.4% → 18.6% vs 19.1% modeled) · off-us card win-back overshot · promoted to full rollout",
+      headline: "Quote-to-bind landed inside CI (8.4% → 18.6% vs 19.1% modeled) · off-us win-back overshot · promoted to full rollout",
       actuals: [
-        { k: "Cross-sell conversion", predicted: "→19.1%",   actual: "→18.6%",  tone: "ok",   delta: "within CI" },
-        { k: "Incremental Yr-1 rev",  predicted: "+$31M",     actual: "+$29.4M", tone: "ok",   delta: "within CI" },
-        { k: "Off-us card win-back",  predicted: "22% conv",  actual: "27% conv", tone: "warn", delta: "OVERSHOOT · +5pp" },
-        { k: "Products / relationship", predicted: "+0.4",    actual: "+0.4",    tone: "ok",   delta: "held exact" },
+        { k: "Quote-to-bind conversion", predicted: "→19.1%",  actual: "→18.6%",  tone: "ok",   delta: "within CI" },
+        { k: "Incremental Yr-1 NWP",  predicted: "+$31M",     actual: "+$29.4M", tone: "ok",   delta: "within CI" },
+        { k: "Off-us win-back",       predicted: "22% bind",  actual: "27% bind", tone: "warn", delta: "OVERSHOOT · +5pp" },
+        { k: "Lines / account",       predicted: "+0.4",      actual: "+0.4",    tone: "ok",   delta: "held exact" },
       ],
       surprises: [
-        "Off-us financers converted +5pp above model — showing a pre-approved card in-app the moment the acquirer-change signal fires beats the modeled latency assumption.",
+        "Off-us / insurtech placers bound +5pp above model — a fast digital quote the moment the off-us placement signal fires beats the modeled latency assumption.",
       ],
       didntWork: [
-        "Equipment-heavy RM conversion came in 3pp light — the asset-finance term sheet needs to lead the conversation, not follow it.",
+        "Fleet-heavy referral-UW bind came in 3pp light — the fleet auto terms need to lead the conversation, not follow it.",
       ],
-      nextMove: { verdict: "Promoted to full rollout", tone: "ok", rationale: "Conversion + revenue inside CI, guardrails green, off-us win-back stronger than modeled. Whole-relationship deepening drafted as the follow-on play." },
+      nextMove: { verdict: "Promoted to full rollout", tone: "ok", rationale: "Bind + NWP inside CI, guardrails green (loss ratio held), off-us win-back stronger than modeled. Full account bundling drafted as the follow-on play." },
     },
   },
   {
@@ -90,8 +90,8 @@ export const B2B_DEPLOY_HISTORY = [
   },
   {
     id: "mock-smbgrowth-2",
-    name: "Pre-approved financing on the spend signal · v2",
-    hypothesis: "H-SMB-GROWTH-2025-11-05",
+    name: "Auto-quote on the expansion signal · v2",
+    hypothesis: "H-SC-GROWTH-2025-11-05",
     cluster: "smb-growth-expansion",
     themeName: "Growth Signal",
     themeId: "smbgrowth",
@@ -109,22 +109,22 @@ export const B2B_DEPLOY_HISTORY = [
     pilotEndReason: "duration-complete",
     treatmentN: 28800,
     controlN: 3200,
-    blurb: "Pre-approved line + equipment-finance offer fired on the cash-flow/expansion spend signal · in-app the moment the signal trips · 10% holdout · 8-week pilot. Promoted to full rollout.",
+    blurb: "Auto-quoted lead line + cross-line bundle fired on the expansion signal · digital the moment the signal trips · 10% holdout · 8-week pilot. Promoted to full rollout.",
     learnings: {
-      headline: "Cross-sell conversion landed inside CI (7.9% → 16.8% vs 17.2% modeled) · pre-approved line take-up overshot · promoted to full rollout",
+      headline: "Quote-to-bind landed inside CI (7.9% → 16.8% vs 17.2% modeled) · auto-quote take-up overshot · promoted to full rollout",
       actuals: [
-        { k: "Cross-sell conversion", predicted: "→17.2%",   actual: "→16.8%",  tone: "ok",   delta: "within CI" },
-        { k: "Incremental Yr-1 rev",  predicted: "+$27M",     actual: "+$26.1M", tone: "ok",   delta: "within CI" },
-        { k: "Pre-approved take-up",  predicted: "19% conv",  actual: "24% conv", tone: "warn", delta: "OVERSHOOT · +5pp" },
-        { k: "Products / relationship", predicted: "+0.3",    actual: "+0.3",    tone: "ok",   delta: "held exact" },
+        { k: "Quote-to-bind conversion", predicted: "→17.2%",  actual: "→16.8%",  tone: "ok",   delta: "within CI" },
+        { k: "Incremental Yr-1 NWP",  predicted: "+$27M",     actual: "+$26.1M", tone: "ok",   delta: "within CI" },
+        { k: "Auto-quote take-up",    predicted: "19% bind",  actual: "24% bind", tone: "warn", delta: "OVERSHOOT · +5pp" },
+        { k: "Lines / account",       predicted: "+0.3",      actual: "+0.3",    tone: "ok",   delta: "held exact" },
       ],
       surprises: [
-        "Pre-approved line take-up beat model by +5pp — surfacing a ready-to-draw limit the instant the expansion-spend signal fires converts far better than a generic 'apply now' on the same accounts. Pre-clearing the credit decision was the lever.",
+        "Auto-quote take-up beat model by +5pp — surfacing a bindable, pre-priced quote the instant the expansion signal fires binds far better than a generic 'request a quote' on the same accounts. Pre-clearing the appetite decision was the lever.",
       ],
       didntWork: [
-        "Equipment-finance attach lagged 2pp light — the term-sheet hand-off to the asset-finance desk still adds friction at exactly the moment intent is highest.",
+        "Fleet-auto attach lagged 2pp light — the hand-off to the referral-UW desk still adds friction at exactly the moment intent is highest.",
       ],
-      nextMove: { verdict: "Promoted to full rollout", tone: "ok", rationale: "Conversion + revenue inside CI, guardrails green, pre-approved take-up stronger than modeled. Inline equipment-finance term sheet drafted to close the attach gap." },
+      nextMove: { verdict: "Promoted to full rollout", tone: "ok", rationale: "Bind + NWP inside CI, guardrails green (loss ratio held), auto-quote take-up stronger than modeled. Inline fleet-auto quote drafted to close the attach gap." },
     },
   },
   {

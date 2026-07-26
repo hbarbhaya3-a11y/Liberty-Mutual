@@ -34,46 +34,46 @@ const PAGE_SUBTITLE = SMBGROWTH_HYPOTHESIS_TITLE;
 const ACCENT = SMBGROWTH_CONFIG.accent;
 
 const OBJECTIVES = [
-  { id: "incremental_revenue", label: "Maximize incremental revenue",   sub: "Win the most incremental Yr-1 revenue per bps of intro-pricing given · headline KPI" },
-  { id: "conversion_lift",     label: "Maximize cross-sell conversion",  sub: "Lift the rate at which off-us flows convert back into the re-bundle" },
-  { id: "primacy_return",      label: "Maximize products per relationship", sub: "Deepen the most relationships back on-us with the minimum-effective offer" },
+  { id: "incremental_revenue", label: "Maximize incremental NWP",         sub: "Win the most incremental Yr-1 NWP per point of rate flexibility given · headline KPI" },
+  { id: "conversion_lift",     label: "Maximize quote-to-bind conversion", sub: "Lift the rate at which growing accounts bind the lead line back on the book" },
+  { id: "primacy_return",      label: "Maximize lines per account",       sub: "Bundle the most accounts across lines with the minimum-effective price move" },
 ];
 
 const COHORT_OPTIONS = [
-  { id: "full",            name: "Full expansion book",       count: 38400, share: 0.041, sig: "Every SMB entering an expansion cycle with one or more growth signals." },
-  { id: "off-us",          name: "Off-us financers",          count: 23400, share: 0.025, sig: "Financing or processing off-us · genuinely re-bundle-ready · margin-clear." },
-  { id: "multisite",       name: "Scaling multi-site",        count:  9200, share: 0.010, sig: "New-location activity · rising recurring cost · responds to a pre-approved line." },
-  { id: "equipment",       name: "Equipment-heavy",           count:  7600, share: 0.008, sig: "Major asset purchase · escalating rental · ownership financing fits." },
-  { id: "surplus",         name: "Cash-flow surplus, scaling", count: 9600, share: 0.010, sig: "Revenue accelerating · surplus cash · bundle + sweep attach." },
-  { id: "multi-product",   name: "Relationship-anchorable",   count:  9100, share: 0.010, sig: "3+ products held · payroll/treasury still on-us · partial off-us signals." },
+  { id: "full",            name: "Full expansion book",       count: 38400, share: 0.041, sig: "Every small business entering an expansion cycle with one or more growth signals." },
+  { id: "off-us",          name: "Off-us / insurtech placers", count: 23400, share: 0.025, sig: "Placing new / expanded coverage off-us · genuinely win-back-ready · rate-adequate." },
+  { id: "multisite",       name: "Scaling multi-location",    count:  9200, share: 0.010, sig: "New-location activity · rising payroll · responds to an auto-quoted BOP + WC." },
+  { id: "equipment",       name: "Fleet / equipment-heavy",   count:  7600, share: 0.008, sig: "Fleet increase · equipment purchase · Commercial Auto / inland-marine fits." },
+  { id: "surplus",         name: "Revenue-surge, scaling",    count: 9600, share: 0.010, sig: "Revenue accelerating · surplus · cross-line bundle + umbrella attach." },
+  { id: "multi-product",   name: "Account-anchorable",        count:  9100, share: 0.010, sig: "3+ lines held · WC/GL still on the book · partial off-us placement signals." },
 ];
 
 const OFFER_PRODUCT_OPTIONS = [
-  { id: "card_winback",    label: "Win back the business card" },
-  { id: "line_preapprove", label: "Pre-approved credit line" },
-  { id: "equip_finance",   label: "Equipment finance / SBA loan" },
-  { id: "merchant",        label: "Win back card processing" },
-  { id: "bundle",          label: "Business Essentials bundle" },
-  { id: "sweep",           label: "Add treasury / sweep" },
+  { id: "card_winback",    label: "Win back the lead line" },
+  { id: "line_preapprove", label: "Auto-quoted BOP / property" },
+  { id: "equip_finance",   label: "Commercial Auto (fleet) / inland marine" },
+  { id: "merchant",        label: "Workers Comp for added payroll" },
+  { id: "bundle",          label: "Business Advantage bundle" },
+  { id: "sweep",           label: "Add umbrella / cyber" },
 ];
 
 const CHANNEL_OPTIONS = [
-  { id: "app",    label: "In-app pre-approval" },
-  { id: "email",  label: "Email" },
-  { id: "mail",   label: "Direct mail" },
-  { id: "banker", label: "Banker / RM outreach" },
+  { id: "app",    label: "Direct digital instant-quote" },
+  { id: "email",  label: "Broker outreach" },
+  { id: "mail",   label: "Referral underwriter" },
+  { id: "banker", label: "Broker / Agent" },
 ];
 
 const ALWAYS_ON_CONSTRAINTS = [
-  { id: "pricefloor",  label: "Price floor · never buy conversion away below the margin line" },
-  { id: "credit",      label: "Credit-risk limit · pre-approve only within sound underwriting" },
-  { id: "model-risk",  label: "Model risk approved · conversion model stable" },
-  { id: "no-overpay",  label: "No-overpay rule · never offer the will-convert-anyway segment" },
+  { id: "pricefloor",  label: "Rate-adequacy floor · never price to bind below adequacy" },
+  { id: "credit",      label: "Loss-ratio limit · expand appetite only within sound risk selection" },
+  { id: "model-risk",  label: "Model risk approved · win-probability model stable (NAIC 24-08)" },
+  { id: "no-overpay",  label: "No-overpay rule · never discount the will-bind-anyway segment" },
 ];
 
 const DEFAULT_RANGES = {
-  minBalanceK:     { low: 25,  high: 250, min: 25,  max: 500, step: 25, unit: "K",   label: "Min financing need to qualify", caption: "Accounts below this aren't worth the re-bundle cost." },
-  offerCeilingBps: { low: 50, high: 90, min: 0, max: 120,  step: 1, unit: "bps", label: "Intro-pricing depth ceiling",     caption: "Top intro-pricing / fee-waiver depth the optimizer may offer any single account." },
+  minBalanceK:     { low: 25,  high: 250, min: 25,  max: 500, step: 25, unit: "K",   label: "Min premium to qualify", caption: "Accounts below this aren't worth the underwriting cost." },
+  offerCeilingBps: { low: 50, high: 90, min: 0, max: 120,  step: 1, unit: "bps", label: "Rate-flexibility ceiling",     caption: "Top rate deviation the optimizer may offer any single account, within adequacy." },
 };
 
 /* ----------------------------------------------------------------------------
@@ -223,28 +223,28 @@ function runOptimizer(objective, ranges, allowedProducts, allowedChannels, cohor
 
   if (objective === "incremental_revenue") {
     return [
-      mkRec("balanced", 1, "Minimum-effective re-bundle",
-        "Mid-range intro-pricing · per-segment conversion model · keeps net revenue firmly positive.",
+      mkRec("balanced", 1, "Minimum-effective win-back",
+        "Mid-range rate flexibility · per-segment win-probability model · keeps net NWP firmly positive.",
         { offerCeilingBps: clamp(ranges.offerCeilingBps, 75), minBalanceK: clamp(ranges.minBalanceK, 100),
           offerTerm: pickProduct("card_winback", "bundle") }, 1.00, 1.00),
       mkRec("aggressive", 2, "Aggressive expander",
-        "Pushes the intro-pricing ceiling to capture the price-elastic tail — higher upside, thinner net margin.",
+        "Pushes the rate-flexibility ceiling to capture the price-elastic tail — higher upside, thinner net margin.",
         { offerCeilingBps: ranges.offerCeilingBps.high, minBalanceK: ranges.minBalanceK.low,
           offerTerm: pickProduct("line_preapprove", "card_winback") }, 1.18, 1.12),
       mkRec("selective", 3, "Selective expander",
-        "Higher financing-need floor + lower intro-pricing — narrower cohort, highest cost-efficiency.",
+        "Higher premium floor + tighter rate flexibility — narrower cohort, highest cost-efficiency.",
         { offerCeilingBps: clamp(ranges.offerCeilingBps, 55), minBalanceK: clamp(ranges.minBalanceK, 200),
           offerTerm: pickProduct("card_winback", "bundle") }, 0.78, 0.85),
     ];
   }
   if (objective === "conversion_lift") {
     return [
-      mkRec("steepest", 1, "Steepest conversion lift",
-        "Highest intro-pricing + broadest eligibility — maximum lift in off-us flows converting back.",
+      mkRec("steepest", 1, "Steepest bind lift",
+        "Highest rate flexibility + broadest appetite — maximum lift in off-us accounts binding back.",
         { offerCeilingBps: ranges.offerCeilingBps.high, minBalanceK: ranges.minBalanceK.low,
           offerTerm: pickProduct("line_preapprove", "card_winback") }, 1.20, 1.25),
       mkRec("broad", 2, "Broad reach",
-        "Captures more off-us flows with a bundled-price card win-back.",
+        "Captures more off-us accounts with a bundled-price lead-line win-back.",
         { offerCeilingBps: clamp(ranges.offerCeilingBps, 80), minBalanceK: ranges.minBalanceK.low,
           offerTerm: pickProduct("card_winback", "bundle") }, 1.10, 1.18),
       mkRec("conservative", 3, "Conservative",
@@ -254,16 +254,16 @@ function runOptimizer(objective, ranges, allowedProducts, allowedChannels, cohor
     ];
   }
   return [
-    mkRec("primacy", 1, "Relationship-anchored",
-      "A bundle conditional on keeping payroll/treasury on-us prompts accounts to consolidate flows back — primary mechanism for products-per-relationship lift.",
+    mkRec("primacy", 1, "Account-anchored",
+      "A bundle conditional on keeping WC/GL on the book prompts accounts to consolidate lines back — primary mechanism for lines-per-account lift.",
       { offerCeilingBps: clamp(ranges.offerCeilingBps, 85), minBalanceK: ranges.minBalanceK.low,
         offerTerm: pickProduct("bundle", "sweep") }, 0.90, 0.95),
     mkRec("mixed", 2, "Mixed approach",
-      "A bundled-price card win-back bridges conversion and deepening.",
+      "A bundled-price lead-line win-back bridges binding and cross-line deepening.",
       { offerCeilingBps: clamp(ranges.offerCeilingBps, 70), minBalanceK: ranges.minBalanceK.low,
         offerTerm: pickProduct("card_winback", "line_preapprove") }, 0.95, 0.98),
     mkRec("wide", 3, "Wide net",
-      "Treasury / sweep attach catches the broadest sub-segment of expanding accounts.",
+      "Umbrella / cyber attach catches the broadest sub-segment of expanding accounts.",
       { offerCeilingBps: clamp(ranges.offerCeilingBps, 80), minBalanceK: ranges.minBalanceK.low,
         offerTerm: pickProduct("sweep", "bundle") }, 0.98, 1.00),
   ];
@@ -385,7 +385,7 @@ function SmbGrowthPareto({ recs, selectedId, onSelect }) {
             {/* Axis labels */}
             <text x={(PL + W - PR) / 2} y={H - 10} textAnchor="middle" fontSize="9.5"
                   fontFamily="var(--mono)" fill="var(--ink-3)">
-              Incremental revenue · $M / yr →
+              Incremental NWP · $M / yr →
             </text>
             <text x={-((PT + H - PB) / 2)} y={14} textAnchor="middle" fontSize="9.5"
                   fontFamily="var(--mono)" fill="var(--ink-3)"
@@ -518,7 +518,7 @@ export default function SmbGrowthIfWhatView() {
     setMode("results");
     pushAgentEvent({
       kind: "good", src: "Optimizer",
-      text: `Found ${recs.length} re-bundle policies · top pick: ${recs[0]?.name}`,
+      text: `Found ${recs.length} growth-capture policies · top pick: ${recs[0]?.name}`,
     });
   }, [objective, ranges, allowedProducts, allowedChannels, cohortPresets, pushAgentEvent]);
 
@@ -619,9 +619,9 @@ export default function SmbGrowthIfWhatView() {
                     <div className="iw-rank-name">{rec.name}</div>
                     <div className="iw-rank-hero iw-rank-kpi-good">
                       <div className="iw-rank-hero-k">
-                        {objective === "incremental_revenue" ? "Incremental Yr-1 revenue"
-                         : objective === "conversion_lift" ? "Cross-sell conversion lift"
-                         : "Products per relationship / qtr"}
+                        {objective === "incremental_revenue" ? "Incremental Yr-1 NWP"
+                         : objective === "conversion_lift" ? "Quote-to-bind conversion lift"
+                         : "Lines per account / qtr"}
                       </div>
                       <div className="iw-rank-hero-v">
                         {objective === "incremental_revenue" ? `+$${rec.outcomes.retainedM.toFixed(1)}M`
@@ -632,7 +632,7 @@ export default function SmbGrowthIfWhatView() {
                     </div>
                     <div className="iw-rank-summary">
                       <div className="iw-rank-summary-row">
-                        <span className="iw-rank-summary-k">Intro-pricing</span>
+                        <span className="iw-rank-summary-k">Rate flexibility</span>
                         <span className="iw-rank-summary-v">+{rec.picks.offerCeilingBps}bps · {fmtProduct(rec.picks.offerTerm)}</span>
                       </div>
                       <div className="iw-rank-summary-row">
@@ -691,21 +691,21 @@ export default function SmbGrowthIfWhatView() {
                 </div>
                 <div className="iw-dd-proof">
                   <div className="iw-dd-proof-kpi iw-rank-kpi-good">
-                    <div className="iw-dd-proof-k">Incremental Yr-1 revenue</div>
+                    <div className="iw-dd-proof-k">Incremental Yr-1 NWP</div>
                     <div className="iw-dd-proof-v">
                       +${selected.outcomes.retainedM.toFixed(1)}M
                       <span className="iw-dd-proof-est">/ yr</span>
                     </div>
                   </div>
                   <div className="iw-dd-proof-kpi iw-rank-kpi-good">
-                    <div className="iw-dd-proof-k">Cross-sell conversion</div>
+                    <div className="iw-dd-proof-k">Quote-to-bind conversion</div>
                     <div className="iw-dd-proof-v">
                       +{selected.outcomes.runoffReductionPp.toFixed(2)}pp
                       <span className="iw-dd-proof-est">vs base</span>
                     </div>
                   </div>
                   <div className="iw-dd-proof-kpi iw-rank-kpi-good">
-                    <div className="iw-dd-proof-k">Products per relationship</div>
+                    <div className="iw-dd-proof-k">Lines per account</div>
                     <div className="iw-dd-proof-v">
                       +{selected.outcomes.ddRecoveryPp}pp
                       <span className="iw-dd-proof-est">/ qtr</span>
@@ -715,7 +715,7 @@ export default function SmbGrowthIfWhatView() {
                     <div className="iw-dd-proof-k">Net annualised value</div>
                     <div className="iw-dd-proof-v">
                       {selected.outcomes.netAnnualisedK >= 0 ? "+" : ""}${selected.outcomes.netAnnualisedK}K
-                      <span className="iw-dd-proof-est">revenue − offer cost</span>
+                      <span className="iw-dd-proof-est">NWP − acquisition cost</span>
                     </div>
                   </div>
                 </div>
@@ -737,7 +737,7 @@ export default function SmbGrowthIfWhatView() {
                     <span className="sim-guardrail-pill sim-guardrail-pass">
                       <span className="sim-guardrail-pill-dot" />
                       <span className="sim-guardrail-pill-l">Price floor</span>
-                      <span className="sim-guardrail-pill-d">never buy conversion away below the margin line</span>
+                      <span className="sim-guardrail-pill-d">never price to bind below rate adequacy</span>
                     </span>
                     <span className="sim-guardrail-pill sim-guardrail-pass">
                       <span className="sim-guardrail-pill-dot" />
@@ -763,7 +763,7 @@ export default function SmbGrowthIfWhatView() {
                   <tbody>
                     <tr><td className="iw-detail-k">Cohort</td><td className="iw-detail-v">{(selected.picks.cohortPresets || []).map((id) => COHORT_OPTIONS.find((c) => c.id === id)?.name).filter(Boolean).join(" · ")}</td></tr>
                     <tr><td className="iw-detail-k">Min financing need to qualify</td><td className="iw-detail-v">${selected.picks.minBalanceK}K</td></tr>
-                    <tr><td className="iw-detail-k">Intro-pricing depth ceiling</td><td className="iw-detail-v">+{selected.picks.offerCeilingBps}bps</td></tr>
+                    <tr><td className="iw-detail-k">Rate-flexibility ceiling</td><td className="iw-detail-v">+{selected.picks.offerCeilingBps}bps</td></tr>
                     <tr><td className="iw-detail-k">Lead product</td><td className="iw-detail-v">{fmtProduct(selected.picks.offerTerm)}</td></tr>
                     <tr><td className="iw-detail-k">Delivery channels</td><td className="iw-detail-v">{selected.picks.channels.map((c) => CHANNEL_OPTIONS.find((o) => o.id === c)?.label).join(" · ")}</td></tr>
                     <tr><td className="iw-detail-k">Treated cohort size</td><td className="iw-detail-v">{selected.outcomes.treatmentN.toLocaleString()} accounts</td></tr>
@@ -781,12 +781,12 @@ export default function SmbGrowthIfWhatView() {
                   <ResultTileNII
                     outcomes={{ NII_8wk_M: selected.outcomes.retainedM * (8 / 52) }}
                     progress={1}
-                    title="Incremental revenue accumulation"
+                    title="Incremental NWP accumulation"
                     subhead="cumulative over 8-wk pilot · vs $0 baseline"
-                    insight="Most conversion lands in the first 4 weeks — accounts reached early re-bundle the off-us flows early."
+                    insight="Most binds land in the first 4 weeks — accounts quoted early win back the off-us coverage early."
                   />
                   <ResultTileBars
-                    title="Cross-sell conversion / wk"
+                    title="Quote-to-bind conversion / wk"
                     subhead={`rises from ${(SMBGROWTH_CALIBRATION.runoffBau * 100).toFixed(1)}% base to ${(SMBGROWTH_CALIBRATION.runoffBau * 100 + selected.outcomes.runoffReductionPp).toFixed(1)}% with policy`}
                     steady={selected.outcomes.runoffReductionPp / 8}
                     baselinePerWk={(SMBGROWTH_CALIBRATION.runoffBau * 100) / 8}
@@ -799,12 +799,12 @@ export default function SmbGrowthIfWhatView() {
                       { k: "lift vs base",         v: `+${selected.outcomes.runoffReductionPp.toFixed(2)}pp` },
                       { k: "8-wk incr. revenue",   v: `+$${selected.outcomes.retainedM.toFixed(1)}M` },
                     ]}
-                    insight="First two weeks lag — accounts need time to act on the re-bundle offer. Full effect from week 3."
+                    insight="First two weeks lag — accounts need time to act on the quote. Full effect from week 3."
                     accent="var(--acc, #4fd1c5)"
                   />
                   <ResultTileBars
-                    title="Products per relationship / wk"
-                    subhead="off-us flows re-bundling on-us under the offer"
+                    title="Lines per account / wk"
+                    subhead="off-us coverage binding back under the quote"
                     steady={selected.outcomes.ddRecoveryPp / 8}
                     baselinePerWk={0}
                     progress={1}
@@ -821,7 +821,7 @@ export default function SmbGrowthIfWhatView() {
                   />
                   <ResultTileCohort
                     segments={[
-                      { id: "ir",    label: "Off-us financers",            pct: 55, color: "var(--acc, #4fd1c5)" },
+                      { id: "ir",    label: "Off-us / insurtech placers",  pct: 55, color: "var(--acc, #4fd1c5)" },
                       { id: "bh",    label: "Scaling multi-site",          pct: 24, color: "var(--violet, #b794f6)" },
                       { id: "irhv",  label: "Equipment-heavy",             pct: 14, color: "var(--cyan, #4fd1c5)" },
                       { id: "edge",  label: "Watch / hold (suppressed)",   pct:  7, color: "var(--ink-3)" },
@@ -829,10 +829,10 @@ export default function SmbGrowthIfWhatView() {
                     treatedN={selected.outcomes.treatmentN}
                     insight={
                       selected.rank === 1
-                        ? "Most of the value comes from Off-us financers — the segment the optimizer's pick is calibrated for."
+                        ? "Most of the value comes from Off-us / insurtech placers — the segment the optimizer's pick is calibrated for."
                         : selected.rank === 2
                           ? "Broader cohort with a wider move window — picks up some scaling multi-site accounts as a side effect."
-                          : "Narrower targeting — concentrates spend on highest-conviction off-us financers only."
+                          : "Narrower targeting — concentrates spend on highest-conviction off-us placers only."
                     }
                   />
                 </div>
@@ -855,7 +855,7 @@ export default function SmbGrowthIfWhatView() {
       <header className="sim-ws-header">
         <div className="test-journey-eyebrow">IF-WHAT · {PAGE_SUBTITLE.toUpperCase()}</div>
         <div className="sim-ws-header-row">
-          <h1 className="sim-ws-title">Find the best SMB re-bundle policy</h1>
+          <h1 className="sim-ws-title">Find the best Small Commercial growth-capture policy</h1>
           <span className={"sim-mode-pill " + (isAutopilot ? "sim-mode-pill-auto" : "sim-mode-pill-guided")}>
             <span className="sim-mode-pill-dot" />
             {isAutopilot ? "AUTOPILOT" : "IF-WHAT"}
@@ -943,11 +943,11 @@ export default function SmbGrowthIfWhatView() {
                     {customRules.map((r, i) => (
                       <div key={i} className="sim-cohort-custom-rule">
                         <select value={r.feature} onChange={(e) => updateRule(i, { feature: e.target.value })} disabled={isAutopilot}>
-                          <option value="financing_need_min">Financing need</option>
+                          <option value="financing_need_min">Premium size</option>
                           <option value="expansion_window_days">Expansion signal window (days)</option>
-                          <option value="offus_gap">Off-us share of flows</option>
-                          <option value="offus_card_signal">Off-us card signal</option>
-                          <option value="acquirer_switch">Acquirer-switch signal</option>
+                          <option value="offus_gap">Off-us share of coverage</option>
+                          <option value="offus_card_signal">Off-us placement signal</option>
+                          <option value="acquirer_switch">Prior-carrier switch signal</option>
                           <option value="tenure_months">Tenure (months)</option>
                           <option value="product_depth">Product depth (count)</option>
                         </select>
@@ -992,7 +992,7 @@ export default function SmbGrowthIfWhatView() {
           <div className="sim-lever-section-band">
             <span className="sim-lever-section-num">4</span>
             <span className="sim-lever-section-name">OFFER</span>
-            <span className="sim-lever-section-meta">Intro-pricing range + the products the optimizer may offer</span>
+            <span className="sim-lever-section-meta">Rate-flexibility range + the lines the optimizer may offer</span>
           </div>
           <RangeRow
             label={ranges.offerCeilingBps.label}

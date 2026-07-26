@@ -67,32 +67,32 @@ const RECOMMENDED = {
    servicing / relationship action.
 ---------------------------------------------------------------------------- */
 const BANKING_SERVICES = [
-  { id: "relationship_lock", label: "Primacy-rate lock",        sub: "Better bundle price conditional on bringing payroll / treasury on-us · re-bundles primacy" },
-  { id: "rate_alert",        label: "Expansion-review opt-in",  sub: "Proactively re-review the relationship when a new expansion signal fires" },
-  { id: "sweep_on_deposit",  label: "Sweep-on-deposit",         sub: "New operating deposits above the buffer auto-sweep into the bundled tier" },
+  { id: "relationship_lock", label: "Multi-line bundle credit",  sub: "Better bundled price conditional on keeping WC / GL on the book · deepens the account" },
+  { id: "rate_alert",        label: "Expansion-review opt-in",   sub: "Proactively re-review the account when a new expansion signal fires" },
+  { id: "sweep_on_deposit",  label: "Telematics safety credit",  sub: "Fleet / WC safety-program credit that lowers the blended loss ratio" },
 ];
 
 /* ----------------------------------------------------------------------------
    Packaging options · radio cards, single-select.
-   How the lead product is wrapped. factor scales conversion / incremental
-   revenue relative to the recommended bundled packaging.
+   How the lead line is wrapped. factor scales conversion / incremental
+   NWP relative to the recommended bundled packaging.
 ---------------------------------------------------------------------------- */
 const OFFER_PRODUCTS = [
-  { id: "pkg_alacarte", label: "Packaging · à la carte", sub: "Lead product only · lowest cost, weakest attach and conversion",          factor: 0.90 },
-  { id: "pkg_light",    label: "Packaging · light bundle", sub: "Lead + one attach · modest conversion lift, modest give-up",            factor: 0.96 },
-  { id: "pkg_bundled",  label: "Packaging · bundled",    sub: "Recommended · lead + operating flows attached · best conversion balance", factor: 1.00 },
-  { id: "pkg_intro",    label: "Packaging · intro-priced bundle", sub: "Bundle with an intro price · converts more, gives up more margin", factor: 1.05 },
-  { id: "pkg_full",     label: "Packaging · full primacy", sub: "Full Essentials stack · highest attach, approaches the margin line",     factor: 1.08 },
+  { id: "pkg_alacarte", label: "Packaging · single line", sub: "Lead line only · lowest cost, weakest attach and bind rate",              factor: 0.90 },
+  { id: "pkg_light",    label: "Packaging · light bundle", sub: "Lead + one line · modest bind lift, modest give-up",                     factor: 0.96 },
+  { id: "pkg_bundled",  label: "Packaging · bundled",     sub: "Recommended · lead + core lines attached · best bind balance",           factor: 1.00 },
+  { id: "pkg_intro",    label: "Packaging · rate-flexed bundle", sub: "Bundle with a rate concession · binds more, gives up more margin", factor: 1.05 },
+  { id: "pkg_full",     label: "Packaging · full account", sub: "Full Business Advantage stack · highest attach, approaches rate adequacy", factor: 1.08 },
 ];
 
 /* ----------------------------------------------------------------------------
    Delivery channels · multi-select checkboxes.
 ---------------------------------------------------------------------------- */
 const CHANNEL_OPTIONS = [
-  { id: "banker",  label: "Primary banker" },
-  { id: "app",     label: "In-app pre-approval" },
-  { id: "rmcall",  label: "RM call" },
-  { id: "email",   label: "Email + app" },
+  { id: "banker",  label: "Broker / Agent" },
+  { id: "app",     label: "Direct digital instant-quote" },
+  { id: "rmcall",  label: "Referral underwriter" },
+  { id: "email",   label: "Broker outreach + digital" },
 ];
 
 /* Pilot-design defaults used at staging time (Deploy owns these downstream;
@@ -296,7 +296,7 @@ function Verdict({ verdict }) {
         <span className="verdict-glyph"><Icon name="warn" size={20} /></span>
         <div className="verdict-body">
           <div className="verdict-title">PARTIAL SUPPORT · GUARDRAIL AT RISK</div>
-          <div className="verdict-sub">Incremental revenue in range · pricing-consistency margin held · margin floor uncertain</div>
+          <div className="verdict-sub">Incremental NWP in range · pricing-consistency margin held · rate adequacy uncertain</div>
         </div>
       </div>
     );
@@ -306,7 +306,7 @@ function Verdict({ verdict }) {
       <span className="verdict-glyph"><Icon name="x" size={20} strokeWidth={2.5} /></span>
       <div className="verdict-body">
         <div className="verdict-title">SIMULATION DOES NOT SUPPORT HYPOTHESIS</div>
-        <div className="verdict-sub">Incremental revenue below CI · or the offer buys conversion away below the price floor</div>
+        <div className="verdict-sub">Incremental NWP below CI · or the quote binds below the rate-adequacy floor</div>
       </div>
     </div>
   );
@@ -445,8 +445,8 @@ export default function SmbGrowthSimulateView() {
       kind: "info",
       src: "Simulation",
       text: tuneMode === "autopilot"
-        ? "Autopilot · running re-bundle cross-sell simulation"
-        : "What-If re-bundle cross-sell simulation kicked off · 8-week horizon",
+        ? "Autopilot · running growth-capture bind simulation"
+        : "What-If growth-capture bind simulation kicked off · 8-week horizon",
     });
   }, [pushAgentEvent, tuneMode]);
 
@@ -507,9 +507,9 @@ export default function SmbGrowthSimulateView() {
           channels, cohortPresets,
         },
         reasoning: [
-          "Off-us financers + scaling multi-site — the expansion segments actively leaking credit and payments",
-          "+75 bps intro depth · bundled packaging — converts inside the price floor",
-          "Primary banker + in-app pre-approval + RM call — large expansions led by a banker, the rest scaled digitally",
+          "Off-us / insurtech placers + scaling multi-location — the expansion segments actively placing coverage elsewhere",
+          "+75 bps rate flexibility · bundled packaging — binds inside the rate-adequacy floor",
+          "Broker/Agent + direct digital instant-quote + referral UW — large expansions led by a broker, the rest scaled digitally",
         ],
         scenarios: 96400,
       });
@@ -519,8 +519,8 @@ export default function SmbGrowthSimulateView() {
       kind: "good",
       src: "Simulation",
       text: tuneMode === "autopilot"
-        ? "Autopilot staged SMB-growth re-bundle policy for Deploy"
-        : "SMB-growth re-bundle policy staged for Deploy",
+        ? "Autopilot staged Small Commercial growth-capture policy for Deploy"
+        : "Small Commercial growth-capture policy staged for Deploy",
     });
 
     setIntermezzo(tuneMode === "autopilot" ? "staged-autopilot" : "staged-guided");
@@ -575,10 +575,10 @@ export default function SmbGrowthSimulateView() {
   const COHORT_DISPLAY = {
     "full": "Full cohort",
     "rate-driven": "Expansion-ready",
-    "mid-sensitive": "Scaling multi-site",
-    "high-value": "Equipment-heavy",
-    "relationship": "Off-us financers",
-    "multi-product": "Multi-product",
+    "mid-sensitive": "Scaling multi-location",
+    "high-value": "Fleet / equipment-heavy",
+    "relationship": "Off-us / insurtech placers",
+    "multi-product": "Multi-line",
   };
   const cohortLabel = cohortPresets.length === 1
     ? COHORT_DISPLAY[cohortPresets[0]] || cohortPresets[0]
@@ -665,19 +665,19 @@ export default function SmbGrowthSimulateView() {
           <div className="sim-lever-section-band">
             <div className="sim-lever-section-num">1</div>
             <div className="sim-lever-section-name">CUSTOMER</div>
-            <div className="sim-lever-section-meta">Which businesses the re-bundle reaches — tick a scope or specific segments</div>
+            <div className="sim-lever-section-meta">Which businesses the growth-capture quote reaches — tick a scope or specific segments</div>
           </div>
           <div className="sim-lever-fieldset" style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 12 }}>
             {[
-              { id: "full",            count: 38400, signature: "Select-all · every SMB in the expansion cohort." },
-              { id: "relationship",    count: 12400, signature: "New off-us card / acquirer change · credit leaving the relationship." },
-              { id: "mid-sensitive",   count:  9200, signature: "New location + rising recurring cost · growth-capital need." },
-              { id: "high-value",      count:  7600, signature: "Major asset purchase · ownership-financing fit." },
+              { id: "full",            count: 38400, signature: "Select-all · every account in the expansion cohort." },
+              { id: "relationship",    count: 12400, signature: "New off-us placement / prior-carrier switch · coverage leaving the account." },
+              { id: "mid-sensitive",   count:  9200, signature: "New location + rising payroll · BOP + WC need." },
+              { id: "high-value",      count:  7600, signature: "Fleet increase · Commercial Auto fit." },
             ].map((c) => {
               const name = c.id === "full" ? "Full cohort"
-                         : c.id === "relationship" ? "Off-us financers"
-                         : c.id === "mid-sensitive" ? "Scaling multi-site"
-                         : "Equipment-heavy";
+                         : c.id === "relationship" ? "Off-us / insurtech placers"
+                         : c.id === "mid-sensitive" ? "Scaling multi-location"
+                         : "Fleet / equipment-heavy";
               const isSelected = cohortPresets.includes(c.id);
               return (
                 <label
@@ -708,12 +708,12 @@ export default function SmbGrowthSimulateView() {
           <div className="sim-lever-section-band">
             <div className="sim-lever-section-num">2</div>
             <div className="sim-lever-section-name">ELIGIBILITY</div>
-            <div className="sim-lever-section-meta">Which accounts in the cohort qualify for the re-bundle offer</div>
+            <div className="sim-lever-section-meta">Which accounts in the cohort qualify for the growth-capture quote</div>
           </div>
 
           <LeverRow
-            label="Pre-approved limit ($K)"
-            caption="The pre-approved credit / line limit the expansion offer carries. A higher limit narrows the qualifying pool to the accounts that can absorb it."
+            label="Min premium to qualify ($K)"
+            caption="The minimum annual premium the account must carry to qualify. A higher floor narrows the pool to accounts worth the underwriting cost."
             value={`$${minBalanceK}K`}
             offDefault={off("minBalanceK", minBalanceK)}
           >
@@ -730,12 +730,12 @@ export default function SmbGrowthSimulateView() {
           <div className="sim-lever-section-band">
             <div className="sim-lever-section-num">3</div>
             <div className="sim-lever-section-name">OFFER</div>
-            <div className="sim-lever-section-meta">What we put in front of the account</div>
+            <div className="sim-lever-section-meta">What we quote in front of the account</div>
           </div>
 
           <LeverRow
-            label="Intro pricing / fee-waiver depth (bps)"
-            caption="How deep the intro price / fee waiver runs on the re-bundle — converts more as it deepens, but gives up more margin."
+            label="Rate flexibility (bps)"
+            caption="How far the quote may deviate from filed rate to win the bind — binds more as it deepens, but gives up more margin, held to adequacy."
             value={`+${offerCeilingBps} bps`}
             offDefault={off("offerCeilingBps", offerCeilingBps)}
           >
@@ -747,7 +747,7 @@ export default function SmbGrowthSimulateView() {
 
           <LeverRow
             label="Packaging"
-            caption="How the lead product is wrapped — à la carte, bundled, or intro-priced. A richer bundle converts more and attaches more downstream; it also gives up more margin."
+            caption="How the lead line is wrapped — single line, bundled, or rate-flexed. A richer bundle binds more and attaches more lines downstream; it also gives up more margin."
             value={(OFFER_PRODUCTS.find((p) => p.id === offerTerm) || OFFER_PRODUCTS[0]).label}
             offDefault={off("offerTerm", offerTerm)}
           >
@@ -784,12 +784,12 @@ export default function SmbGrowthSimulateView() {
           <div className="sim-lever-section-band">
             <div className="sim-lever-section-num">4</div>
             <div className="sim-lever-section-name">EXPANSION NUDGES</div>
-            <div className="sim-lever-section-meta">Servicing and relationship actions we attach to pull the operating flows on-us</div>
+            <div className="sim-lever-section-meta">Account actions we attach to deepen the account and lower the blended loss ratio</div>
           </div>
 
           <LeverRow
             label="Nudge enrollment"
-            caption="Each nudge is a real servicing or relationship action — a primacy-rate lock, an expansion-review opt-in, or sweep-on-deposit. Multiple nudges compound but with diminishing returns past 3."
+            caption="Each nudge is a real account action — a multi-line bundle credit, an expansion-review opt-in, or a telematics safety credit. Multiple nudges compound but with diminishing returns past 3."
             value={bankingServices.length === 0 ? "none selected" : `${bankingServices.length} of ${BANKING_SERVICES.length}`}
             offDefault={bankingServices.length !== RECOMMENDED.bankingServices.length}
           >
@@ -819,7 +819,7 @@ export default function SmbGrowthSimulateView() {
 
           <LeverRow
             label="Expansion-signal window"
-            caption="How many days of expansion signal before the competitor finances the growth to fire the offer. 60d is the sweet spot — earlier and the expansion signal hasn't formed; later and the credit has already gone off-us."
+            caption="How many days of expansion signal before the competitor writes the growth to fire the quote. 60d is the sweet spot — earlier and the signal hasn't formed; later and the coverage has already gone off-us."
             value={`${triggerWindowDays}d window`}
             offDefault={triggerWindowDays !== RECOMMENDED.triggerWindowDays}
           >
@@ -838,12 +838,12 @@ export default function SmbGrowthSimulateView() {
           <div className="sim-lever-section-band">
             <div className="sim-lever-section-num">5</div>
             <div className="sim-lever-section-name">CHANNEL</div>
-            <div className="sim-lever-section-meta">How the re-bundle offer reaches the account - pick one or more</div>
+            <div className="sim-lever-section-meta">How the quote reaches the account - pick one or more</div>
           </div>
 
           <LeverRow
             label="Delivery channels"
-            caption="Account hears about the offer via the channels you select. More channels means broader reach but more fatigue risk."
+            caption="Account receives the quote via the channels you select. More channels means broader reach but more fatigue risk."
             value={channels.length === 0 ? "none selected" : `${channels.length} selected`}
             offDefault={channelsOffDefault}
           >
@@ -990,10 +990,10 @@ function ResultsReveal({ results, onReRun, onStage }) {
 
   // Cohort donut segments by expansion archetype (4 to match the template; sums to 100)
   const cohortSegments = [
-    { id: "hi",  label: "Off-us financers",          pct: 38, color: "var(--acc, #4fd1c5)" },
-    { id: "mid", label: "Scaling multi-site",        pct: 33, color: "var(--violet, #b794f6)" },
-    { id: "anc", label: "Equipment-heavy",           pct: 21, color: "var(--cyan, #4fd1c5)" },
-    { id: "ws",  label: "Watch / hold (no offer)",   pct:  8, color: "var(--ink-3)" },
+    { id: "hi",  label: "Off-us / insurtech placers", pct: 38, color: "var(--acc, #4fd1c5)" },
+    { id: "mid", label: "Scaling multi-location",     pct: 33, color: "var(--violet, #b794f6)" },
+    { id: "anc", label: "Fleet / equipment-heavy",    pct: 21, color: "var(--cyan, #4fd1c5)" },
+    { id: "ws",  label: "Watch / hold (no quote)",    pct:  8, color: "var(--ink-3)" },
   ];
 
   return (
@@ -1008,29 +1008,29 @@ function ResultsReveal({ results, onReRun, onStage }) {
           </div>
           <div className="proof-kpis-grid">
             <ProofKpi
-              label="Incremental Yr-1 revenue"
+              label="Incremental Yr-1 NWP"
               value={`+$${o.retainedM.toFixed(0)}M`}
               valueCap="/ yr"
               baseline="$0"
-              baselineCap="credit + payments leave the relationship"
+              baselineCap="coverage leaves the account"
               delta={`+$${o.retainedM.toFixed(0)}M`}
               deltaTone="good"
               hit={o.retainedM >= 25 ? "ok" : o.retainedM >= 15 ? "warn" : "miss"}
             />
             <ProofKpi
-              label="Cross-sell conversion"
+              label="Quote-to-bind conversion"
               value={`${(o.runoffWithPolicy * 100).toFixed(1)}%`}
               valueCap="with policy"
               baseline={`${(o.runoffBau * 100).toFixed(1)}%`}
-              baselineCap="today, no offer"
+              baselineCap="today, no quote"
               delta={`+${(o.runoffReductionPp * 100).toFixed(1)}pp`}
               deltaTone="good"
               hit={o.runoffReductionPp >= 0.05 ? "ok" : "warn"}
             />
             <ProofKpi
-              label="Products per relationship"
+              label="Lines per account"
               value={`+${o.productsPerRelLift.toFixed(1)}`}
-              valueCap="primacy lift"
+              valueCap="cross-line lift"
               baseline="1.7"
               baselineCap="today"
               delta={`+${o.productsPerRelLift.toFixed(1)}`}
@@ -1051,7 +1051,7 @@ function ResultsReveal({ results, onReRun, onStage }) {
           <div className="sim-guardrails-pills">
             <span className={"sim-guardrail-pill " + (o.profitabilityOk ? "sim-guardrail-pass" : "sim-guardrail-fail")}>
               <span className="sim-guardrail-pill-dot" />
-              <span className="sim-guardrail-pill-l">Price floor</span>
+              <span className="sim-guardrail-pill-l">Rate adequacy</span>
               <span className="sim-guardrail-pill-d">net annualised +${(o.netAnnualisedK / 1000).toFixed(1)}M</span>
             </span>
             <span className={"sim-guardrail-pill " + (o.udaapOk ? "sim-guardrail-pass" : "sim-guardrail-fail")}>
@@ -1061,13 +1061,13 @@ function ResultsReveal({ results, onReRun, onStage }) {
             </span>
             <span className="sim-guardrail-pill sim-guardrail-pass">
               <span className="sim-guardrail-pill-dot" />
-              <span className="sim-guardrail-pill-l">Credit-risk limit · enforced</span>
-              <span className="sim-guardrail-pill-d">pre-approvals within risk</span>
+              <span className="sim-guardrail-pill-l">Loss-ratio limit · enforced</span>
+              <span className="sim-guardrail-pill-d">appetite within risk selection</span>
             </span>
             <span className="sim-guardrail-pill sim-guardrail-pass">
               <span className="sim-guardrail-pill-dot" />
               <span className="sim-guardrail-pill-l">Model risk · approved</span>
-              <span className="sim-guardrail-pill-d">conversion model stable</span>
+              <span className="sim-guardrail-pill-d">win-probability model stable</span>
             </span>
           </div>
         </div>
@@ -1079,12 +1079,12 @@ function ResultsReveal({ results, onReRun, onStage }) {
           <ResultTileNII
             outcomes={tileOutcomes}
             progress={progress}
-            title="Incremental revenue accumulation"
-            subhead="cumulative over 8-wk pilot · vs $0 baseline (credit + payments leave)"
-            insight="Most conversion lands inside the first 4 weeks — accounts reached early, before the competitor finances the expansion, take the re-bundle. Extending the pilot adds little new revenue."
+            title="Incremental NWP accumulation"
+            subhead="cumulative over 8-wk pilot · vs $0 baseline (coverage leaves the account)"
+            insight="Most binds land inside the first 4 weeks — accounts quoted early, before the competitor writes the expansion, bind back. Extending the pilot adds little new NWP."
           />
           <ResultTileBars
-            title="Cross-sell conversion: base vs best"
+            title="Quote-to-bind conversion: base vs best"
             subhead={`rises from ${(o.runoffBau*100).toFixed(1)}% base to ${(o.runoffWithPolicy*100).toFixed(1)}% with policy`}
             steady={conversionPolicyPct / 8}
             baselinePerWk={conversionBasePct / 8}
@@ -1093,16 +1093,16 @@ function ResultsReveal({ results, onReRun, onStage }) {
             rampWeeks={2}
             seed={11}
             numbers={[
-              { k: "base conversion (do-nothing)", v: `${(o.runoffBau * 100).toFixed(1)}%` },
-              { k: "achieved conversion (policy)", v: `${(o.runoffWithPolicy * 100).toFixed(1)}%` },
-              { k: "8-wk incremental revenue",     v: `+$${o.retainedM.toFixed(0)}M` },
+              { k: "base bind rate (do-nothing)", v: `${(o.runoffBau * 100).toFixed(1)}%` },
+              { k: "achieved bind rate (policy)", v: `${(o.runoffWithPolicy * 100).toFixed(1)}%` },
+              { k: "8-wk incremental NWP",        v: `+$${o.retainedM.toFixed(0)}M` },
             ]}
-            insight="The first two weeks lag — accounts need the pre-approved offer to land before conversion lifts. Full effect from week 3."
+            insight="The first two weeks lag — accounts need the quote to land before bind rate lifts. Full effect from week 3."
             accent="var(--acc, #4fd1c5)"
           />
           <ResultTileBars
-            title="Primacy attach on-us / wk"
-            subhead="operating flows pulled on-us by the re-bundle attach"
+            title="Cross-line attach / wk"
+            subhead="additional lines bound onto the account by the bundle attach"
             steady={ddRecPerWk}
             baselinePerWk={0}
             progress={progress}
@@ -1112,16 +1112,16 @@ function ResultsReveal({ results, onReRun, onStage }) {
             numbers={[
               { k: "steady rate / wk",      v: `${ddRecPerWk.toFixed(2)}pp` },
               { k: "8-wk total",            v: `+${o.ddRecoveryPp}pp` },
-              { k: "products / relationship", v: `+${o.productsPerRelLift.toFixed(1)}` },
+              { k: "lines / account", v: `+${o.productsPerRelLift.toFixed(1)}` },
             ]}
-            insight="Attached flows lag the offer by ~3 weeks — accounts move payroll and treasury on-us once the bundle is set up. Concentrated in weeks 6–8."
+            insight="Attached lines lag the quote by ~3 weeks — accounts add WC, auto and umbrella once the bundle is set up. Concentrated in weeks 6–8."
             accent="var(--violet, #b794f6)"
           />
           <ResultTileCohort
             segments={cohortSegments}
             treatedN={o.treatmentN}
             caption={`${cohortSegments[0].label} + ${cohortSegments[1].label} account for ${cohortSegments[0].pct + cohortSegments[1].pct}% · the two largest expansion archetypes`}
-            insight="Most of the value comes from the off-us financers segment — the slice the conversion model prices most precisely."
+            insight="Most of the value comes from the off-us / insurtech placers segment — the slice the win-probability model prices most precisely."
           />
         </div>
       </section>

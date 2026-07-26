@@ -24,7 +24,7 @@ const THEME_NAMES = {
   retention: "Deposit retention",
   gig:       "Gig money movement",
   smbrate:   "SMB rate defense",
-  smbgrowth: "SMB growth",
+  smbgrowth: "Small Commercial growth",
 };
 
 /* Mock historical scenarios — the portfolio of completed pilots a PM
