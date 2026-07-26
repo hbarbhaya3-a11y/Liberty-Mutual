@@ -168,11 +168,11 @@ function WorkflowTimeline({ stages }) {
 /* The Business-Lead approver follows the use case: B2C deposit franchises vs
    the B2B commercial bank. Keyed on the themeId carried from Simulate. */
 export const BIZ_APPROVER = {
-  liquidity: { dept: "Business Lead · Retail & Business Banking",  name: PERSONA.name, role: "Director · Retail & Business Banking" },
-  retention: { dept: "Business Lead · Retail & Business Banking",    name: PERSONA.name, role: "Director · Retail & Business Banking" },
-  smbrate:   { dept: "Business Lead · Commercial Banking",  name: "Raj Patel",    role: "MD · Commercial Banking" },
-  smbgrowth: { dept: "Business Lead · Commercial Banking",  name: "Raj Patel",    role: "MD · Commercial Banking" },
-  gig:       { dept: "Business Lead · Retail & Business Banking",      name: PERSONA.name, role: "Director · Retail & Business Banking" },
+  liquidity: { dept: "Business Lead · USRM Personal Lines",  name: PERSONA.name, role: "Director · USRM Personal Lines" },
+  retention: { dept: "Business Lead · USRM Personal Lines",    name: PERSONA.name, role: "Director · USRM Personal Lines" },
+  smbrate:   { dept: "Business Lead · Small Commercial",  name: "Raj Patel",    role: "MD · Small Commercial" },
+  smbgrowth: { dept: "Business Lead · Small Commercial",  name: "Raj Patel",    role: "MD · Small Commercial" },
+  gig:       { dept: "Business Lead · USRM Personal Lines",      name: PERSONA.name, role: "Director · USRM Personal Lines" },
 };
 function ApprovalDetail({ row, isCurrent, onApprove, onReject, onRequestChanges }) {
   const rejected = !!row._rejected;

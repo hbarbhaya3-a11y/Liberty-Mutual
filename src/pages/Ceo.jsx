@@ -107,7 +107,7 @@ const KB = [
   // COMPETITIVE
   { id: "feegap", lens: "CO", q: "How does TwinX close the bundle-penetration gap?", keys: ["bundle", "cross-sell", "gap", "lag", "lags", "penetration", "behind", "attach"],
     head: "By turning a renewal signal into a bundled household at the right moment.",
-    body: <>Bundled households retain <B2>7.0 years vs 5.5</B2> for single-line — bundling is Mirza's #1 stated priority. TwinX feeds it two ways: <H>bundle-at-home-purchase</H> converts a property signal into an auto+home household, and the save moment surfaces the home/umbrella quote pre-filled from household data. The signal that retains is the same signal that cross-sells — expected <B>+15–25%</B> uplift at the renewal touchpoint.</>,
+    body: <>Bundled households retain <B2>7.0 years vs 5.5</B2> for single-line — bundling is the USRM President's #1 stated priority. TwinX feeds it two ways: <H>bundle-at-home-purchase</H> converts a property signal into an auto+home household, and the save moment surfaces the home/umbrella quote pre-filled from household data. The signal that retains is the same signal that cross-sells — expected <B>+15–25%</B> uplift at the renewal touchpoint.</>,
     ev: [{ c: "src", vv: Q.fee, ll: "cross-sell uplift", th: "TwinX est." }, { c: "am", vv: "+$87M", ll: "bundle NWP", th: "Home" }, { c: "vi", vv: "+18pp", ll: "attach", th: "Home" }],
     trace: ["Home-purchase + renewal signals", "Home", "bundle + retention"], cta: { t: "Bundle pipeline", theme: "home" } },
   { id: "payments", lens: "CO", q: "How does this support the digital-experience transformation?", keys: ["digital", "experience", "transformation", "contentsquare", "portal", "app", "channel"],
@@ -179,7 +179,7 @@ const KB = [
     trace: ["Existing estate", "TwinX layer", "orchestration"], cta: null },
   { id: "priorities", lens: "CA", q: "How does TwinX ladder to USRM's priorities?", keys: ["priorities", "strategic priorities", "ladder", "map", "mirza", "sweeney", "tie to strategy", "strategy"],
     head: "Cleanly — every theme sits under a named priority.",
-    body: <><B>Regain growth:</B> precision retention + bundle-attach, aimed squarely at the NWP contraction. <B>Boost retention & bundling:</B> Mirza's #1 priority — the retention loop and the 7.0-yr bundled household. <B>Data/AI at scale:</B> automated, governed decisions behind the <B2>82.2%</B2> combined ratio. TwinX isn't a side project; it's the execution layer for the 'fixing → building' mandate already on the page.</>,
+    body: <><B>Regain growth:</B> precision retention + bundle-attach, aimed squarely at the NWP contraction. <B>Boost retention & bundling:</B> the USRM President's #1 priority — the retention loop and the 7.0-yr bundled household. <B>Data/AI at scale:</B> automated, governed decisions behind the <B2>82.2%</B2> combined ratio. TwinX isn't a side project; it's the execution layer for the 'fixing → building' mandate already on the page.</>,
     ev: [{ c: "am", vv: "growth", ll: "bundle", th: "Home" }, { c: "vi", vv: "retention", ll: "auto", th: "Churn" }, { c: "gr", vv: "CR held", ll: "all", th: "Portfolio" }],
     trace: ["USRM priorities", "themes", "one strategy"], cta: null },
   { id: "urgency", lens: "CA", q: "How does this support executing with urgency and consistency?", keys: ["urgency", "consistency", "execute", "execution", "speed", "pace", "faster", "cadence"],
