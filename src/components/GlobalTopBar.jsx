@@ -31,7 +31,7 @@ function hidesContextChips(l) {
 export const PERSONA = {
   initials: "SK",
   name: "Sam Kayne",
-  role: "Director, Retail & Business Banking",
+  role: "VP Retention Ops · USRM Personal Lines",
 };
 
 export default function GlobalTopBar() {

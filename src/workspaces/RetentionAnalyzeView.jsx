@@ -75,7 +75,7 @@ function JointSignalHistogram() {
         ))}
       </div>
       <div className="mini-chart-foot">
-        Joint occurrence of balance decline + ACH-out acceleration concentrates at <b>10–20%</b> decline — the Strategy A target.
+        Joint occurrence of engagement drop + competitor quote-shopping concentrates at <b>10–20%</b> engagement decline — the Strategy A target.
       </div>
       {hover && (
         <div className="mini-chart-tip">
@@ -150,13 +150,13 @@ function PrimacyDecayBars() {
               <div
                 className={`mini-bar-h-fill${r.dd > 0.6 ? " bad" : r.dd > 0.4 ? " warn" : " ok"}`}
                 style={{ width: `${r.dd * 50}%` }}
-                onMouseEnter={() => setHover({ label: `${r.archetype} · DD decay`, value: `${(r.dd*100).toFixed(0)}% direct-deposit decay score` })}
+                onMouseEnter={() => setHover({ label: `${r.archetype} · engagement decay`, value: `${(r.dd*100).toFixed(0)}% engagement-decay score` })}
                 onMouseLeave={() => setHover(null)}
               />
               <div
                 className={`mini-bar-h-fill${r.bp > 0.6 ? " bad" : r.bp > 0.4 ? " warn" : " ok"}`}
                 style={{ width: `${r.bp * 50}%` }}
-                onMouseEnter={() => setHover({ label: `${r.archetype} · BP decay`, value: `${(r.bp*100).toFixed(0)}% bill-pay decay score` })}
+                onMouseEnter={() => setHover({ label: `${r.archetype} · paperless decay`, value: `${(r.bp*100).toFixed(0)}% paperless-open decay score` })}
                 onMouseLeave={() => setHover(null)}
               />
             </div>
@@ -165,7 +165,7 @@ function PrimacyDecayBars() {
         ))}
       </div>
       <div className="mini-chart-foot">
-        Operating Decliner shows the strongest joint decay — the Strategy B target before rate-shopping develops.
+        Silent Pre-Shopper shows the strongest joint decay — the Strategy B target before competitor shopping develops.
       </div>
       {hover && (
         <div className="mini-chart-tip">
@@ -244,7 +244,7 @@ function ProductDepthBars() {
                 onMouseEnter={() => setHover({
                   label: `${r.products} product${r.products === "1" ? "" : "s"}`,
                   value: r.amplified
-                    ? `${r.pct}% — single-product customers · 1.9× attrition amplifier`
+                    ? `${r.pct}% — single-line (unbundled) customers · 1.9× lapse amplifier`
                     : `${r.pct}% — multi-product anchor`,
                 })}
                 onMouseLeave={() => setHover(null)}
@@ -323,10 +323,11 @@ export default function RetentionAnalyzeView() {
           </div>
           <h1 className="aw-hero-title">{RETENTION_HYPOTHESIS_TITLE}</h1>
           <p className="aw-hero-desc">
-            75,000 better-off savers are starting to move money to banks that pay
-            more — and about 22,000 of them are genuinely about to leave. The
-            bet: the genuine leavers can be defended with the smallest targeted
-            incentive that holds them — without paying the ones who'd stay anyway.
+            75,000 high-LTV auto customers are starting to shop their renewal with
+            carriers that quote lower — and about 22,000 of them are genuinely
+            about to lapse. The bet: the genuine leavers can be held with the
+            smallest targeted incentive that works — without discounting the
+            deeply-bundled ones who'd renew anyway.
           </p>
           {/* Pre-sim ranges — these are estimator output, not point
               predictions. Running the What-If simulation tightens each

@@ -921,6 +921,7 @@ const CLUSTER_TO_THEME = {
   "idle-cash-liquidity": "liquidity",
   "cluster_wealth_attach": "wealth",
   "mass-affluent-deposit-drift": "retention",
+  "high-ltv-renewal-shopping": "retention",
   "smb-deposit-rate-defense": "smbrate",
   "smb-growth-expansion": "smbgrowth",
   "gig-economy": "gig",
@@ -933,7 +934,8 @@ function prettyTheme(cluster) {
     "under-35": "Subscription stacking",
     "b2b-deposits": "B2B deposits",
     "mass-affluent": "Wealth onramp",
-    "mass-affluent-deposit-drift": "Deposit retention",
+    "mass-affluent-deposit-drift": "Auto retention",
+    "high-ltv-renewal-shopping": "Auto retention",
   };
   return map[cluster] || cluster;
 }

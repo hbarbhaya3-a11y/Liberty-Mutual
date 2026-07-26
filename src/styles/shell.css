@@ -130,6 +130,20 @@ html.theme-light .shell { background: #ffffff; }
 .global-topbar-row1 { height: 48px; border-bottom: 1px solid var(--fx-glass-border); }
 .global-topbar-row2 { height: 38px; }
 
+.lm-wordmark {
+  display: inline-flex; align-items: baseline; gap: 7px;
+  font-family: var(--ui); white-space: nowrap; line-height: 1;
+}
+.lm-wordmark b { font-weight: 800; letter-spacing: -0.02em; color: #ffd000; }
+html.theme-light .lm-wordmark b { color: #1a1446; }
+.lm-wordmark em {
+  font-style: normal; font-weight: 700;
+  font-size: 0.62em; letter-spacing: 0.02em;
+  padding: 2px 5px; border-radius: 5px;
+  background: #1a1446; color: #ffd000;
+}
+html.theme-light .lm-wordmark em { background: #ffd000; color: #1a1446; }
+
 .global-topbar .gtb-brand {
   background: transparent; border: none; cursor: pointer;
   display: flex; align-items: center;

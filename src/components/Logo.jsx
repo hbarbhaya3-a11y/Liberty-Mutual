@@ -4,18 +4,18 @@ import { useTheme } from "@/components/ThemeContext";
 // can shrink/grow proportionally. Dark theme → white logo (on dark bg),
 // light theme → black logo (on light bg).
 export function Logo({ width = 96, className = "" }) {
-  const { theme } = useTheme();
-  const src = theme === "light" ? "/TwinX_Black.svg" : "/TwinX_White.svg";
-  const height = (width / 128) * 24;
+  // Liberty Mutual wordmark. Rendered as text so we don't ship brand SVGs;
+  // "TwinX" is retained as the small product tag beside the company name.
+  useTheme();
   return (
-    <img
-      src={src}
-      width={width}
-      height={height}
-      alt="TwinX"
-      className={`twinx-logo ${className}`}
-      draggable={false}
-    />
+    <span
+      className={`twinx-logo lm-wordmark ${className}`}
+      style={{ fontSize: Math.max(13, width / 6.2) }}
+      aria-label="Liberty Mutual · TwinX"
+    >
+      <b>Liberty Mutual</b>
+      <em>TwinX</em>
+    </span>
   );
 }
 
