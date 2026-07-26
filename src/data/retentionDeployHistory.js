@@ -1,5 +1,5 @@
 /* ============================================================================
-   Deposit Retention · MOCK_HISTORY entries for DeployWorkspace.
+   Auto Renewal Retention · MOCK_HISTORY entries for DeployWorkspace.
 
    These are merged into the existing MOCK_HISTORY array via spread in
    DeployWorkspace.jsx. Adds the prior closed retention pilot that
@@ -15,10 +15,10 @@ const dayBack = (n) => {
 export const RETENTION_DEPLOY_HISTORY = [
   {
     id: "mock-ret-1",
-    name: "Targeted Deposit Defense · Strategy A v1",
+    name: "Targeted Renewal Defense · Strategy A v1",
     hypothesis: "H-RET-2026-02-10",
-    cluster: "mass-affluent-deposit-drift",
-    themeName: "Deposit Retention",
+    cluster: "high-ltv-renewal-shopping",
+    themeName: "Auto Retention",
     themeId: "retention",
     experimentType: "retention",
     stage: "completed",
@@ -34,36 +34,36 @@ export const RETENTION_DEPLOY_HISTORY = [
     pilotEndReason: "duration-complete",
     treatmentN: 24000,
     controlN: 6000,
-    blurb: "Personalised CD/money-market offer to rate-sensitive customers · fairness-filtered · 20% control arm · 8-week pilot. Promoted to 80% rollout.",
+    blurb: "Capped rate + retention offer to price-elastic shopping customers · fair-lending-filtered · 20% control arm · 8-week pilot. Promoted to 80% rollout.",
     learnings: {
-      headline: "Strategy A v1 landed inside CI on primary KPIs · promoted to 80% rollout · direct-deposit recovery overshot by +8pp (the surprise feeding the v2 priors)",
+      headline: "Strategy A v1 landed inside CI on primary KPIs · promoted to 80% rollout · bundle-penetration overshot by +8pp (the surprise feeding the v2 priors)",
       actuals: [
-        { k: "Retained deposits",         predicted: "+$19.3M / yr",  actual: "+$18.7M",    tone: "ok",   delta: "within CI" },
-        { k: "Balance runoff reduction",   predicted: "−2.3pp",        actual: "−2.2pp",     tone: "ok",   delta: "within CI" },
-        { k: "Direct-deposit recovery",    predicted: "+6pp",          actual: "+14pp",      tone: "warn", delta: "OVERSHOOT · +8pp beyond predicted" },
-        { k: "Pricing fairness (UDAAP)",   predicted: "0.93",          actual: "0.93",       tone: "ok",   delta: "held exact" },
+        { k: "NWP protected",             predicted: "+$19.3M / yr",  actual: "+$18.7M",    tone: "ok",   delta: "within CI" },
+        { k: "Lapse-rate reduction",       predicted: "−2.3pp",        actual: "−2.2pp",     tone: "ok",   delta: "within CI" },
+        { k: "Bundle-penetration lift",    predicted: "+6pp",          actual: "+14pp",      tone: "warn", delta: "OVERSHOOT · +8pp beyond predicted" },
+        { k: "Fair-lending margin",        predicted: "0.93",          actual: "0.93",       tone: "ok",   delta: "held exact" },
         { k: "Customer fatigue",           predicted: "+180 / qtr",    actual: "+162 / qtr", tone: "ok",   delta: "better than predicted" },
       ],
       surprises: [
-        "Direct-deposit recovery overshot prediction by +8pp — removing balance-drift anxiety apparently prompts a subset of treated customers to re-route primary payroll back. The rate-elasticity model did not anticipate this secondary primacy mechanism.",
-        "Anchored-customer filter held cleanly at 0.65 but Compliance audit recommended tightening to 0.70 to strengthen the audit basis for v2.",
+        "Bundle penetration overshot prediction by +8pp — removing renewal-shock anxiety apparently prompts a subset of treated customers to add a home or umbrella policy at the save moment. The elasticity model did not anticipate this secondary cross-sell mechanism.",
+        "Sticky-bundled filter held cleanly at 0.65 but Compliance audit recommended tightening to 0.70 to strengthen the disparate-impact audit basis for v2.",
       ],
       didntWork: [
-        "Pure-price elasticity in the operating-decliner sub-segment came in 33% weaker than modelled — the primacy mechanism dominates rate in that slice.",
+        "Pure price-elasticity in the silent-pre-shopper sub-segment came in 33% weaker than modelled — the engagement mechanism dominates rate in that slice.",
       ],
       nextMove: {
         verdict: "Promoted to 80% rollout",
         tone: "ok",
-        rationale: "All primary KPIs landed inside CI · UDAAP margin held · direct-deposit recovery overshot — the operating-anchor mechanism is stronger than modelled. Strategy B (Primacy Re-Anchoring) drafted as concurrent pilot.",
+        rationale: "All primary KPIs landed inside CI · fair-lending margin held · bundle penetration overshot — the cross-sell mechanism is stronger than modelled. Strategy B (Re-engage before shopping) drafted as concurrent pilot.",
       },
     },
   },
   {
     id: "mock-ret-2",
-    name: "Primacy Re-Anchoring · Strategy B",
+    name: "Re-engage Before Shopping · Strategy B",
     hypothesis: "H-RET-2025-11-12",
-    cluster: "mass-affluent-deposit-drift",
-    themeName: "Deposit Retention",
+    cluster: "high-ltv-renewal-shopping",
+    themeName: "Auto Retention",
     themeId: "retention",
     experimentType: "retention",
     stage: "completed",
@@ -79,27 +79,27 @@ export const RETENTION_DEPLOY_HISTORY = [
     pilotEndReason: "duration-complete",
     treatmentN: 21000,
     controlN: 5250,
-    blurb: "No-rate primacy re-engagement (payroll + bill-pay re-anchor) to drifting mass-affluent customers · fairness-filtered · 20% control arm · 8-week pilot. Promoted to 80% rollout.",
+    blurb: "No-discount value/service re-engagement (portal + agent talking-points) to disengaging high-LTV customers · fair-lending-filtered · 20% control arm · 8-week pilot. Promoted to 80% rollout.",
     learnings: {
-      headline: "Strategy B landed inside CI on retained deposits with zero rate spend · promoted to 80% rollout · direct-deposit recovery led the result without a single bps of giveback",
+      headline: "Strategy B landed inside CI on NWP protected with zero discount spend · promoted to 80% rollout · engagement recovery led the result without a single dollar of giveback",
       actuals: [
-        { k: "Retained deposits",         predicted: "+$16.1M / yr",  actual: "+$16.6M",    tone: "ok",   delta: "within CI" },
-        { k: "Balance runoff reduction",   predicted: "−1.9pp",        actual: "−2.0pp",     tone: "ok",   delta: "within CI" },
-        { k: "Direct-deposit recovery",    predicted: "+9pp",          actual: "+11pp",      tone: "ok",   delta: "better than predicted" },
-        { k: "Pricing fairness (UDAAP)",   predicted: "0.93",          actual: "0.94",       tone: "ok",   delta: "held above floor" },
+        { k: "NWP protected",             predicted: "+$16.1M / yr",  actual: "+$16.6M",    tone: "ok",   delta: "within CI" },
+        { k: "Lapse-rate reduction",       predicted: "−1.9pp",        actual: "−2.0pp",     tone: "ok",   delta: "within CI" },
+        { k: "Engagement recovery",        predicted: "+9pp",          actual: "+11pp",      tone: "ok",   delta: "better than predicted" },
+        { k: "Fair-lending margin",        predicted: "0.93",          actual: "0.94",       tone: "ok",   delta: "held above floor" },
         { k: "Customer fatigue",           predicted: "+150 / qtr",    actual: "+138 / qtr", tone: "ok",   delta: "better than predicted" },
       ],
       surprises: [
-        "The no-rate re-anchor recovered deposits at +11pp on direct-deposit with zero rate giveback — re-engaging payroll and bill-pay primacy held balances that the rate-defense pilot only reached with a priced offer. Mechanism, not money.",
-        "UDAAP margin lifted to 0.94 because a no-rate play removes the differential-pricing exposure the priced arm carried, simplifying the audit basis.",
+        "The no-discount re-engagement recovered renewals at +11pp on engagement with zero giveback — re-engaging on value and service held policies that the discount pilot only reached with a priced offer. Mechanism, not money.",
+        "Fair-lending margin lifted to 0.94 because a no-discount play removes the differential-pricing exposure the priced arm carried, simplifying the audit basis.",
       ],
       didntWork: [
-        "The already-de-primed sub-segment barely moved — once payroll has fully left, a re-engagement nudge alone cannot recover it; that slice needs the priced Strategy A offer.",
+        "The already-shopping sub-segment barely moved — once a competitor quote is in hand, a re-engagement nudge alone cannot recover it; that slice needs the priced Strategy A offer.",
       ],
       nextMove: {
         verdict: "Promoted to 80% rollout",
         tone: "ok",
-        rationale: "Retained deposits inside CI with zero rate spend · UDAAP margin held above floor · primacy re-anchor recovered direct-deposit cleanly. Strategy A (priced) and Strategy B (no-rate) now route by drift stage — re-anchor first, price only the de-primed tail.",
+        rationale: "NWP protected inside CI with zero discount spend · fair-lending margin held above floor · re-engagement recovered renewals cleanly. Strategy A (priced) and Strategy B (no-discount) now route by shopping stage — re-engage first, price only the actively-shopping tail.",
       },
     },
   },

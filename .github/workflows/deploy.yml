@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - claude/application-url-sharing-r5ykjr
+      - claude/new-session-ssz05l
   workflow_dispatch:
 
 # Allow the workflow to publish to Pages.

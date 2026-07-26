@@ -21,7 +21,7 @@ import { deriveLearnRow } from "@/data/projectedRct";
 const THEME_NAMES = {
   wealth:    "Wealth attach",
   liquidity: "Idle-cash liquidity",
-  retention: "Deposit retention",
+  retention: "Auto retention",
   gig:       "Gig money movement",
   smbrate:   "SMB rate defense",
   smbgrowth: "Small Commercial growth",

@@ -5,7 +5,7 @@
      - 5 lever sections (COHORT / ELIGIBILITY / OFFER / COMMUNICATIONS /
        PRIMACY RE-ANCHOR FOLLOW-ON)
      - Single-column lever layout (mirroring gig's post-redesign)
-     - Sticky config strip with UDAAP margin in the central pill slot
+     - Sticky config strip with Fair-lending margin in the central pill slot
      - PriorAnchorPill reads MOCK_EXPERIMENTS (spread-extended with
        RETENTION_EXPERIMENTS in LearnWorkspace) for hypothesis anchors
      - Results: verdict + 3 ProofKpi cards + 4 guardrail pills + 2×2 tiles
@@ -47,7 +47,7 @@ const PAGE_SUBTITLE = RETENTION_HYPOTHESIS_TITLE;
    4 levers, prefilled to test Strategy A as written on the signal card.
 
    What the policy IS (these are levers):
-     - Min balance to qualify · balance decline trigger
+     - Min household LTV to qualify · balance decline trigger
      - Offer rate ceiling · offer product
      - Delivery channel
 
@@ -70,38 +70,38 @@ const RECOMMENDED = {
 const RECOMMENDED_OFFERS = { cd_12mo: 45, cd_18mo: 35 };
 
 /* ----------------------------------------------------------------------------
-   Real US Bank services the bank can enroll a customer in to restore primacy.
-   Each is an actual product — not a behavioural target. Strategy B (Primacy
-   Re-Anchoring) is anchored entirely on this lever; Strategy A can layer
-   them in as an alternative to a pure rate offer.
+   Value-added retention services Liberty can add in lieu of (or alongside) a
+   priced offer. Each is an actual offering — not a behavioural target. Strategy
+   B (Re-engage Before Shopping) is anchored on this lever; Strategy A can layer
+   them on top of a capped-rate + retention offer.
 ---------------------------------------------------------------------------- */
 const BANKING_SERVICES = [
-  { id: "dd_switch", label: "Direct Deposit setup",       sub: "Bank-assisted payroll switch · paperwork submitted on the customer's behalf" },
-  { id: "bill_pay",  label: "Bill Pay enrollment",        sub: "Free service · pre-populated common-payee setup in app" },
-  { id: "auto_save", label: "Auto-Save / Auto-Transfer",  sub: "Recurring checking → savings · Smart Savings auto-fund" },
-  { id: "zelle",     label: "Zelle enrollment",           sub: "Relational anchor · sender + receiver setup at first use" },
+  { id: "dd_switch", label: "Telematics enrollment (RightTrack)", sub: "Safe-driver program · usage-based discount offered at renewal" },
+  { id: "bill_pay",  label: "Auto-pay + paperless enrollment",    sub: "Loyalty anchor · one-click setup with billing discount" },
+  { id: "auto_save", label: "Roadside / coverage upgrade",        sub: "Value-add · roadside or rental add-on at no/low cost" },
+  { id: "zelle",     label: "Bundle nudge (Home / Umbrella)",     sub: "Cross-sell anchor · quote pre-filled from household data" },
 ];
 
 /* ----------------------------------------------------------------------------
-   Offer product options · radio cards, single-select.
+   Offer options · radio cards, single-select. (ids retained for sim math.)
 ---------------------------------------------------------------------------- */
 const OFFER_PRODUCTS = [
-  { id: "cd_6mo",         label: "Standard CD · 6-month",  sub: "Short commitment · modest defense",                 factor: 0.92 },
-  { id: "cd_12mo",        label: "Standard CD · 12-month", sub: "Best balance of retention and cost",                factor: 1.00 },
-  { id: "cd_18mo",        label: "Standard CD · 18-month", sub: "Strongest lock-in · highest-conviction savers",     factor: 1.06 },
-  { id: "cd_trade_up_24", label: "Trade Up CD · 24-month", sub: "Locks in rate · customer can bump once if rates rise", factor: 1.04 },
-  { id: "elite_mma",      label: "Elite Money Market",     sub: "Variable rate · most flexible, least sticky",       factor: 0.87 },
-  { id: "smart_savings",  label: "Smart Savings",          sub: "Tiered yield on the everyday savings account",      factor: 0.94 },
+  { id: "cd_6mo",         label: "Rate cap · light",       sub: "Small cap · modest defense",                          factor: 0.92 },
+  { id: "cd_12mo",        label: "Rate cap + $100 offer",  sub: "Best balance of retention and cost",                  factor: 1.00 },
+  { id: "cd_18mo",        label: "Rate cap + $150 offer",  sub: "Strongest hold · highest-conviction shoppers",        factor: 1.06 },
+  { id: "cd_trade_up_24", label: "Multi-year rate lock",   sub: "Locks rate · customer keeps it if market rises",      factor: 1.04 },
+  { id: "elite_mma",      label: "Deductible-adjusted",    sub: "Higher deductible offsets rate · most flexible",      factor: 0.87 },
+  { id: "smart_savings",  label: "Loyalty discount tier",  sub: "Tenure-based discount on the renewal premium",        factor: 0.94 },
 ];
 
 /* ----------------------------------------------------------------------------
    Delivery channels · multi-select checkboxes.
 ---------------------------------------------------------------------------- */
 const CHANNEL_OPTIONS = [
-  { id: "app",     label: "App notification" },
+  { id: "app",     label: "App / portal notification" },
   { id: "email",   label: "Email" },
   { id: "mail",    label: "Direct mail" },
-  { id: "banker",  label: "Banker outreach" },
+  { id: "banker",  label: "Comparion agent call" },
 ];
 
 /* Pilot-design defaults used at staging time (Deploy will own these
@@ -118,11 +118,11 @@ const PILOT_DEFAULTS = {
    Anchors at recommended defaults (per RETENTION_CALIBRATION):
      - eligibleAfterGate = 22,000  (out of 75K cohort, gated by stickiness < 0.70)
      - treatmentN/controlN = 17,600 / 4,400
-     - Retained deposits annual = $10.5M
+     - NWP protected annual = $10.5M
      - Balance runoff: 6.5% (BAU) → 4.8% (with policy) → −1.7pp reduction
      - Spread protected = $210K / yr
      - Offer cost = $95K
-     - UDAAP margin = 0.93 (held constant by stickiness gate)
+     - Fair-lending margin = 0.93 (held constant by loyalty gate)
      - Complaints delta = +120 / qtr
 ---------------------------------------------------------------------------- */
 function simulateOutcomes(opts) {
@@ -208,7 +208,7 @@ function simulateOutcomes(opts) {
   const offerCostM = C.offerCostM * ceilingFactor;
   const netAnnualisedK = Math.round((spreadProtectedK * 1000 - offerCostM * 1e6) / 1000);
 
-  /* UDAAP margin held constant by the stickiness gate (0.70 fixed). */
+  /* Fair-lending margin held constant by the loyalty gate (0.70 fixed). */
   const udaapMargin = C.udaapMargin;
 
   /* Customer fatigue scales with treatment size + offer aggressiveness. */
@@ -216,7 +216,7 @@ function simulateOutcomes(opts) {
     C.complaintsDelta * (treatmentN / C.treatmentN) * Math.min(1.4, ceilingFactor)
   );
 
-  /* Direct-deposit recovery — secondary mechanism with a 3-week lag.
+  /* Bundle penetration — secondary mechanism with a 3-week lag.
      Strategy A v1 RCT overshot prediction (+14pp vs +6pp predicted), which
      drives the prior-anchor in this v2 simulation. Baseline +6pp; each
      enrolled banking service adds ~2pp because the service is the
@@ -283,7 +283,7 @@ function Verdict({ verdict }) {
         <span className="verdict-glyph"><Icon name="check" size={20} strokeWidth={2.5} /></span>
         <div className="verdict-body">
           <div className="verdict-title">SIMULATION SUPPORTS HYPOTHESIS</div>
-          <div className="verdict-sub">All retention KPIs hit · UDAAP margin held · profitability guardrail clear</div>
+          <div className="verdict-sub">All retention KPIs hit · Fair-lending margin held · profitability guardrail clear</div>
         </div>
       </div>
     );
@@ -294,7 +294,7 @@ function Verdict({ verdict }) {
         <span className="verdict-glyph"><Icon name="warn" size={20} /></span>
         <div className="verdict-body">
           <div className="verdict-title">PARTIAL SUPPORT · GUARDRAIL AT RISK</div>
-          <div className="verdict-sub">Retained deposits in range · UDAAP margin held · profitability guardrail uncertain</div>
+          <div className="verdict-sub">NWP protected in range · Fair-lending margin held · profitability guardrail uncertain</div>
         </div>
       </div>
     );
@@ -304,7 +304,7 @@ function Verdict({ verdict }) {
       <span className="verdict-glyph"><Icon name="x" size={20} strokeWidth={2.5} /></span>
       <div className="verdict-body">
         <div className="verdict-title">SIMULATION DOES NOT SUPPORT HYPOTHESIS</div>
-        <div className="verdict-sub">Retained deposits below CI · or UDAAP basis insufficient at this offer ceiling</div>
+        <div className="verdict-sub">NWP protected below CI · or UDAAP basis insufficient at this offer ceiling</div>
       </div>
     </div>
   );
@@ -498,7 +498,7 @@ export default function RetentionSimulateView() {
     pushAgentEvent({
       kind: "good",
       src: "Simulation",
-      text: `What-If converged · +$${o.retainedM.toFixed(1)}M retained · −${(o.runoffReductionPp * 100).toFixed(1)}pp deposits leaving`,
+      text: `What-If converged · +$${o.retainedM.toFixed(1)}M retained · −${(o.runoffReductionPp * 100).toFixed(1)}pp renewals lapsing`,
     });
   }, [outcomes, pushAgentEvent, cohortPresets, offerCeilingBps, channels, minBalanceK, offerTerm]);
 
@@ -511,7 +511,7 @@ export default function RetentionSimulateView() {
       id: `p-${stagedAt}`,
       name: PAGE_SUBTITLE,
       hypothesis: activeHypId,
-      cluster: "mass-affluent-deposit-drift",
+      cluster: "high-ltv-renewal-shopping",
       themeId: "retention",
       experimentType: "retention",
       minBalanceK, offerCeilingBps, offerTerm, productOffers, channels,
@@ -538,9 +538,9 @@ export default function RetentionSimulateView() {
           channels, cohortPresets,
         },
         reasoning: [
-          "Anchored-customer filter at 0.70 — fairness-defensible cohort",
-          "+40bps ceiling · 12-month CD — defends balance within profitability floor",
-          "App + email + banker — mid-value scale plus relationship-tier reach",
+          "Sticky-bundled filter at 0.70 — fair-lending-defensible cohort",
+          "Rate cap + $100 retention offer — holds the renewal within combined-ratio floor",
+          "App + email + Comparion agent — mid-value scale plus relationship-tier reach",
         ],
         scenarios: 96400,
       });
@@ -604,8 +604,8 @@ export default function RetentionSimulateView() {
   // ---- Cohort-preset label (joins multi-selection) ----
   const COHORT_DISPLAY = {
     "full": "Full cohort",
-    "rate-sensitive": "Rate-sensitive",
-    "operating-decliner": "Operating Decliner",
+    "rate-sensitive": "Shopping-elastic",
+    "operating-decliner": "Silent Pre-Shopper",
     "high-value": "High-value at-risk",
     "long-tenured": "Long-tenured",
     "multi-product": "Multi-product",
@@ -663,8 +663,8 @@ export default function RetentionSimulateView() {
           </div>
         </div>
         <p className="sim-ws-subline">
-          {outcomes.eligibleN.toLocaleString()} eligible after the stickiness gate ·{" "}
-          stickiness threshold fixed at 0.70 · profitability guardrail enforced per customer.
+          {outcomes.eligibleN.toLocaleString()} eligible after the loyalty gate ·{" "}
+          loyalty threshold fixed at 0.70 · profitability guardrail enforced per customer.
         </p>
       </header>
 
@@ -684,7 +684,7 @@ export default function RetentionSimulateView() {
             <span>{outcomes.eligibleN.toLocaleString()} eligible</span>
             <span className="sim-config-strip-sep">·</span>
             <span className="sim-config-strip-verified">
-              after stickiness gate ({Math.round((outcomes.eligibleN / outcomes.cohortTotal) * 100)}% of cohort)
+              after loyalty gate ({Math.round((outcomes.eligibleN / outcomes.cohortTotal) * 100)}% of cohort)
             </span>
           </div>
         </div>
@@ -708,19 +708,19 @@ export default function RetentionSimulateView() {
           </div>
           <div className="sim-lever-fieldset" style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 12 }}>
             {[
-              { id: "full",               count: 75000, signature: "Every customer showing one or more drift signals." },
-              { id: "rate-sensitive",     count: 22000, signature: "Balance dropping >10% · responsive to rate · not operationally anchored." },
-              { id: "operating-decliner", count: 18000, signature: "DDA activity falling · direct-deposit decaying · no rate-shopping signal yet." },
-              { id: "high-value",         count:  3000, signature: "Balance >$85K · top attrition decile · single-product depth." },
-              { id: "long-tenured",       count:  8000, signature: "10+ years tenure · balance eroded in the last 6 months." },
-              { id: "multi-product",      count: 12000, signature: "3+ products held · early drift signals on the primary deposit account." },
+              { id: "full",               count: 75000, signature: "Every customer showing one or more shopping-risk signals." },
+              { id: "rate-sensitive",     count: 22000, signature: "Engagement dropping >20% · price-elastic · not deeply bundled." },
+              { id: "operating-decliner", count: 18000, signature: "Portal logins falling · paperless-opens decaying · no competitor quote yet." },
+              { id: "high-value",         count:  3000, signature: "LTV >$12K · top shopping decile · single-line (unbundled)." },
+              { id: "long-tenured",       count:  8000, signature: "10+ years tenure · rate action landed in the last 6 months." },
+              { id: "multi-product",      count: 12000, signature: "3+ policies held · early shopping signals on the auto policy." },
             ].map((c) => {
               const name = c.id === "full" ? "Full cohort"
-                         : c.id === "rate-sensitive" ? "Rate-sensitive eligible"
-                         : c.id === "operating-decliner" ? "Operating Decliner"
+                         : c.id === "rate-sensitive" ? "Shopping-elastic eligible"
+                         : c.id === "operating-decliner" ? "Silent Pre-Shopper"
                          : c.id === "high-value" ? "High-value at-risk"
-                         : c.id === "long-tenured" ? "Long-tenured drifters"
-                         : "Multi-product drifters";
+                         : c.id === "long-tenured" ? "Long-tenured shoppers"
+                         : "Multi-policy shoppers";
               const isSelected = cohortPresets.includes(c.id);
               return (
                 <label
@@ -780,11 +780,11 @@ export default function RetentionSimulateView() {
                           onChange={(e) => updateRule(i, { feature: e.target.value })}
                           disabled={isAutopilot}
                         >
-                          <option value="balance_min">Avg deposit balance</option>
-                          <option value="balance_decline_90d">Balance decline (90d)</option>
-                          <option value="ach_outflow_90d">Outbound ACH (90d)</option>
-                          <option value="dda_activity_decline">DDA activity decline</option>
-                          <option value="direct_deposit_decay">Direct-deposit decay</option>
+                          <option value="balance_min">Household LTV</option>
+                          <option value="balance_decline_90d">Engagement decline (90d)</option>
+                          <option value="ach_outflow_90d">Competitor quote-shopping (90d)</option>
+                          <option value="dda_activity_decline">Portal-login decline</option>
+                          <option value="direct_deposit_decay">Coverage-reduction request</option>
                           <option value="tenure_months">Tenure (months)</option>
                           <option value="product_depth">Product depth (count)</option>
                         </select>
@@ -839,7 +839,7 @@ export default function RetentionSimulateView() {
           </div>
 
           <LeverRow
-            label="Min balance to qualify"
+            label="Min household LTV to qualify"
             caption="Customers below this aren't worth the offer cost."
             value={`$${minBalanceK}K`}
             offDefault={off("minBalanceK", minBalanceK)}
@@ -866,7 +866,7 @@ export default function RetentionSimulateView() {
 
           <LeverRow
             label="Products & offer"
-            caption="Different products trade in different markets. Select the products to put in front of the customer; each reveals its own offer slider, anchored to that product's market. At-risk deposits earn ~3.50% today."
+            caption="Select the offers to put in front of the customer; each reveals its own slider, anchored to the current renewal premium. The average at-risk auto premium is ~$1,650/yr today."
             value={`${selectedProductIds.length} product${selectedProductIds.length === 1 ? "" : "s"}`}
             offDefault={productsOffDefault}
           >
@@ -907,21 +907,20 @@ export default function RetentionSimulateView() {
           </LeverRow>
         </div>
 
-        {/* Section 4 · PRIMARY BANKING SETUP (green accent) — Real US Bank
-            services we can enroll the customer in. Strategy B (Primacy
-            Re-Anchoring) is anchored on this lever; Strategy A can also
-            layer it on top of a rate offer. Each option maps to an actual
-            US Bank product. */}
+        {/* Section 4 · VALUE-ADDED SERVICES (green accent) — real Liberty
+            offerings we can add at renewal. Strategy B (Re-engage Before
+            Shopping) is anchored on this lever; Strategy A can also layer
+            it on top of a capped-rate + retention offer. */}
         <div className="sim-lever-section sim-lever-section-products">
           <div className="sim-lever-section-band">
             <div className="sim-lever-section-num">4</div>
-            <div className="sim-lever-section-name">PRIMARY BANKING SETUP</div>
-            <div className="sim-lever-section-meta">Real US Bank services we enroll the customer in to restore primacy</div>
+            <div className="sim-lever-section-name">VALUE-ADDED SERVICES</div>
+            <div className="sim-lever-section-meta">Real Liberty offerings we add at renewal to hold the policy on value, not price</div>
           </div>
 
           <LeverRow
             label="Service enrollment"
-            caption="Each enrolled service is a real US Bank product — the bank either submits paperwork on behalf of the customer (Direct Deposit) or pre-populates an in-app setup flow. Multiple enrollments compound but with diminishing returns past 3."
+            caption="Each option is a real Liberty offering — telematics (RightTrack), auto-pay/paperless, a roadside/coverage upgrade, or a pre-filled bundle quote. Multiple enrollments compound but with diminishing returns past 3."
             value={bankingServices.length === 0 ? "none selected" : `${bankingServices.length} of ${BANKING_SERVICES.length}`}
             offDefault={bankingServices.length !== RECOMMENDED.bankingServices.length}
           >
@@ -1122,8 +1121,8 @@ function ResultsReveal({ results, onReRun, onStage }) {
 
   // Cohort donut segments (4 to match gig's pattern; sums to 100)
   const cohortSegments = [
-    { id: "ds",    label: "Drifting Saver",         pct: 55, color: "var(--acc, #ffb15a)" },
-    { id: "od",    label: "Operating Decliner",     pct: 24, color: "var(--violet, #b794f6)" },
+    { id: "ds",    label: "Shopping Renewer",         pct: 55, color: "var(--acc, #ffb15a)" },
+    { id: "od",    label: "Silent Pre-Shopper",     pct: 24, color: "var(--violet, #b794f6)" },
     { id: "dshv", label: "DS · High-value tier",    pct: 14, color: "var(--cyan, #4fd1c5)" },
     { id: "edge",  label: "Edge cases",             pct:  7, color: "var(--ink-3)" },
   ];
@@ -1132,21 +1131,21 @@ function ResultsReveal({ results, onReRun, onStage }) {
   const lever = results.lever || { cohortPresets: ["rate-sensitive"], productOffers: RECOMMENDED_OFFERS, channels: ["app", "email", "banker"] };
   const seg = deriveSegments(RET_SEG_MODEL, lever, o);
   const kpis = [
-    { label: "Retained deposits", value: `+$${o.retainedM.toFixed(1)}M`, baseline: "$0" },
+    { label: "NWP protected", value: `+$${o.retainedM.toFixed(1)}M`, baseline: "$0" },
     { label: "Annualized relationship value", value: `+$${(o.retainedM * 2.5).toFixed(1)}M`, baseline: "$0" },
-    { label: "% deposits leaving", value: `${(o.runoffWithPolicy * 100).toFixed(1)}%`, baseline: `${(o.runoffBau * 100).toFixed(1)}%` },
-    { label: "Direct-deposit recovery", value: `+${o.ddRecoveryPp}pp`, baseline: "0pp" },
-    { label: "Customers retained", value: `${Math.round(o.treatmentN * (o.runoffBau - o.runoffWithPolicy)).toLocaleString()}`, baseline: "0" },
+    { label: "% renewals lapsing", value: `${(o.runoffWithPolicy * 100).toFixed(1)}%`, baseline: `${(o.runoffBau * 100).toFixed(1)}%` },
+    { label: "Bundle penetration", value: `+${o.ddRecoveryPp}pp`, baseline: "0pp" },
+    { label: "Policies retained", value: `${Math.round(o.treatmentN * (o.runoffBau - o.runoffWithPolicy)).toLocaleString()}`, baseline: "0" },
   ];
 
   // Policy band (the levers that produced this) — shown atop the Aggregate tab.
   const COHORT_LABELS = {
-    "full": "Full cohort", "rate-sensitive": "Rate-sensitive", "operating-decliner": "Operating Decliner",
+    "full": "Full cohort", "rate-sensitive": "Shopping-elastic", "operating-decliner": "Silent Pre-Shopper",
     "high-value": "High-value at-risk", "long-tenured": "Long-tenured", "multi-product": "Multi-product",
   };
   const policy = [
     { k: "Cohort", v: (lever.cohortPresets || []).map((id) => COHORT_LABELS[id]).filter(Boolean).join(", ") || "All" },
-    { k: "Min balance", v: `$${lever.minBalanceK}K` },
+    { k: "Min LTV", v: `$${lever.minBalanceK}K` },
     { k: "Product × Offer", v: Object.entries(lever.productOffers || {})
         .map(([id, bps]) => `${(OFFER_PRODUCTS.find((p) => p.id === id) || {}).label || id} ${((PRODUCT_MARKET[id] ?? 0) + bps / 100).toFixed(2)}%`)
         .join(" · ") || "—" },
@@ -1158,12 +1157,12 @@ function ResultsReveal({ results, onReRun, onStage }) {
       <ResultTileNII
         outcomes={tileOutcomes}
         progress={progress}
-        title="Retained deposits accumulation"
+        title="NWP protected accumulation"
         subhead="cumulative over 8-wk pilot · vs $0 baseline (no policy)"
         insight="Most retention lands inside the first 4 weeks — customers reached early commit early. Extending the pilot adds little new retention."
       />
       <ResultTileBars
-        title="% of deposits leaving / wk"
+        title="% renewals lapsing / wk"
         subhead={`drops from ${(o.runoffBau*100).toFixed(1)}% today to ${(o.runoffWithPolicy*100).toFixed(1)}% with policy`}
         steady={runoffReductionPct / 8}
         baselinePerWk={(o.runoffBau * 100) / 8}
@@ -1174,14 +1173,14 @@ function ResultsReveal({ results, onReRun, onStage }) {
         numbers={[
           { k: "steady rate (with policy)",  v: `${(o.runoffWithPolicy * 100).toFixed(1)}% / qtr` },
           { k: "reduction vs today",         v: `−${(o.runoffReductionPp * 100).toFixed(1)}pp` },
-          { k: "8-wk deposits retained",     v: `+$${o.retainedM.toFixed(1)}M` },
+          { k: "8-wk NWP protected",     v: `+$${o.retainedM.toFixed(1)}M` },
         ]}
         insight="The first two weeks lag — customers need to act on the offer before the leaving rate starts dropping. Full effect from week 3."
         accent="var(--acc, #ffb15a)"
       />
       <ResultTileBars
-        title="Payroll returning to primary / wk"
-        subhead="customers routing their direct deposit back to us"
+        title="Bundle adds at save / wk"
+        subhead="households adding a home/umbrella policy at renewal"
         steady={ddRecPerWk}
         baselinePerWk={0}
         progress={progress}
@@ -1193,14 +1192,14 @@ function ResultsReveal({ results, onReRun, onStage }) {
           { k: "8-wk total",            v: `+${o.ddRecoveryPp}pp` },
           { k: "v1 pilot overshoot",    v: "+8pp vs predicted" },
         ]}
-        insight="Payroll returns lag the rate offer by ~3 weeks — customers need time to update direct-deposit at their employer. Concentrated in weeks 6–8 in the v1 pilot."
+        insight="Bundle adds lag the save offer by ~3 weeks — households take time to act on the pre-filled quote. Concentrated in weeks 6–8 in the v1 pilot."
         accent="var(--violet, #b794f6)"
       />
       <ResultTileCohort
         segments={cohortSegments}
         treatedN={o.treatmentN}
         caption={`${cohortSegments[0].label} + ${cohortSegments[1].label} account for ${cohortSegments[0].pct + cohortSegments[1].pct}% · the two largest archetypes`}
-        insight="Most of the value comes from Drifting Savers — the rate-sensitive archetype the stickiness gate is calibrated for."
+        insight="Most of the value comes from Shopping Renewers — the price-elastic archetype the loyalty gate is calibrated for."
       />
     </div>
   );
@@ -1240,8 +1239,8 @@ function ResultsReveal({ results, onReRun, onStage }) {
             </span>
             <span className={"sim-guardrail-pill " + (o.udaapOk ? "sim-guardrail-pass" : "sim-guardrail-fail")}>
               <span className="sim-guardrail-pill-dot" />
-              <span className="sim-guardrail-pill-l">Deposit-pricing fairness</span>
-              <span className="sim-guardrail-pill-d">UDAAP margin {o.udaapMargin.toFixed(2)} vs 0.85 floor</span>
+              <span className="sim-guardrail-pill-l">Renewal-pricing fairness</span>
+              <span className="sim-guardrail-pill-d">Fair-lending margin {o.udaapMargin.toFixed(2)} vs 0.85 floor</span>
             </span>
             <span className="sim-guardrail-pill sim-guardrail-pass">
               <span className="sim-guardrail-pill-dot" />

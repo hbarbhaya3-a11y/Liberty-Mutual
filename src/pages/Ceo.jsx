@@ -20,16 +20,16 @@ import "@/styles/ceo.css";
      deepening   → purple (--deep) */
 const CXO_THEMES = [
   // ACQUISITION — bring in new relationships / capture new moments
-  { id: "home",      name: "Life-event capture",   lob: "Consumer",   category: "acquisition", catLabel: "acquisition", seed: "How is life-event capture performing?",          pinned: false, recent: true  },
-  { id: "wealth",    name: "Mass-affluent onramp", lob: "Wealth",     category: "acquisition", catLabel: "acquisition", seed: "Show me the mass-affluent onramp picture.",      pinned: false, recent: false },
-  { id: "b2b",       name: "B2B deposits",         lob: "Commercial", category: "acquisition", catLabel: "acquisition", seed: "Where does the B2B deposits theme stand?",       pinned: false, recent: false },
-  // RETENTION — defend the existing relationship from friction or churn
-  { id: "gig",       name: "Gig money movement",   lob: "Consumer",   category: "retention",   catLabel: "retention",   seed: "What's happening in the gig money-movement theme?", pinned: true,  recent: true  },
-  { id: "elder",     name: "Elder protection",     lob: "Consumer",   category: "retention",   catLabel: "retention",   seed: "Tell me about elder protection signals.",          pinned: false, recent: true  },
-  { id: "churn",     name: "Rate-sensitive churn", lob: "Consumer",   category: "retention",   catLabel: "retention",   seed: "What's our position on rate-sensitive churn?",      pinned: true,  recent: false },
+  { id: "home",      name: "Bundle at home-purchase", lob: "Personal",   category: "acquisition", catLabel: "acquisition", seed: "How is bundle-at-home-purchase performing?",     pinned: false, recent: true  },
+  { id: "wealth",    name: "Bundle white-space",      lob: "Personal",   category: "acquisition", catLabel: "acquisition", seed: "Show me the auto-only bundle white-space.",      pinned: false, recent: false },
+  { id: "b2b",       name: "Commercial auto",         lob: "Commercial", category: "acquisition", catLabel: "acquisition", seed: "Where does the commercial-auto theme stand?",    pinned: false, recent: false },
+  // RETENTION — defend the existing relationship from shopping or churn
+  { id: "churn",     name: "Auto renewal retention",  lob: "Personal",   category: "retention",   catLabel: "retention",   seed: "What's our position on auto renewal retention?", pinned: true,  recent: true  },
+  { id: "gig",       name: "Rideshare coverage gap",  lob: "Personal",   category: "retention",   catLabel: "retention",   seed: "What's happening in the rideshare coverage-gap theme?", pinned: true, recent: true },
+  { id: "elder",     name: "Claims-experience save",  lob: "Personal",   category: "retention",   catLabel: "retention",   seed: "Tell me about claims-experience churn signals.", pinned: false, recent: true  },
   // DEEPENING — extract more value from existing relationships
-  { id: "retire",    name: "Retirement glidepath", lob: "Wealth",     category: "deepening",   catLabel: "deepening",   seed: "What did the retirement glidepath pilot tell us?",   pinned: false, recent: false },
-  { id: "wholesale", name: "Wholesale pricing",    lob: "Commercial", category: "deepening",   catLabel: "deepening",   seed: "What is TwinX doing on wholesale pricing?",         pinned: false, recent: false },
+  { id: "retire",    name: "Umbrella glidepath",      lob: "Personal",   category: "deepening",   catLabel: "deepening",   seed: "What did the umbrella cross-sell pilot tell us?", pinned: false, recent: false },
+  { id: "wholesale", name: "Telematics pricing",      lob: "Personal",   category: "deepening",   catLabel: "deepening",   seed: "What is TwinX doing on telematics pricing?",     pinned: false, recent: false },
 ];
 
 /* Contextual follow-ups — three per response: drill / compare / brainstorm.
@@ -38,7 +38,7 @@ const CXO_THEMES = [
    the conversation without typing. */
 const FOLLOWUPS_BY_LENS = {
   FR: [
-    { kind: "drill",      text: "Show me the NII attribution behind this" },
+    { kind: "drill",      text: "Show me the NWP attribution behind this" },
     { kind: "compare",    text: "How does this compare to last quarter?" },
     { kind: "brainstorm", text: "What's the biggest downside if we double down?" },
   ],
@@ -71,146 +71,146 @@ const R = ({ children }) => <span className="r">{children}</span>;
 const B2 = ({ children }) => <span className="b2">{children}</span>;
 const I = ({ children }) => <i>{children}</i>;
 
-const Q = { eps: "$1.18", epsg: "+15%", rev: "$7.3B", revg: "+4.7%", nii: "+4.1%", fee: "+6.9%", dep: "~$515B", nim: "2.77%", eff: "58.2%", lev: "440 bps", rotce: "17%", cet1: "10.8%", assets: "$688B" };
+const Q = { eps: "$2.14", epsg: "+12%", rev: "$11.2B", revg: "−6.4%", nii: "66.4%", fee: "+15–25%", dep: "~3M policies", nim: "82.2%", eff: "79.9%", lev: "−7.1 pt", rotce: "17%", cet1: "88.4%", assets: "$43B NWP" };
 const LENSNAME = { FR: "Franchise", CO: "Competitive", RR: "Risk & Reg", CA: "Capital" };
 const THEMEPAGE = { gig: "/gig-pipeline", elder: "/deep-pipeline?theme=elder", home: "/deep-pipeline?theme=home", churn: "/deep-pipeline?theme=churn" };
 
 const DECISIONS = [
-  { theme: "gig",   st: "deployed", pr: "Retention · Payments",  t: "Money-movement retention play", v: "+$56M retention NII (illus.)",          vc: "gr", d: "A high-velocity, multi-platform earner cohort — historically unowned — defended via a friction-removal intervention. Fairness-cleared, fraud within bound." },
-  { theme: "elder", st: "deployed", pr: "Efficiency · Risk",     t: "Elder financial-exploitation guardrail", v: "−1.8 bps fraud · $6.7M cost-avoided",    vc: "gr", d: "First-ever scam-pattern wires intercepted before settlement. Proven ethically via stepped-wedge — no senior denied protection." },
-  { theme: "home",  st: "test",     pr: "Organic growth",        t: "Life-event primacy capture",     v: "+$87M growth NII (projected, illus.)",  vc: "am", d: "Liquidity-event window for affluent emergence. Consent-aware test — advisory offered, suitability gated." },
-  { theme: "churn", st: "refused",  pr: "Margin discipline",     t: "Rate-sensitive repricing", v: "+$15M forgone — held",                vc: "rd", d: "Tempting relationship-pricing play refused at the gate: elasticity model drifting. Restraint logged for auditability." },
+  { theme: "churn", st: "deployed", pr: "Retention · Growth",    t: "Precision renewal repricing", v: "+$19.3M NWP protected (illus.)",       vc: "gr", d: "High-LTV, claims-free auto customers shopping their renewal — held with a capped rate + retention offer. Fair-lending-cleared, combined-ratio floor within bound." },
+  { theme: "elder", st: "deployed", pr: "Retention · Service",   t: "Claims-experience save play", v: "−30% claims-driven leakage · $6.7M protected", vc: "gr", d: "Long-cycle, low-NPS claims intercepted with a proactive save before renewal. Proven ethically via stepped-wedge — no customer denied service." },
+  { theme: "home",  st: "test",     pr: "Bundle growth",         t: "Bundle attach at home-purchase", v: "+$87M bundle NWP (projected, illus.)", vc: "am", d: "Home-purchase window for auto-only households. Consent-aware test — bundle quote offered, suitability gated." },
+  { theme: "gig",   st: "refused",  pr: "Loss discipline",       t: "Blanket rideshare acceptance", v: "$15M forgone — held",                 vc: "rd", d: "Tempting blanket-accept play refused at the gate: rideshare loss model drifting. Restraint logged for auditability." },
 ];
 
 const KB = [
   // FRANCHISE
-  { id: "deposit", lens: "FR", q: "How big is the deposit franchise we're defending?", keys: ["deposit", "franchise", "base", "how big", "balances", "funding", "size of"],
-    head: `~${Q.dep} in average deposits — with record consumer deposits two quarters running.`,
-    body: <>That base, earning a <B2>2.77% net interest margin</B2>, is the engine. Every retention theme exists to defend it: at this scale a few basis points of retained deposit rate across half a trillion dollars moves <B>net interest income materially</B>. TwinX treats the deposit franchise as one portfolio of defendable relationships — gig and elder keep balances in-house; churn is where we showed the discipline <I>not</I> to chase the elastic tail.</>,
-    ev: [{ c: "src", vv: Q.dep, ll: "avg deposits", th: "Q1’26 disclosures" }, { c: "src", vv: Q.nim, ll: "NIM", th: "Q1’26 disclosures" }, { c: "gr", vv: "retention", ll: "gig + elder", th: "TwinX" }],
-    trace: ["Deposit signals", "Gig·Elder·Churn", "NII defended"], cta: { t: "See the cockpit", theme: null } },
-  { id: "nii", lens: "FR", q: "How does TwinX move net interest income?", keys: ["nii", "net interest", "interest income", "move nii", "spread", "margin"],
-    head: "By defending the funding base and the spread that prices it.",
-    body: <>NII grew <B2>4.1% year-over-year</B2> on loan growth and record consumer deposits. The decision layer protects the deposit side of that equation: it defends high-velocity recurring-payment cohorts that would otherwise attrite over service friction, and it holds the line on mis-pricing the rate-sensitive tier where acting on a drifting model would erode margin. Retention NII is the quiet, compounding lever beneath the headline.</>,
-    ev: [{ c: "src", vv: Q.nii, ll: "NII YoY", th: "Q1’26 disclosures" }, { c: "src", vv: Q.nim, ll: "NIM", th: "Q1’26 disclosures" }, { c: "gr", vv: "+$56M", ll: "gig retention (illus.)", th: "Gig" }],
-    trace: ["Funding signals", "Retention themes", "NII"], cta: { t: "Gig pipeline", theme: "gig" } },
-  { id: "retention", lens: "FR", q: "What's our biggest retention risk right now?", keys: ["retention", "risk", "losing", "attrition", "leave", "leaving", "biggest risk", "retain"],
+  { id: "deposit", lens: "FR", q: "How big is the book we're defending?", keys: ["book", "franchise", "base", "how big", "policies", "premium", "size of", "nwp"],
+    head: `~${Q.dep} in force — with the best combined ratio in two decades (${Q.nim}).`,
+    body: <>That book, running an <B2>82.2% combined ratio</B2>, is the engine — but auto retention has collapsed <B>7.1 points to 66.4%</B> and NWP contracted every quarter of 2025. TwinX treats the personal-lines book as one portfolio of defendable renewals: precision repricing holds the high-LTV shoppers, bundle-attach deepens single-line households, and the gig/rideshare gap is where we showed the discipline <I>not</I> to accept mis-rated risk.</>,
+    ev: [{ c: "src", vv: Q.dep, ll: "policies in force", th: "Q1’26 disclosures" }, { c: "src", vv: Q.nim, ll: "combined ratio", th: "Q1’26 disclosures" }, { c: "gr", vv: "retention", ll: "auto + bundle", th: "TwinX" }],
+    trace: ["Renewal signals", "Auto·Bundle·Claims", "NWP defended"], cta: { t: "See the cockpit", theme: null } },
+  { id: "nii", lens: "FR", q: "How does TwinX move net written premium?", keys: ["nwp", "premium", "net written", "move nwp", "growth", "retention"],
+    head: "By defending the renewal base and the retention that compounds it.",
+    body: <>NWP fell <B2>6.4% year-over-year</B2> while Travelers grew — the whole gap is retention. The decision layer protects it: it holds high-LTV, claims-free customers shopping their renewal with a capped rate + retention offer, and it refuses mis-rated risk where accepting on a drifting loss model would erode margin. Retention NWP is the quiet, compounding lever beneath the combined-ratio headline.</>,
+    ev: [{ c: "src", vv: Q.revg, ll: "NWP YoY", th: "Q1’26 disclosures" }, { c: "src", vv: Q.nim, ll: "combined ratio", th: "Q1’26 disclosures" }, { c: "gr", vv: "+$19.3M", ll: "auto retention (illus.)", th: "Churn" }],
+    trace: ["Renewal signals", "Retention themes", "NWP"], cta: { t: "Retention pipeline", theme: "churn" } },
+  { id: "retention", lens: "FR", q: "What's our biggest retention risk right now?", keys: ["retention", "risk", "losing", "lapse", "leave", "leaving", "biggest risk", "retain", "shopping"],
     head: "Two fronts that need opposite responses.",
-    body: <><B>Fixable, and fixed:</B> a high-velocity recurring-payment cohort attriting over service friction — the intervention closed the bleed and defended the relationship. <B>Held on purpose:</B> rate-sensitive balances probing competitors — tempting to reprice, but the elasticity model is <R>drifting</R>, so chasing would be pricing on noise and a UDAAP risk. Disciplined retention there means <H>watch, don't chase</H>.</>,
-    ev: [{ c: "gr", vv: "+$56M", ll: "retention NII", th: "Money movement" }, { c: "rd", vv: "+$15M", ll: "forgone — by design", th: "Churn" }, { c: "vi", vv: "portfolio", ll: "act + hold", th: "Strategy" }],
-    trace: ["Money-movement signals", "Retention themes", "deploy vs refuse"], cta: { t: "Open the portfolio", theme: "gig" } },
-  { id: "donothing", lens: "FR", q: "What's the cost of inaction on the unmet payment-friction signal?", keys: ["nothing", "do nothing", "inaction", "cost of", "ignore", "gig", "fail", "failing", "friction"],
-    head: "A slow, quiet exit of an unowned, creditworthy cohort.",
-    body: <>Each blocked recurring payment is a trusted customer hitting a wall on their most important obligation of the month — seeding complaints, contact-centre cost, and silent attrition of a high-velocity, deepening-ready cohort the bank doesn't yet own. The intervention recovered the retention bleed and turned it into a <H>cross-sell opening</H> — the same money-movement signal that defended the deposit now opens the relationship.</>,
-    ev: [{ c: "rd", vv: "attrition", ll: "if unfixed", th: "Money movement" }, { c: "gr", vv: "+$56M", ll: "NII recovered", th: "Money movement" }, { c: "vi", vv: "cross-sell", ll: "deepening opportunity", th: "Portfolio" }],
-    trace: ["Money-movement signals", "Retention", "deployed"], cta: { t: "Open the portfolio", theme: "gig" } },
+    body: <><B>Fixable, and fixed:</B> high-LTV, claims-free customers shopping their renewal — the capped-rate + retention offer closed the bleed and held the relationship. <B>Held on purpose:</B> mis-rated rideshare risk tempting to blanket-accept, but the loss model is <R>drifting</R>, so accepting would be pricing on noise and a loss-ratio risk. Disciplined retention there means <H>watch, don't chase</H>.</>,
+    ev: [{ c: "gr", vv: "+$19.3M", ll: "NWP protected", th: "Auto retention" }, { c: "rd", vv: "$15M", ll: "forgone — by design", th: "Rideshare" }, { c: "vi", vv: "portfolio", ll: "act + hold", th: "Strategy" }],
+    trace: ["Renewal signals", "Retention themes", "deploy vs refuse"], cta: { t: "Open the portfolio", theme: "churn" } },
+  { id: "donothing", lens: "FR", q: "What's the cost of inaction on the renewal-shopping signal?", keys: ["nothing", "do nothing", "inaction", "cost of", "ignore", "shopping", "fail", "failing", "lapse"],
+    head: "A slow, quiet lapse of the most profitable cohort.",
+    body: <>Each broad-brush rate action hits the best customers — low-loss, high-LTV, mature — uniformly, so they shop first and adverse selection concentrates churn in the profitable tail. The precision intervention held the renewal and turned it into a <H>bundle opening</H> — the same shopping signal that defended the auto policy now opens the home conversation.</>,
+    ev: [{ c: "rd", vv: "adverse selection", ll: "if unfixed", th: "Renewal" }, { c: "gr", vv: "+$19.3M", ll: "NWP recovered", th: "Auto retention" }, { c: "vi", vv: "bundle", ll: "cross-sell opportunity", th: "Portfolio" }],
+    trace: ["Renewal signals", "Retention", "deployed"], cta: { t: "Open the portfolio", theme: "churn" } },
   // COMPETITIVE
-  { id: "feegap", lens: "CO", q: "Our fee growth lags the industry — how does TwinX close that gap?", keys: ["fee", "fee growth", "gap", "lag", "lags", "100 basis", "behind industry", "noninterest"],
-    head: "By turning money-movement signal into fee-bearing relationships at the right moment.",
-    body: <>Fee income grew <B2>6.9%</B2> this quarter — strong, but the bank itself has named fee growth running roughly <B>100 bps below the industry</B>, and new products are aimed at that gap. TwinX feeds it two ways: <H>life-event capture</H> converts a liquidity moment into advisory and primacy (fee + balances), and the payments substrate deepens card/merchant engagement. The signal that retains is the same signal that cross-sells.</>,
-    ev: [{ c: "src", vv: Q.fee, ll: "fee income YoY", th: "Q1’26 disclosures" }, { c: "am", vv: "+$87M", ll: "home growth NII", th: "Home" }, { c: "vi", vv: "+18pp", ll: "attach", th: "Home" }],
-    trace: ["Life-event + payments signals", "Home", "fee + primacy"], cta: { t: "Life-event pipeline", theme: "home" } },
-  { id: "payments", lens: "CO", q: "How does this support the payments transformation?", keys: ["payments", "payment", "transformation", "money movement", "zelle", "embedded", "interconnected", "rail"],
-    head: "Money-movement is the first, most-frequent engagement — the decision layer makes it intelligent.",
-    body: <>Embedded, interconnected payments are how the bank retains, deepens and grows the client base — often the first product a client touches. The decision layer sits on that money-movement substrate: it senses when a rail is failing a trusted relationship and intervenes per-decision rather than per-policy. The proof point is a payments-friction problem solved as a <B2>real-time decision</B2>, not a static rule.</>,
-    ev: [{ c: "bl", vv: "rails", ll: "Zelle·ACH·RTP·Wire", th: "Money movement" }, { c: "gr", vv: "+$56M", ll: "retention NII recovered", th: "Money movement" }, { c: "vi", vv: "first product", ll: "engagement", th: "Strategy" }],
-    trace: ["Money-movement signals", "Decision layer", "payments substrate"], cta: { t: "Open the portfolio", theme: "gig" } },
-  { id: "affluent", lens: "CO", q: "We're shifting toward affluent customers — does TwinX help?", keys: ["affluent", "wealth", "shift", "upmarket", "premium", "mass affluent", "high-value"],
-    head: "Directly — it finds the affluent moment and the affluent risk.",
-    body: <>Two themes target the shift. <H>Life-event capture</H> meets young-affluent customers at a liquidity event with a consented advisory introduction — the path to wealth primacy. And the rate-sensitive theme is a <I>mass-affluent</I> retention question: who is genuinely elastic versus operationally sticky. TwinX gives the affluent strategy a decision layer, not just a segment label — and it gates the advisory on suitability so the upmarket push stays compliant.</>,
-    ev: [{ c: "am", vv: "+$87M", ll: "home growth", th: "Home" }, { c: "vi", vv: "25%", ll: "primacy", th: "Home" }, { c: "rd", vv: "held", ll: "churn discipline", th: "Churn" }],
-    trace: ["Equity-event signals", "Home + Churn", "affluent capture"], cta: { t: "Life-event pipeline", theme: "home" } },
-  { id: "giglimit", lens: "CO", q: "Could we lift transaction limits broadly to capture more upside?", keys: ["what if", "lift", "limit", "limits", "all gig", "raise", "ceiling", "everyone", "blanket"],
-    head: "Past a point it backfires — the fraud guardrail is the constraint, not the appetite.",
-    body: <>Acting on a <B2>verified recurring counterparty pattern</B2> is safe and valuable. A blanket lift without the trust filter opens a real attack surface — the fraud-rate CI crosses zero and the governance gate <R>hard-kills</R> it. The strategic answer isn't 'more lift'; it's 'more trust per unit of lift'. The decision layer rides that trade-off transparently.</>,
-    ev: [{ c: "gr", vv: "+$56M", ll: "with trust filter", th: "Money movement" }, { c: "rd", vv: "breach", ll: "blanket, no filter", th: "Money movement" }, { c: "bl", vv: "trade-off", ll: "trust × lift", th: "Strategy" }],
-    trace: ["Money-movement", "Decision gate", "fraud guardrail"], cta: { t: "Open the portfolio", theme: "gig" } },
-  { id: "fintech", lens: "CO", q: "What if a fintech out-prices us on money movement?", keys: ["fintech", "compete", "competitor", "out-price", "out-prices", "disrupt", "stablecoin", "challenger", "money movement out", "fintech money"],
-    head: "We don't win on price — we win on the intelligence layer over the rail.",
-    body: <>A challenger can match speed or price on a single transfer. What they can't easily match is a bank that <B>knows, per customer, when to lift, hold, or protect</B> — and does it inside the relationship, with the deposit and the trust already there. TwinX is that decision layer: the same money-movement signal becomes retention, protection and cross-sell at once. Price is a feature; the decided relationship is the moat.</>,
-    ev: [{ c: "bl", vv: "substrate", ll: "money-movement", th: "TwinX" }, { c: "gr", vv: "retention", ll: "gig", th: "Gig" }, { c: "vi", vv: "deepening", ll: "cross-sell", th: "Portfolio" }],
+  { id: "feegap", lens: "CO", q: "How does TwinX close the bundle-penetration gap?", keys: ["bundle", "cross-sell", "gap", "lag", "lags", "penetration", "behind", "attach"],
+    head: "By turning a renewal signal into a bundled household at the right moment.",
+    body: <>Bundled households retain <B2>7.0 years vs 5.5</B2> for single-line — bundling is Mirza's #1 stated priority. TwinX feeds it two ways: <H>bundle-at-home-purchase</H> converts a property signal into an auto+home household, and the save moment surfaces the home/umbrella quote pre-filled from household data. The signal that retains is the same signal that cross-sells — expected <B>+15–25%</B> uplift at the renewal touchpoint.</>,
+    ev: [{ c: "src", vv: Q.fee, ll: "cross-sell uplift", th: "TwinX est." }, { c: "am", vv: "+$87M", ll: "bundle NWP", th: "Home" }, { c: "vi", vv: "+18pp", ll: "attach", th: "Home" }],
+    trace: ["Home-purchase + renewal signals", "Home", "bundle + retention"], cta: { t: "Bundle pipeline", theme: "home" } },
+  { id: "payments", lens: "CO", q: "How does this support the digital-experience transformation?", keys: ["digital", "experience", "transformation", "contentsquare", "portal", "app", "channel"],
+    head: "Digital engagement is the earliest churn tell — the decision layer makes it intelligent.",
+    body: <>Engagement drop is the first shopping signal, 30–45 days ahead of a competitor quote. The decision layer sits on that ContentSquare substrate: it senses when a high-LTV household is cooling and intervenes per-customer through the preferred channel — app for digital-first, Comparion agent for relationship-first — rather than a batch email blast. The proof point is a renewal-shopping problem solved as a <B2>real-time next-best-action</B2>, not a static campaign.</>,
+    ev: [{ c: "bl", vv: "channels", ll: "app·email·SMS·agent", th: "Channel Twin" }, { c: "gr", vv: "+$19.3M", ll: "NWP recovered", th: "Auto retention" }, { c: "vi", vv: "NBA", ll: "per-customer", th: "Strategy" }],
+    trace: ["Engagement signals", "Decision layer", "NBA substrate"], cta: { t: "Open the portfolio", theme: "churn" } },
+  { id: "affluent", lens: "CO", q: "We want to defend high-value households — does TwinX help?", keys: ["affluent", "high-value", "shift", "premium", "high ltv", "wealthy", "loyal"],
+    head: "Directly — it finds the high-value moment and the high-value risk.",
+    body: <>Two themes target the tier. <H>Bundle-at-home-purchase</H> meets high-value households at a property event with a pre-filled bundle quote. And auto retention is a <I>high-LTV</I> question: who is genuinely price-elastic versus operationally loyal (deeply bundled, auto-pay). TwinX gives the strategy a decision layer, not just a segment label — and it gates the offer on fair-lending so the differential-pricing stays compliant.</>,
+    ev: [{ c: "am", vv: "+$87M", ll: "bundle growth", th: "Home" }, { c: "vi", vv: "25%", ll: "attach", th: "Home" }, { c: "rd", vv: "held", ll: "loyalty discipline", th: "Rideshare" }],
+    trace: ["Household signals", "Home + Retention", "high-value capture"], cta: { t: "Bundle pipeline", theme: "home" } },
+  { id: "giglimit", lens: "CO", q: "Could we accept rideshare risk broadly to capture more premium?", keys: ["what if", "accept", "rideshare", "limit", "limits", "all gig", "broaden", "everyone", "blanket"],
+    head: "Past a point it backfires — the loss guardrail is the constraint, not the appetite.",
+    body: <>Acting on a <B2>verified rideshare-endorsement need</B2> is safe and valuable. A blanket accept without the loss filter opens a real adverse-selection surface — the loss-ratio CI crosses the floor and the governance gate <R>hard-kills</R> it. The strategic answer isn't 'more acceptance'; it's 'more underwriting signal per unit of premium'. The decision layer rides that trade-off transparently.</>,
+    ev: [{ c: "gr", vv: "+premium", ll: "with loss filter", th: "Rideshare" }, { c: "rd", vv: "breach", ll: "blanket, no filter", th: "Rideshare" }, { c: "bl", vv: "trade-off", ll: "signal × premium", th: "Strategy" }],
+    trace: ["Rideshare", "Decision gate", "loss guardrail"], cta: { t: "Open the portfolio", theme: "gig" } },
+  { id: "fintech", lens: "CO", q: "What if Progressive out-prices us on telematics?", keys: ["progressive", "geico", "compete", "competitor", "out-price", "out-prices", "telematics", "snapshot", "challenger"],
+    head: "We don't win on price alone — we win on the intelligence layer over the renewal.",
+    body: <>A competitor can match a headline rate on a single quote. What they can't easily match is a carrier that <B>knows, per household, when to cap, hold, or bundle</B> — and does it inside the relationship, with the tenure and the claims history already there. TwinX is that decision layer: the same shopping signal becomes retention, telematics enrollment and cross-sell at once. Price is a feature; the decided relationship is the moat.</>,
+    ev: [{ c: "bl", vv: "substrate", ll: "renewal decisioning", th: "TwinX" }, { c: "gr", vv: "retention", ll: "auto", th: "Churn" }, { c: "vi", vv: "bundle", ll: "cross-sell", th: "Portfolio" }],
     trace: ["Competitive signals", "Themes", "decision moat"], cta: null },
-  { id: "growth", lens: "CO", q: "Where is the growth coming from?", keys: ["growth", "acquisition", "grow", "primacy", "new money", "upside", "where", "expand", "life event", "life-event", "organic"],
-    head: "Life events — the windows where money decides where it lives.",
-    body: <>A liquidity event opens a <B2>~14-day primacy window</B2>: meet it with a consented offer and we become primary — projected <H>+$87M</H> growth NII, +18pp attach, 25% primacy capture. It's in a consent-aware test because an advisory introduction is a recommendation (Reg BI) — we offer, not force. That discipline is what lets organic growth scale without a supervision finding.</>,
-    ev: [{ c: "am", vv: "+$87M", ll: "growth NII", th: "Home" }, { c: "vi", vv: "+18pp", ll: "attach", th: "Home" }, { c: "vi", vv: "25%", ll: "primacy", th: "Home" }],
-    trace: ["Liquidity-event signals", "Home", "consent-aware test"], cta: { t: "Life-event pipeline", theme: "home" } },
+  { id: "growth", lens: "CO", q: "Where is the growth coming from?", keys: ["growth", "acquisition", "grow", "bundle", "new business", "upside", "where", "expand", "life event", "life-event", "organic"],
+    head: "Life events — the windows where a household re-decides its coverage.",
+    body: <>A home purchase opens a <B2>bundle window</B2>: meet it with a pre-filled quote and we win the household — projected <H>+$87M</H> bundle NWP, +18pp attach, 25% cross-sell capture. It's in a consent-aware test because a bundle offer is a recommendation — we offer, not force. That discipline is what lets growth scale without a market-conduct finding.</>,
+    ev: [{ c: "am", vv: "+$87M", ll: "bundle NWP", th: "Home" }, { c: "vi", vv: "+18pp", ll: "attach", th: "Home" }, { c: "vi", vv: "25%", ll: "cross-sell", th: "Home" }],
+    trace: ["Home-purchase signals", "Home", "consent-aware test"], cta: { t: "Bundle pipeline", theme: "home" } },
   // RISK & REG
-  { id: "cro", lens: "RR", q: "What keeps the CRO comfortable with this?", keys: ["cro", "risk officer", "comfortable", "governance", "control", "oversight", "second line", "compliance"],
+  { id: "cro", lens: "RR", q: "What keeps the Chief Actuary comfortable with this?", keys: ["cro", "actuary", "chief actuary", "comfortable", "governance", "control", "oversight", "second line", "compliance"],
     head: "Every decision clears a gate with pre-registered teeth — or it doesn't ship.",
-    body: <>TwinX never deploys on confidence; it deploys on a <B>governance gate</B> wired to the constraint that matters per theme — fairness/disparate-impact, UDAAP, model drift (SR 11-7), fraud, false-positive ceilings, Reg BI suitability, credit exposure. The gate <R>branches on the real result</R>: gig clears on fairness, elder enforces a customer-harm ceiling, churn was <R>refused</R> on drift. The second line sees the same matrix the system does.</>,
-    ev: [{ c: "gr", vv: "gate", ll: "SR 11-7 logged", th: "All" }, { c: "rd", vv: "refused", ll: "churn drift", th: "Churn" }, { c: "am", vv: "ceiling", ll: "elder harm guard", th: "Elder" }],
-    trace: ["Theme constraints", "Governance gate", "clear or kill"], cta: { t: "See a refusal", theme: "churn" } },
-  { id: "elder", lens: "RR", q: "How are we protecting elderly customers from fraud?", keys: ["elder", "elderly", "senior", "seniors", "fraud", "protect", "protection", "scam", "exploitation", "efe", "wire"],
-    head: "We intercept the scam in the moment — and we proved it without denying anyone protection.",
-    body: <>A first-ever scam-language wire is <B>held</B> with trusted-contact outreach before money moves — cutting fraud ~1.8 bps. The hard part was proving it ethically: you <B>cannot</B> withhold protection from a random control of vulnerable seniors. So we used a <H>stepped-wedge</H> — every cohort gets the intervention, only the timing is randomised. The guardrail is <I>inverted</I>: the risk we watch is <R>over-acting</R> on a genuine customer (a grandparent wiring tuition).</>,
-    ev: [{ c: "gr", vv: "−1.8 bps", ll: "fraud", th: "Elder" }, { c: "gr", vv: "$6.7M", ll: "cost avoided", th: "Elder" }, { c: "am", vv: "ceiling", ll: "harm guardrail", th: "Elder" }],
-    trace: ["Wire + scam-language signals", "Elder", "stepped-wedge"], cta: { t: "Elder pipeline", theme: "elder" } },
-  { id: "churnwhy", lens: "RR", q: "Why aren't we repricing the rate-sensitive deposits?", keys: ["why not", "reprice", "repricing", "rate-sensitive", "rate sensitive", "price", "pricing", "refuse", "refused", "drift", "hold", "not act"],
-    head: "The model is drifting — and pricing on a drifting model is pricing on noise.",
-    body: <>~$15M of margin looks attractive, but behaviour is shifting faster than the elasticity model can track (<R>rate_sensitive_drift</R>). Deploy on that and we'd mis-price operationally-sticky customers as flight risks — giving away margin <I>and</I> creating a UDAAP differential-pricing exposure. The gate <R>refused</R> it; Model Risk can't sign off. That refusal is the system working — and a defensible decision the bank can stand behind.</>,
-    ev: [{ c: "rd", vv: "drift", ll: "rate_sensitive_drift", th: "Churn" }, { c: "rd", vv: "refused", ll: "SR 11-7", th: "Churn" }, { c: "am", vv: "+$15M", ll: "forgone by design", th: "Churn" }],
-    trace: ["Aggregator signals", "Churn", "gate refuses"], cta: { t: "See the refusal", theme: "churn" } },
+    body: <>TwinX never deploys on confidence; it deploys on a <B>governance gate</B> wired to the constraint that matters per theme — fair-lending / disparate-impact, model drift, combined-ratio floor, loss-ratio ceiling, DOI filing status, NAIC Model Bulletin 24-08 auditability. The gate <R>branches on the real result</R>: auto retention clears on fair-lending, claims-save enforces a customer-harm ceiling, rideshare was <R>refused</R> on loss drift. The second line sees the same matrix the system does.</>,
+    ev: [{ c: "gr", vv: "gate", ll: "NAIC 24-08 logged", th: "All" }, { c: "rd", vv: "refused", ll: "rideshare drift", th: "Rideshare" }, { c: "am", vv: "ceiling", ll: "claims harm guard", th: "Claims" }],
+    trace: ["Theme constraints", "Governance gate", "clear or kill"], cta: { t: "See a refusal", theme: "gig" } },
+  { id: "elder", lens: "RR", q: "How does claims experience drive retention?", keys: ["elder", "claims", "claim", "experience", "nps", "settlement", "save", "service", "cycle"],
+    head: "A smooth claim renews; a poor one lapses — we intercept the poor experience early.",
+    body: <>A long-cycle, low-NPS claim is <B>flagged</B> for a proactive save before renewal — cutting claims-driven leakage ~30%. The hard part was proving it fairly: you <B>cannot</B> withhold service from a random control of claimants. So we used a <H>stepped-wedge</H> — every cohort gets the intervention, only the timing is randomised. The guardrail is <I>inverted</I>: the risk we watch is <R>over-contacting</R> a customer mid-claim (the anti-recommendation: don't push cross-sell during a claim call).</>,
+    ev: [{ c: "gr", vv: "−30%", ll: "claims leakage", th: "Claims" }, { c: "gr", vv: "$6.7M", ll: "NWP protected", th: "Claims" }, { c: "am", vv: "ceiling", ll: "harm guardrail", th: "Claims" }],
+    trace: ["Claims + NPS signals", "Claims", "stepped-wedge"], cta: { t: "Claims pipeline", theme: "elder" } },
+  { id: "churnwhy", lens: "RR", q: "Why aren't we accepting the rideshare risk broadly?", keys: ["why not", "accept", "rideshare", "broad", "gig", "loss", "refuse", "refused", "drift", "hold", "not act"],
+    head: "The loss model is drifting — and accepting on a drifting model is pricing on noise.",
+    body: <>$15M of premium looks attractive, but rideshare loss behaviour is shifting faster than the model can track (<R>rideshare_loss_drift</R>). Accept on that and we'd mis-rate genuine risk <I>and</I> create adverse-selection exposure. The gate <R>refused</R> it; Model Risk can't sign off. That refusal is the system working — and a defensible decision the carrier can stand behind.</>,
+    ev: [{ c: "rd", vv: "drift", ll: "rideshare_loss_drift", th: "Rideshare" }, { c: "rd", vv: "refused", ll: "Model Risk", th: "Rideshare" }, { c: "am", vv: "$15M", ll: "forgone by design", th: "Rideshare" }],
+    trace: ["Rideshare signals", "Gate", "gate refuses"], cta: { t: "See the refusal", theme: "gig" } },
   { id: "notdoing", lens: "RR", q: "What are we deliberately choosing NOT to do?", keys: ["not doing", "not do", "restraint", "avoid", "discipline", "hold back", "choosing not", "walk away", "deliberately"],
-    head: "We're holding the rate-sensitive repricing — on purpose.",
-    body: <>The most valuable thing a decision system can do is sometimes <B>nothing</B>. A ~$15M repricing play was <R>refused</R> on drift. Acting would have looked good this quarter and cost us in mis-priced sticky customers and fairness exposure. Logging that restraint — auditable, with Model Risk unable to sign off — is a risk-adjusted decision, not a missed one. The bank that knows when not to act can be trusted to act fast when it should.</>,
-    ev: [{ c: "rd", vv: "refused", ll: "churn repricing", th: "Churn" }, { c: "rd", vv: "drift", ll: "model unstable", th: "Churn" }, { c: "gr", vv: "protected", ll: "margin + fairness", th: "Portfolio" }],
-    trace: ["Churn", "gate", "restraint logged"], cta: { t: "See the refusal", theme: "churn" } },
-  { id: "fairness", lens: "RR", q: "Is the money-movement intervention a fair-lending risk?", keys: ["fair", "fairness", "disparate", "protected class", "proxy", "bias", "discrimination", "fair lending", "fair-lending", "fair access", "trust gate", "lending risk"],
+    head: "We're holding the blanket rideshare acceptance — on purpose.",
+    body: <>The most valuable thing a decision system can do is sometimes <B>nothing</B>. A ~$15M acceptance play was <R>refused</R> on loss drift. Acting would have looked good this quarter and cost us in mis-rated risk and loss-ratio exposure. Logging that restraint — auditable, with Model Risk unable to sign off — is a risk-adjusted decision, not a missed one. The carrier that knows when not to act can be trusted to act fast when it should.</>,
+    ev: [{ c: "rd", vv: "refused", ll: "rideshare accept", th: "Rideshare" }, { c: "rd", vv: "drift", ll: "model unstable", th: "Rideshare" }, { c: "gr", vv: "protected", ll: "loss ratio + fairness", th: "Portfolio" }],
+    trace: ["Rideshare", "gate", "restraint logged"], cta: { t: "See the refusal", theme: "gig" } },
+  { id: "fairness", lens: "RR", q: "Is the differential renewal offer a fair-lending risk?", keys: ["fair", "fairness", "disparate", "protected class", "proxy", "bias", "discrimination", "fair lending", "fair-lending", "naic", "24-08", "lending risk"],
     head: "Fairness is the first thing the governance gate tests — pre-registered.",
-    body: <>A policy that helps some customers and not others is a differential-treatment question, and tenure or history signals can proxy a protected class. So the gate is pre-registered against <B>disparate impact</B>: the intervention must <I>narrow</I> the thin-file access gap, not widen it. The eligibility signal is audited against protected-class proxying before any deployment. The intervention cleared that bar; if it hadn't, the gate would have hard-killed it.</>,
-    ev: [{ c: "gr", vv: "pre-registered", ll: "disparate-impact test", th: "Governance" }, { c: "gr", vv: "narrows", ll: "thin-file access gap", th: "Fair-lending" }, { c: "am", vv: "audited", ll: "no protected-class proxy", th: "Compliance" }],
-    trace: ["Money-movement", "Governance gate", "fairness tooth"], cta: { t: "Open the portfolio", theme: "gig" } },
+    body: <>An offer that helps some customers and not others is a differential-treatment question, and tenure or credit signals can proxy a protected class. So the gate is pre-registered against <B>disparate impact</B> under NAIC Model Bulletin 24-08: the elasticity model must be the audited evidence that targeted customers are genuinely price-elastic, not loyal households priced away. Every score is logged per-policy before deployment. The intervention cleared that bar; if it hadn't, the gate would have hard-killed it.</>,
+    ev: [{ c: "gr", vv: "pre-registered", ll: "disparate-impact test", th: "Governance" }, { c: "gr", vv: "audited basis", ll: "elasticity evidence", th: "Fair-lending" }, { c: "am", vv: "NAIC 24-08", ll: "per-policy logged", th: "Compliance" }],
+    trace: ["Renewal offer", "Governance gate", "fairness tooth"], cta: { t: "Open the portfolio", theme: "churn" } },
   // CAPITAL & EFFICIENCY
-  { id: "efficiency", lens: "CA", q: "How does this help the efficiency ratio?", keys: ["efficiency", "efficiency ratio", "cost", "operating leverage", "expense", "productivity", "cost-to-serve"],
-    head: "It compounds the operating leverage you're already posting.",
-    body: <>The efficiency ratio improved to <B2>58.2%</B2> with <B>440 bps of positive operating leverage</B> this quarter. TwinX adds to that on the cost side: decisions are automated rather than manually reviewed, contact-centre volume falls as friction and fraud drop, and loss-avoidance (elder) is pure cost taken out. This is intelligence arbitrage — more correct decisions per dollar of operating cost, without adding headcount.</>,
-    ev: [{ c: "src", vv: Q.eff, ll: "efficiency ratio", th: "Q1’26 disclosures" }, { c: "src", vv: Q.lev, ll: "operating leverage", th: "Q1’26 disclosures" }, { c: "gr", vv: "cost-avoided", ll: "gig + elder", th: "TwinX" }],
-    trace: ["Decision automation", "All themes", "cost-to-serve ↓"], cta: null },
+  { id: "efficiency", lens: "CA", q: "How does this help the combined ratio?", keys: ["combined ratio", "cr", "efficiency", "loss ratio", "expense", "cost", "productivity", "cost-to-serve"],
+    head: "It compounds the underwriting discipline you're already posting.",
+    body: <>The combined ratio hit <B2>82.2%</B2> (underlying <B>79.9%</B>) — best in two decades. TwinX protects it while restoring growth: precision retention concentrates saves in high-LTV/low-loss segments, selective non-renewal improves the loss ratio, and CAC avoidance (each retained policy skips a $200–800 replacement) takes cost out. Net effect: <B2>0.8–2.2 pts</B2> sustained CR improvement without sacrificing the profit fix.</>,
+    ev: [{ c: "src", vv: Q.nim, ll: "combined ratio", th: "Q1’26 disclosures" }, { c: "src", vv: Q.eff, ll: "underlying CR", th: "Q1’26 disclosures" }, { c: "gr", vv: "CAC-avoided", ll: "retention", th: "TwinX" }],
+    trace: ["Precision retention", "All themes", "combined ratio ↓"], cta: null },
   { id: "onedollar", lens: "CA", q: "If I had one more dollar to invest, where would it go?", keys: ["one more dollar", "invest", "where", "allocate", "capital", "prioritize", "priority", "best return", "roi"],
-    head: "Lead with protection, then growth — highest risk-adjusted return first.",
-    body: <>On a risk-adjusted basis the first dollar goes to <H>elder loss-prevention</H>: a single buyer (the CRO), avoided losses plus litigation and reputational exposure, and the gate-teeth that make the whole portfolio credible to the second line. The second goes to <H>life-event capture</H> — the clearest organic-growth and fee-gap play, gated on suitability. Margin defense (churn) earns <I>negative</I> investment right now: the disciplined move is to hold until the model re-stabilises.</>,
-    ev: [{ c: "gr", vv: "1st", ll: "elder · loss + teeth", th: "Elder" }, { c: "am", vv: "2nd", ll: "home · growth + fee", th: "Home" }, { c: "rd", vv: "hold", ll: "churn · drift", th: "Churn" }],
-    trace: ["Value × feasibility", "Portfolio", "allocation"], cta: { t: "Elder pipeline", theme: "elder" } },
+    head: "Lead with retention, then bundle — highest risk-adjusted return first.",
+    body: <>On a risk-adjusted basis the first dollar goes to <H>precision auto retention</H>: a single owner (Retention Ops), $19.3M NWP protected plus CAC avoided, and the fair-lending teeth that make the whole portfolio credible to the second line. The second goes to <H>bundle-at-home-purchase</H> — the clearest cross-sell and 7.0-yr-tenure play, gated on suitability. Blanket rideshare acceptance earns <I>negative</I> investment right now: the disciplined move is to hold until the loss model re-stabilises.</>,
+    ev: [{ c: "gr", vv: "1st", ll: "auto · NWP + teeth", th: "Churn" }, { c: "am", vv: "2nd", ll: "home · bundle", th: "Home" }, { c: "rd", vv: "hold", ll: "rideshare · drift", th: "Rideshare" }],
+    trace: ["Value × feasibility", "Portfolio", "allocation"], cta: { t: "Retention pipeline", theme: "churn" } },
   { id: "buildbuy", lens: "CA", q: "Should we build this capability or buy it?", keys: ["build", "buy", "build or buy", "make or buy", "acquire", "vendor", "in-house", "platform"],
-    head: "Neither replaces your stack — TwinX orchestrates it.",
-    body: <>The bank already runs fraud, marketing-decisioning and limit systems, and it grows by interconnecting capabilities (the recent payments/healthcare acquisitions follow exactly that pattern). TwinX is the <B>decision layer over</B> those engines, not a rip-and-replace — it senses, simulates, gates and deploys across them, and writes back. The build-vs-buy question becomes 'who orchestrates', and the answer is a thin, governable layer that makes the assets you already own act in concert.</>,
-    ev: [{ c: "bl", vv: "orchestrate", ll: "existing engines", th: "TwinX" }, { c: "vi", vv: "interconnect", ll: "M&A pattern", th: "Strategy" }, { c: "gr", vv: "governable", ll: "thin layer", th: "TwinX" }],
-    trace: ["Existing stack", "TwinX layer", "orchestration"], cta: null },
-  { id: "priorities", lens: "CA", q: "How does TwinX ladder to our three strategic priorities?", keys: ["three priorities", "strategic priorities", "ladder", "map", "organic growth payments efficiency", "tie to strategy", "strategy"],
-    head: "Cleanly — every theme sits under one of the three.",
-    body: <><B>Organic growth:</B> life-event capture and the affluent shift, aimed squarely at the named fee-growth gap. <B>Payments transformation:</B> the money-movement substrate under gig and embedded payments — the first, most-frequent engagement. <B>Operational efficiency:</B> automated decisions and avoided losses behind the <B2>58.2%</B2> efficiency ratio. TwinX isn't a side project; it's the execution layer for the strategy already on the page.</>,
-    ev: [{ c: "am", vv: "growth", ll: "home", th: "Home" }, { c: "vi", vv: "payments", ll: "gig", th: "Gig" }, { c: "gr", vv: "efficiency", ll: "elder + all", th: "Elder" }],
-    trace: ["3 priorities", "4 themes", "one strategy"], cta: null },
+    head: "Neither replaces your estate — TwinX orchestrates it.",
+    body: <>USRM already runs PL QUOTE EDW, AM-ECLIQ, NAVIGATOR, CSW, eService, Mercury and ContentSquare, plus ~50 point-AI use cases. TwinX is the <B>decision layer over</B> those systems, not a rip-and-replace — it senses, simulates, gates and deploys across them via non-intrusive APIs, and writes back. The build-vs-buy question becomes 'who orchestrates', and the answer is a thin, governable layer that makes the estate you already own act in concert — riding the USRM vendor-consolidation mandate.</>,
+    ev: [{ c: "bl", vv: "orchestrate", ll: "existing estate", th: "TwinX" }, { c: "vi", vv: "non-intrusive", ll: "API overlay", th: "Strategy" }, { c: "gr", vv: "governable", ll: "thin layer", th: "TwinX" }],
+    trace: ["Existing estate", "TwinX layer", "orchestration"], cta: null },
+  { id: "priorities", lens: "CA", q: "How does TwinX ladder to USRM's priorities?", keys: ["priorities", "strategic priorities", "ladder", "map", "mirza", "sweeney", "tie to strategy", "strategy"],
+    head: "Cleanly — every theme sits under a named priority.",
+    body: <><B>Regain growth:</B> precision retention + bundle-attach, aimed squarely at the NWP contraction. <B>Boost retention & bundling:</B> Mirza's #1 priority — the retention loop and the 7.0-yr bundled household. <B>Data/AI at scale:</B> automated, governed decisions behind the <B2>82.2%</B2> combined ratio. TwinX isn't a side project; it's the execution layer for the 'fixing → building' mandate already on the page.</>,
+    ev: [{ c: "am", vv: "growth", ll: "bundle", th: "Home" }, { c: "vi", vv: "retention", ll: "auto", th: "Churn" }, { c: "gr", vv: "CR held", ll: "all", th: "Portfolio" }],
+    trace: ["USRM priorities", "themes", "one strategy"], cta: null },
   { id: "urgency", lens: "CA", q: "How does this support executing with urgency and consistency?", keys: ["urgency", "consistency", "execute", "execution", "speed", "pace", "faster", "cadence"],
-    head: "It collapses the decision cycle from quarters to a daily loop.",
-    body: <>The bank has set the bar at executing with urgency and consistency. TwinX is the mechanism: sense → simulate → gate → test → deploy → learn, run <B2>every day</B2>, with governance built in so speed doesn't cost control. Consistency comes from the gate — the same teeth, every decision, auditable — so 'fast' and 'safe' stop being a trade-off.</>,
-    ev: [{ c: "bl", vv: "daily", ll: "decision loop", th: "TwinX" }, { c: "gr", vv: "gate", ll: "consistent teeth", th: "All" }, { c: "am", vv: "auditable", ll: "SR 11-7", th: "All" }],
+    head: "It collapses the decision cycle from a rate cycle to a daily loop.",
+    body: <>Today profitability analytics lag 60–90 days and correction waits for the next rate cycle. TwinX is the mechanism: sense → simulate → gate → test → deploy → learn, run <B2>every day</B2>, with governance built in so speed doesn't cost control. Consistency comes from the gate — the same teeth, every decision, auditable — so 'fast' and 'compliant' stop being a trade-off.</>,
+    ev: [{ c: "bl", vv: "daily", ll: "decision loop", th: "TwinX" }, { c: "gr", vv: "gate", ll: "consistent teeth", th: "All" }, { c: "am", vv: "auditable", ll: "NAIC 24-08", th: "All" }],
     trace: ["Sense→…→Learn", "run daily", "urgency + control"], cta: null },
   { id: "downside", lens: "CA", q: "What's the downside scenario if a decision is wrong?", keys: ["downside", "wrong", "risk scenario", "fail", "what could go wrong", "blow up", "worst case", "rollback"],
     head: "Bounded by design — small blast radius, fast reversal, and a gate that prefers 'no'.",
-    body: <>Three protections. Decisions are <B>tested before scale</B> (holdout, stepped-wedge, or consent-aware), so a wrong call shows up small. Deployment carries <B2>one-click rollback</B2> with auto-trigger on drift. And the gate is biased toward restraint — it would rather <R>refuse</R> a good-looking play (churn) than ship an unsafe one. The downside of TwinX is a forgone gain, logged and recoverable — not an unbounded loss.</>,
-    ev: [{ c: "gr", vv: "tested", ll: "before scale", th: "All" }, { c: "bl", vv: "1-click", ll: "rollback on drift", th: "All" }, { c: "rd", vv: "refuses", ll: "when unsafe", th: "Churn" }],
+    body: <>Three protections. Decisions are <B>tested before scale</B> (holdout, stepped-wedge, or consent-aware), so a wrong call shows up small. Deployment carries <B2>one-click rollback</B2> with auto-trigger on drift. And the gate is biased toward restraint — it would rather <R>refuse</R> a good-looking play (rideshare) than ship an unsafe one. The downside of TwinX is a forgone gain, logged and recoverable — not an unbounded loss.</>,
+    ev: [{ c: "gr", vv: "tested", ll: "before scale", th: "All" }, { c: "bl", vv: "1-click", ll: "rollback on drift", th: "All" }, { c: "rd", vv: "refuses", ll: "when unsafe", th: "Rideshare" }],
     trace: ["Scenario", "Gate", "rollback"], cta: null },
   // PORTFOLIO / BOARD
   { id: "week", lens: "CA", q: "What did we decide this week — and why?", keys: ["decide", "decision", "this week", "summary", "what did", "happened", "overview", "update", "recap"],
     head: "Four decisions — two acted, one testing, one refused.",
-    body: <>The pattern is the point: the bank chose <B>where not to act</B>. We <G>deployed</G> a money-movement retention play (retention/payments) and an elder financial-exploitation guardrail (efficiency/risk), put life-event primacy capture into a <H>consent-aware test</H> (organic growth), and <R>refused</R> rate-sensitive repricing on model drift. Each laddered to a named strategic priority and cleared — or failed — a governance gate before anyone acted.</>,
-    ev: [{ c: "gr", vv: "+$56M", ll: "gig", th: "Gig" }, { c: "gr", vv: "−1.8bps", ll: "elder", th: "Elder" }, { c: "am", vv: "+$87M", ll: "home (test)", th: "Home" }, { c: "rd", vv: "held", ll: "churn", th: "Churn" }],
-    trace: ["Cockpit · 8 clusters", "4 themes", "4 pipelines"], cta: null },
+    body: <>The pattern is the point: the carrier chose <B>where not to act</B>. We <G>deployed</G> precision auto renewal repricing (retention/growth) and a claims-experience save play (retention/service), put bundle-at-home-purchase into a <H>consent-aware test</H> (bundle growth), and <R>refused</R> blanket rideshare acceptance on loss drift. Each laddered to a named USRM priority and cleared — or failed — a governance gate before anyone acted.</>,
+    ev: [{ c: "gr", vv: "+$19.3M", ll: "auto", th: "Churn" }, { c: "gr", vv: "−30%", ll: "claims", th: "Claims" }, { c: "am", vv: "+$87M", ll: "home (test)", th: "Home" }, { c: "rd", vv: "held", ll: "rideshare", th: "Rideshare" }],
+    trace: ["Cockpit · clusters", "themes", "pipelines"], cta: null },
   { id: "board", lens: "CA", q: "What will the board ask about this?", keys: ["board", "directors", "audit committee", "what will they ask", "governance question", "oversight question"],
-    head: "Growth, efficiency, risk, capital — and TwinX answers all four in one frame.",
-    body: <>Expect four questions. <B>Growth:</B> does it close the fee gap? (life-event capture). <B>Efficiency:</B> does it improve operating leverage? (automated decisions, cost-avoided). <B>Risk:</B> is the second line comfortable? (pre-registered gate teeth, SR 11-7). <B>Capital:</B> is it a contained, reversible bet? (tested before scale, one-click rollback, gate prefers 'no'). The unusual answer the board will remember is the <R>refusal</R> — proof the system has judgement.</>,
-    ev: [{ c: "am", vv: "growth", ll: "fee gap", th: "Home" }, { c: "gr", vv: "efficiency", ll: "58.2%", th: "Portfolio" }, { c: "rd", vv: "restraint", ll: "churn refused", th: "Churn" }],
+    head: "Growth, combined ratio, risk, capital — and TwinX answers all four in one frame.",
+    body: <>Expect four questions. <B>Growth:</B> does it restore NWP and bundling? (retention + bundle-attach). <B>Combined ratio:</B> does it hold the profit fix? (precision saves, selective non-renewal). <B>Risk:</B> is the second line comfortable? (pre-registered gate teeth, NAIC 24-08). <B>Capital:</B> is it a contained, reversible bet? (tested before scale, one-click rollback, gate prefers 'no'). The unusual answer the board will remember is the <R>refusal</R> — proof the system has judgement.</>,
+    ev: [{ c: "am", vv: "growth", ll: "bundle", th: "Home" }, { c: "gr", vv: "CR held", ll: "82.2%", th: "Portfolio" }, { c: "rd", vv: "restraint", ll: "rideshare refused", th: "Rideshare" }],
     trace: ["Board lenses", "Portfolio", "one frame"], cta: null },
   { id: "inflight", lens: "CA", q: "Show me everything in flight.", keys: ["in flight", "inflight", "everything", "status", "running", "active", "whats happening", "show me", "portfolio"],
     head: "Four themes, four states — acted, acted, testing, held.",
-    body: <><B>Gig</B> deployed (retention secured). <B>Elder</B> deployed via stepped-wedge (seniors protected). <B>Home</B> in consent-aware test (growth pending suitability evidence). <B>Churn</B> refused on drift (held for re-stabilisation). The decision ledger on the left is live — click any decision to drop into its pipeline and see the full sense→deploy trace.</>,
-    ev: [{ c: "gr", vv: "deployed", ll: "gig + elder", th: "2 themes" }, { c: "am", vv: "in test", ll: "home", th: "1 theme" }, { c: "rd", vv: "refused", ll: "churn", th: "1 theme" }],
-    trace: ["Cockpit", "4 themes", "4 pipelines"], cta: null },
+    body: <><B>Auto retention</B> deployed (NWP secured). <B>Claims-experience save</B> deployed via stepped-wedge (leakage cut). <B>Bundle-at-home-purchase</B> in consent-aware test (growth pending suitability evidence). <B>Rideshare acceptance</B> refused on loss drift (held for re-stabilisation). The decision ledger on the left is live — click any decision to drop into its pipeline and see the full sense→deploy trace.</>,
+    ev: [{ c: "gr", vv: "deployed", ll: "auto + claims", th: "2 themes" }, { c: "am", vv: "in test", ll: "home", th: "1 theme" }, { c: "rd", vv: "refused", ll: "rideshare", th: "1 theme" }],
+    trace: ["Cockpit", "themes", "pipelines"], cta: null },
 ];
 
-const TOPIC_TAGS = ["gig", "elder", "senior", "home", "churn", "rate", "fraud", "growth", "limit", "deposit", "fee", "payments", "efficiency", "fairness", "board", "capital", "invest"];
+const TOPIC_TAGS = ["auto", "claims", "renewal", "home", "rideshare", "rate", "bundle", "growth", "limit", "book", "cross-sell", "digital", "combined ratio", "fairness", "board", "capital", "invest"];
 
 /* answer() — keyword-matches the query against the KB and returns the best
    entry. Takes a `served` Set of entry IDs that the user has already seen
@@ -249,12 +249,12 @@ function answer(q, served = new Set(), fallbackCount = 0) {
 function detectTopic(qLow) {
   if (/gig|rent|landlord|zelle|friction|recurring/.test(qLow)) return "gig";
   if (/elder|senior|fraud|scam|wire|exploitation/.test(qLow)) return "elder";
-  if (/home|life.event|primacy|affluent|attach|brokerage/.test(qLow)) return "home";
+  if (/home|life.event|bundle|property|attach|purchase/.test(qLow)) return "home";
   if (/churn|repric|rate.sensitive|drift|aggregator/.test(qLow)) return "churn";
   if (/cost|efficiency|operating|ratio|expense/.test(qLow)) return "efficiency";
   if (/board|director|audit|governance|second.line/.test(qLow)) return "board";
   if (/capital|allocate|invest|cet1|rotce/.test(qLow)) return "capital";
-  if (/fee|growth|deposit|nim|nii/.test(qLow)) return "franchise";
+  if (/bundle|growth|book|combined|nwp|premium/.test(qLow)) return "franchise";
   return "generic";
 }
 
@@ -265,10 +265,10 @@ const FALLBACK_VARIANTS = {
   gig: [
     {
       head: "I have three angles on this — pick the one that's closest:",
-      body: <>The money-movement intervention can be read as <b>retention</b> (defending high-velocity relationships), as <b>fairness</b> (the disparate-impact audit that gated it), or as <b>payments strategy</b> (the substrate it runs on).</>,
+      body: <>The renewal-repricing intervention can be read as <b>retention</b> (defending high-LTV renewals), as <b>fairness</b> (the disparate-impact audit that gated it), or as <b>bundle strategy</b> (the cross-sell it opens).</>,
       picks: [
         "What's our biggest retention risk right now?",
-        "Is the money-movement intervention a fair-lending risk?",
+        "Is the differential renewal offer a fair-lending risk?",
         "How does this support the payments transformation?",
       ],
     },
@@ -277,25 +277,25 @@ const FALLBACK_VARIANTS = {
       body: <>I can frame this as <b>cost of inaction</b> (what happens if we don't fix the bleed), or as a <b>governance</b> question (how the gate cleared it), or as <b>capital allocation</b> (is the dollar best spent here vs. elsewhere).</>,
       picks: [
         "What's the cost of inaction on the unmet payment-friction signal?",
-        "What keeps the CRO comfortable with this?",
+        "What keeps the Chief Actuary comfortable with this?",
         "If I had one more dollar to invest, where would it go?",
       ],
     },
   ],
   elder: [
     {
-      head: "The elder play has two sides — which lens matters?",
-      body: <>It's a <b>loss-prevention</b> result on the franchise side and a <b>duty-of-care + ethics</b> question on the risk side — the stepped-wedge design is what made it deployable.</>,
+      head: "The claims play has two sides — which lens matters?",
+      body: <>Its a <b>leakage-prevention</b> result on the book side and a <b>duty-of-care + ethics</b> question on the risk side — the stepped-wedge design is what made it deployable.</>,
       picks: [
-        "How are we protecting elderly customers from fraud?",
-        "What keeps the CRO comfortable with this?",
+        "How does claims experience drive retention?",
+        "What keeps the Chief Actuary comfortable with this?",
       ],
     },
   ],
   home: [
     {
       head: "Life-event capture is the growth lever — what angle?",
-      body: <>I can speak to the <b>fee-gap closure</b>, the <b>~14-day primacy window</b>, or the <b>Reg BI</b> guardrails the test is registered against.</>,
+      body: <>I can speak to the <b>bundle-gap closure</b>, the <b>home-purchase bundle window</b>, or the <b>NAIC 24-08</b> guardrails the test is registered against.</>,
       picks: [
         "Our fee growth lags the industry — how does this close that gap?",
         "Where is the growth coming from?",
@@ -308,7 +308,7 @@ const FALLBACK_VARIANTS = {
       head: "Churn is the one we deliberately didn't act on — which angle?",
       body: <>The model is <b>drifting</b>; that's why we refused the play. I can frame this as <b>restraint discipline</b>, as a <b>UDAAP exposure</b> question, or as a <b>capital protection</b> argument.</>,
       picks: [
-        "Why aren't we repricing the rate-sensitive deposits?",
+        "Why arent we accepting the rideshare risk broadly?",
         "What are we deliberately choosing NOT to do?",
         "What's the downside scenario if a decision is wrong?",
       ],
@@ -319,7 +319,7 @@ const FALLBACK_VARIANTS = {
       head: "Efficiency lands in two places — operating leverage or cost-to-serve.",
       body: <>The decision layer compounds the operating leverage you're already posting and removes contact-centre + loss cost.</>,
       picks: [
-        "How does this help the efficiency ratio?",
+        "How does this help the combined ratio?",
         "Should we build this capability or buy it?",
       ],
     },
@@ -348,10 +348,10 @@ const FALLBACK_VARIANTS = {
   franchise: [
     {
       head: "Franchise math lives in three buckets.",
-      body: <>I can speak to the <b>deposit base</b> we're defending, how the decision layer moves <b>NII</b>, or what closes the <b>fee-growth gap</b> the bank has named.</>,
+      body: <>I can speak to the <b>book</b> were defending, how the decision layer moves <b>NWP</b>, or what closes the <b>bundle-penetration gap</b> USRM has named.</>,
       picks: [
-        "How big is the deposit franchise we're defending?",
-        "How does this move net interest income?",
+        "How big is the book were defending?",
+        "How does this move net written premium?",
         "Our fee growth lags the industry — how does this close that gap?",
       ],
     },
@@ -359,7 +359,7 @@ const FALLBACK_VARIANTS = {
   generic: [
     {
       head: "Help me steer — which lens are we using?",
-      body: <>Four lenses anchor this: <b>franchise</b>, <b>competitive</b>, <b>risk & regulatory</b>, <b>capital</b>. Pick one or push on the deposit base, fee gap, or what we chose <b>not</b> to do.</>,
+      body: <>Four lenses anchor this: <b>franchise</b>, <b>competitive</b>, <b>risk & regulatory</b>, <b>capital</b>. Pick one or push on the book, bundle gap, or what we chose <b>not</b> to do.</>,
       picks: [
         "What did we decide this week — and why?",
         "If I had one more dollar to invest, where?",
@@ -368,18 +368,18 @@ const FALLBACK_VARIANTS = {
     },
     {
       head: "Give me a hook and I can ladder to a strategic priority.",
-      body: <>Try a theme (gig money-movement, elder protection, life-event capture, rate-sensitive churn) or a number (deposits, NII, fee income, efficiency). I'll trace it to the decision portfolio.</>,
+      body: <>Try a theme (auto retention, claims-experience save, bundle-at-home-purchase, rideshare gap) or a number (policies, NWP, combined ratio, bundle rate). I'll trace it to the decision portfolio.</>,
       picks: [
         "What's our biggest retention risk right now?",
         "Where is the growth coming from?",
-        "How does this help the efficiency ratio?",
+        "How does this help the combined ratio?",
       ],
     },
     {
       head: "Not catching that — try one of these.",
       body: <>The most useful starting points are usually around <b>retention</b>, <b>growth</b>, or <b>restraint</b>.</>,
       picks: [
-        "What keeps the CRO comfortable with this?",
+        "What keeps the Chief Actuary comfortable with this?",
         "What will the board ask about this?",
         "What's the downside scenario if a decision is wrong?",
       ],
@@ -389,10 +389,10 @@ const FALLBACK_VARIANTS = {
 
 const LENS_PICKS = {
   all: ["What did we decide this week — and why?", "If I had one more dollar to invest, where?", "Our fee growth lags the industry — how does TwinX close it?", "What are we deliberately NOT doing?"],
-  FR: ["How big is the deposit franchise we're defending?", "What's our biggest retention risk right now?", "How does TwinX move net interest income?"],
+  FR: ["How big is the book were defending?", "What's our biggest retention risk right now?", "How does TwinX move net written premium?"],
   CO: ["Our fee growth lags the industry — how does TwinX close it?", "How does this support the payments transformation?", "We're shifting toward affluent customers — does TwinX help?", "Where is the growth coming from?"],
-  RR: ["What keeps the CRO comfortable with this?", "Why aren't we repricing rate-sensitive deposits?", "Is the money-movement intervention a fair-lending risk?", "How are we protecting elderly customers from fraud?"],
-  CA: ["If I had one more dollar to invest, where?", "How does this help the efficiency ratio?", "Should we build this capability or buy it?", "What's the downside scenario if a decision is wrong?", "What will the board ask about this?"],
+  RR: ["What keeps the Chief Actuary comfortable with this?", "Why arent we accepting rideshare risk broadly?", "Is the differential renewal offer a fair-lending risk?", "How does claims experience drive retention?"],
+  CA: ["If I had one more dollar to invest, where?", "How does this help the combined ratio?", "Should we build this capability or buy it?", "What's the downside scenario if a decision is wrong?", "What will the board ask about this?"],
 };
 const LENS_LABELS = { all: "All", FR: "Franchise", CO: "Competitive", RR: "Risk & Reg", CA: "Capital" };
 
@@ -406,10 +406,10 @@ function Brief({ onAskTheme }) {
         <div className="qc"><div className="v gr">{Q.eps}</div><div className="l">EPS {Q.epsg}</div></div>
         <div className="qc"><div className="v bl">{Q.rev}</div><div className="l">revenue {Q.revg}</div></div>
         <div className="qc"><div className="v am">{Q.nim}</div><div className="l">NIM</div></div>
-        <div className="qc"><div className="v gr">{Q.nii}</div><div className="l">NII YoY</div></div>
-        <div className="qc"><div className="v bl">{Q.fee}</div><div className="l">fee income</div></div>
+        <div className="qc"><div className="v gr">{Q.nii}</div><div className="l">auto retention</div></div>
+        <div className="qc"><div className="v bl">{Q.fee}</div><div className="l">cross-sell uplift</div></div>
         <div className="qc"><div className="v am">{Q.eff}</div><div className="l">efficiency</div></div>
-        <div className="qc"><div className="v bl">{Q.dep}</div><div className="l">avg deposits</div></div>
+        <div className="qc"><div className="v bl">{Q.dep}</div><div className="l">policies in force</div></div>
         <div className="qc"><div className="v gr">{Q.rotce}</div><div className="l">ROTCE</div></div>
         <div className="qc"><div className="v am">{Q.cet1}</div><div className="l">CET1</div></div>
       </div>
@@ -445,11 +445,11 @@ function Brief({ onAskTheme }) {
         </a>
         <a className="prc" onClick={() => go("gig")}>
           <div className="pt"><span className="pd" style={{ background: "#b794f6" }} />Payments transformation</div>
-          <div className="pm">Money-movement as the first, most-frequent engagement — the substrate under gig &amp; embedded payments.</div>
+          <div className="pm">Digital engagement as the earliest churn tell — the substrate under retention &amp; bundle NBAs.</div>
         </a>
         <a className="prc" onClick={() => go("elder")}>
           <div className="pt"><span className="pd" style={{ background: "var(--ret)" }} />Operational efficiency</div>
-          <div className="pm">Decisions automated &amp; risk losses avoided — intelligence arbitrage behind the <b>{Q.eff}</b> efficiency ratio.</div>
+          <div className="pm">Decisions automated &amp; selective non-renewal — precision behind the <b>{Q.nim}</b> combined ratio.</div>
         </a>
       </div>
 
@@ -476,10 +476,10 @@ export default function Ceo() {
     node: (
       <>
         <div className="head">Good morning. The book is executing against all three priorities.</div>
-        Latest quarter posted EPS <b>{Q.eps}</b> ({Q.epsg}), revenue <b>{Q.rev}</b>, fee income <b>{Q.fee}</b>, efficiency <b>{Q.eff}</b> on {Q.lev} of positive operating leverage. Against that, overnight the bank <span className="g">deployed two decisions</span>, put <span className="h">one into a controlled test</span>, and <span className="r">refused one</span> — each laddered to organic growth, payments, or efficiency. Push on capital allocation, the fee gap, or the downside scenarios.
+        Latest quarter posted a <b>{Q.nim}</b> combined ratio (best in two decades) — but NWP fell <b>{Q.revg}</b> and auto retention collapsed <b>{Q.lev}</b> to <b>{Q.nii}</b>. Against that, overnight the carrier <span className="g">deployed two decisions</span>, put <span className="h">one into a controlled test</span>, and <span className="r">refused one</span> — each laddered to regain-growth, boost-retention-&-bundling, or loss discipline. Push on capital allocation, the bundle gap, or the downside scenarios.
         <div className="ev">
           <div className="evc src"><span className="vv">{Q.eps}</span><span className="ll">EPS {Q.epsg}</span><span className="th">Q1’26 disclosures</span></div>
-          <div className="evc src"><span className="vv">{Q.dep}</span><span className="ll">avg deposits</span><span className="th">record consumer</span></div>
+          <div className="evc src"><span className="vv">{Q.dep}</span><span className="ll">policies in force</span><span className="th">USRM book</span></div>
           <div className="evc gr"><span className="vv">2 / 1 / 1</span><span className="ll">deployed / test / refused</span><span className="th">TwinX</span></div>
         </div>
         <div className="trace"><span className="tk"><b>Q1 disclosures</b></span><span className="ar">+</span><span className="tk"><b>Cockpit</b> signals</span><span className="ar">→</span><span className="tk"><b>4 themes</b></span><span className="ar">→</span><span className="tk"><b>4 pipelines</b></span></div>
@@ -619,7 +619,7 @@ export default function Ceo() {
                     ) : (
                       <>
                         <div className="head">Let me trace that across the portfolio.</div>
-                        Four lenses anchor the strategic conversation: <b>franchise, competitive, risk &amp; regulatory, capital</b>. Pick a lens below, or ask about the fee-growth gap, the deposit base, capital allocation, or what we chose <b>not</b> to do.
+                        Four lenses anchor the strategic conversation: <b>franchise, competitive, risk &amp; regulatory, capital</b>. Pick a lens below, or ask about the bundle-penetration gap, the book, capital allocation, or what we chose <b>not</b> to do.
                         <FollowupChips entry={null} onAsk={ask} />
                       </>
                     )}
