@@ -75,7 +75,7 @@ export const PAGE_KB = {
       { keys: ["factor", "drove", "influence", "these numbers", "why these numbers", "what determines", "how computed", "where do", "come from"],
         head: "Everything traces from your selected inputs.",
         body: () => (
-          <>The chain is: <b>cohort</b> → treated population → your <b>per-product offer ranges</b> set each policy's incentive (its posture point in your ranges) → the <b>reach-weighted blended uplift</b> → <b>conversion</b> (rises with the incentive) → which cascades to <b>relationships</b>, <b>funded balances</b>, and <b>idle-cash leakage</b>. The <b>products you selected</b> constrain the per-segment routing. Change any input and every number moves — nothing is hardcoded.</>
+          <>The chain is: <b>cohort</b> → treated population → your <b>per-product offer ranges</b> set each policy's incentive (its posture point in your ranges) → the <b>reach-weighted blended uplift</b> → <b>conversion</b> (rises with the incentive) → which cascades to <b>relationships</b>, <b>NWP protected</b>, and <b>lapse</b>. The <b>products you selected</b> constrain the per-segment routing. Change any input and every number moves — nothing is hardcoded.</>
         ) },
       { keys: ["why three", "three policies", "three options", "3 options", "3 policies", "why 3", "number of options"],
         head: "Three points on the trade-off curve.",
@@ -93,8 +93,8 @@ export const PAGE_KB = {
         body: (f) => (
           <>
             <div style={{ marginTop: 4 }}>{b("Balanced")} — all products, moderate incentive · routed per segment · the {g("best total value")}.</div>
-            <div>{b("Margin-optimised")} — lower incentive, MMA/CD-weighted · fewer but higher-balance conversions · {h("best margin per customer")}.</div>
-            <div>{b("Conversion-optimised")} — higher incentive, savings-weighted · the {r("most conversions")}, but lower value each.</div>
+            <div>{b("Margin-optimised")} — lower incentive, capped-rate/deductible-weighted · fewer but higher-balance conversions · {h("best margin per customer")}.</div>
+            <div>{b("Conversion-optimised")} — higher incentive, retention-offer + bundle-weighted · the {r("most renewals held")}, but lower value each.</div>
             <Ev items={polEv(f)} />
             {f?.policies?.length ? <div style={{ marginTop: 5, opacity: 0.85 }}>Read the scorecard across a row to see who wins each metric.</div> : null}
           </>
@@ -102,18 +102,18 @@ export const PAGE_KB = {
       { keys: ["which", "should i run", "recommend", "pick", "choose", "best one", "go with"],
         head: "Default to the recommended unless margin is the priority.",
         body: (f) => (
-          <>{f?.recommended ? b(f.recommended) : "Balanced"} ({g("#1")}) wins the objective and is the safe default. Choose {b("Margin-optimised")} if cost-efficiency / margin per customer matters more than volume; choose {b("Conversion-optimised")} if you're optimising for the most new funded relationships and can accept lower value each. The deep-dive tab shows each one's segments + guardrail checks before you stage it.
+          <>{f?.recommended ? b(f.recommended) : "Balanced"} ({g("#1")}) wins the objective and is the safe default. Choose {b("Margin-optimised")} if cost-efficiency / margin per customer matters more than volume; choose {b("Conversion-optimised")} if you're optimising for the most new renewals held and can accept lower value each. The deep-dive tab shows each one's segments + guardrail checks before you stage it.
             <Ev items={polEv(f)} /></>
         ) },
-      { keys: ["guardrail", "suitability", "risk", "compliance", "udaap", "safe", "fairness"],
+      { keys: ["guardrail", "suitability", "risk", "compliance", "fairlending", "safe", "fairness"],
         head: "Every policy shown already passes the guardrails.",
         body: () => (
-          <>Suitability margin, liquidity-risk (no operating/emergency buffers locked into a term product), model-risk approval, and the fraud envelope are hard constraints — any policy that breaches them never reaches this list. The deep-dive shows each policy's margins against the floors.</>
+          <>Suitability margin, fair-lending (no operationally-loyal bundled households priced away), model-risk approval, and the fraud envelope are hard constraints — any policy that breaches them never reaches this list. The deep-dive shows each policy's margins against the floors.</>
         ) },
       { keys: ["8 week", "8-week", "12 month", "12-month", "leakage", "balances", "conversion rate", "relationships"],
         head: "The metrics, briefly.",
         body: () => (
-          <><b>12-month net value</b> is the business case; the <b>8-week</b> figure is the test-window run-rate. <b>Funded conversion</b> = treated customers who open a funded product; <b>funded balances</b> = dollars routed into yield; <b>idle-cash leakage</b> = the % still walking out vs the 12% BAU. All move with the incentive.</>
+          <><b>12-month net value</b> is the business case; the <b>8-week</b> figure is the test-window run-rate. <b>Funded conversion</b> = treated customers who open a held renewal; <b>NWP protected</b> = dollars routed into yield; <b>lapse</b> = the % still walking out vs the BAU lapse rate. All move with the incentive.</>
         ) },
     ],
   },
@@ -138,27 +138,27 @@ export const PAGE_KB = {
       { keys: ["explain", "this result", "the numbers", "what am i looking", "overview", "walk me"],
         head: "Your configuration, projected over the pilot.",
         body: () => (
-          <>This is a single what-if play — the outcomes follow directly from the levers you set: who's in the cohort, the minimum-balance gate, the per-product offers, and the channels. The KPIs are the projected funded conversion, balances, value, and leakage for that exact configuration, with a confidence interval from the pilot.</>
+          <>This is a single what-if play — the outcomes follow directly from the levers you set: who's in the cohort, the LTV gate, the per-product offers, and the channels. The KPIs are the projected save-rate, balances, value, and leakage for that exact configuration, with a confidence interval from the pilot.</>
         ) },
       { keys: ["drove", "factor", "influence", "these numbers", "determines", "come from"],
         head: "The levers above drive every KPI.",
         body: () => (
-          <>Bigger cohort + lower balance gate → more treated customers. Higher per-product offers → higher conversion + balances, but more rate give-up (thinner margin) and more leakage defended. The blended uplift across your selected products is what moves conversion; the products themselves set the per-segment routing.</>
+          <>Bigger cohort + lower LTV gate → more treated customers. Higher per-product offers → higher conversion + balances, but more rate give-up (thinner margin) and more leakage defended. The blended uplift across your selected products is what moves conversion; the products themselves set the per-segment routing.</>
         ) },
       { keys: ["good", "is this good", "strong", "bad", "verdict", "should i"],
         head: "Read it against the guardrails + the value.",
         body: () => (
-          <>A good play clears the suitability + profitability floors (the verdict badge) and lands positive net value. If the verdict is amber/red, the offer is likely too rich for the margin or the cohort too broad — tighten the balance gate or trim the incentive and re-run.</>
+          <>A good play clears the suitability + profitability floors (the verdict badge) and lands positive net value. If the verdict is amber/red, the offer is likely too rich for the margin or the cohort too broad — tighten the LTV gate or trim the incentive and re-run.</>
         ) },
       { keys: ["improve", "better", "increase", "optimi", "more value", "higher"],
         head: "Try the optimizer, or move the highest-leverage lever.",
         body: () => (
-          <>The fastest path is the <b>If-What optimizer</b> — give it your objective + ranges and it finds the best policy for you. Manually: raise the offer only on the rate-elastic segments, tighten the balance gate to drop low-value customers, and focus channels on the responsive cohorts. Re-run to compare.</>
+          <>The fastest path is the <b>If-What optimizer</b> — give it your objective + ranges and it finds the best policy for you. Manually: raise the offer only on the price-elastic segments, tighten the LTV gate to drop low-value customers, and focus channels on the responsive cohorts. Re-run to compare.</>
         ) },
-      { keys: ["guardrail", "risk", "suitability", "compliance", "udaap", "profitability"],
+      { keys: ["guardrail", "risk", "suitability", "compliance", "fairlending", "profitability"],
         head: "The guardrail strip is the safety check.",
         body: () => (
-          <>Suitability margin, liquidity-risk, model-risk, and fraud are checked live. Green means the play is inside every constraint; if one trips, the offer or cohort is pushing past a policy floor and the play shouldn't ship as-is.</>
+          <>Suitability margin, fair-lending, model-risk, and fraud are checked live. Green means the play is inside every constraint; if one trips, the offer or cohort is pushing past a policy floor and the play shouldn't ship as-is.</>
         ) },
     ],
   },
@@ -183,7 +183,7 @@ export const PAGE_KB = {
       { keys: ["lever", "each lever", "controls", "what does", "sections", "settings"],
         head: "Objective · cohort · eligibility · offer ranges · channels.",
         body: () => (
-          <>The <b>objective</b> is what the optimizer maximises. The <b>cohort</b> is who's in scope. <b>Eligibility</b> is the minimum-balance floor to qualify. <b>Product × Offer</b> sets, per product, the incentive <em>range</em> the optimizer may test. <b>Channels</b> are the delivery methods it may use. Everything downstream derives from these.</>
+          <>The <b>objective</b> is what the optimizer maximises. The <b>cohort</b> is who's in scope. <b>Eligibility</b> is the minimum household-LTV floor to qualify. <b>Product × Offer</b> sets, per product, the incentive <em>range</em> the optimizer may test. <b>Channels</b> are the delivery methods it may use. Everything downstream derives from these.</>
         ) },
       { keys: ["start", "starting point", "default", "recommend", "what should i set", "good config"],
         head: "Start from the recommended hypothesis, then narrow.",
@@ -203,7 +203,7 @@ export const PAGE_KB = {
       { keys: ["offer range", "range", "uplift", "bps", "product x offer", "incentive"],
         head: "Per-product incentive ranges the optimizer sweeps.",
         body: () => (
-          <>Each selected product has a low–high bps range (over its current APY). The optimizer tests incentives inside those ranges and each policy lands at a different point — lower for margin, higher for conversion. Deselect a product to remove it from every policy.</>
+          <>Each selected product has a low–high bps range (over the current renewal premium). The optimizer tests incentives inside those ranges and each policy lands at a different point — lower for margin, higher for conversion. Deselect a product to remove it from every policy.</>
         ) },
     ],
   },
@@ -225,12 +225,12 @@ export const PAGE_KB = {
       { keys: ["lever", "each lever", "what does", "controls", "settings", "sections"],
         head: "Cohort · eligibility · product × offer · channels.",
         body: () => (
-          <>The <b>cohort</b> is who's in scope; <b>eligibility</b> is the minimum-balance floor; <b>Product × Offer</b> sets the incentive per product over its current APY; <b>channels</b> are how it's delivered. The result tiles recompute as you move any of them.</>
+          <>The <b>cohort</b> is who's in scope; <b>eligibility</b> is the minimum household-LTV floor; <b>Product × Offer</b> sets the incentive per product over the current renewal premium; <b>channels</b> are how it's delivered. The result tiles recompute as you move any of them.</>
         ) },
       { keys: ["start", "sensible", "offer", "default", "what should", "good"],
         head: "Keep the recommended offer, tune from there.",
         body: () => (
-          <>The defaults come from the hypothesis you're testing. Nudge a single product's offer or the balance gate and watch the KPIs + verdict move — the goal is the smallest incentive that still converts.</>
+          <>The defaults come from the hypothesis you're testing. Nudge a single product's offer or the LTV gate and watch the KPIs + verdict move — the goal is the smallest incentive that still converts.</>
         ) },
       { keys: ["cohort", "customer", "who", "population", "change"],
         head: "Cohort sets the treated population.",
@@ -262,24 +262,24 @@ export const PAGE_KB = {
     ],
     answers: [
       { keys: ["explain", "this hypothesis", "what is", "the bet", "summary"],
-        head: "Route genuinely surplus idle cash into the best-fit product.",
+        head: "Hold genuinely price-elastic renewals with the smallest action that works.",
         body: () => (
-          <>The bet: a slice of flagged customers hold deployable surplus cash earning almost nothing while competitors advertise 4%+. Route it into the right liquidity product — savings, MMA, or CD — at the minimum incentive that converts, while leaving everyday operating cash untouched.</>
+          <>The bet: a slice of high-LTV, claims-free auto customers are shopping their renewal because a broad-brush rate action hit them uniformly. Hold them with the right action — a capped rate, a retention offer, a deductible-adjusted premium, or a bundle nudge — at the minimum incentive that saves the policy, while leaving the operationally-loyal bundled majority alone.</>
         ) },
       { keys: ["why", "recommended", "best", "surfaced", "chose this"],
-        head: "Highest activatable value behind a suitability gate.",
+        head: "Highest protectable NWP behind a fair-lending gate.",
         body: () => (
-          <>It scores highest on activatable value while the suitability model cleanly separates genuine surplus from operating buffers — so it's both the biggest opportunity and the one we can act on without a liquidity-risk failure.</>
+          <>It scores highest on protectable premium while the elasticity model cleanly separates genuinely price-elastic shoppers from operationally-loyal bundled households — so it's both the biggest opportunity and the one we can act on without a disparate-impact / fair-lending failure.</>
         ) },
       { keys: ["evidence", "data", "proof", "signal", "drivers", "models"],
-        head: "Idle-balance depth, the yield gap, and rising search intent.",
+        head: "Engagement drop, competitor quote-shopping, and coverage-reduction requests.",
         body: () => (
-          <>The drivers: deep balances dormant 60d+, a ~4pp yield gap vs market, rising in-app high-yield searches, and accelerating outbound pulls — with a suitability gate that flags which balances are genuinely surplus. The Data + Models chapter lists every composed asset.</>
+          <>The drivers: a &gt;20% digital-engagement decline, captured competitor quote-requests ~45 days pre-renewal, coverage-reduction requests, and an elevated shopping-propensity decile — with a loyalty gate that flags which renewals are genuinely elastic. The Data + Models chapter lists every composed asset.</>
         ) },
       { keys: ["alternative", "other", "different", "options", "three", "cards"],
         head: "Three framings — test any of them.",
         body: () => (
-          <>The signal cards offer three ways to act: route to the best-fit product (recommended), convert liquid balances to high-yield savings / MMA, or move stable surplus into a CD / ladder. Each leads into the same test flow seeded with its own product focus.</>
+          <>The signal cards offer three ways to act: defend the elastic shoppers with a capped rate + retention offer (recommended), re-engage the silent pre-shoppers on value before they shop, or run an agent save-call on the highest-value households. Each leads into the same test flow seeded with its own focus.</>
         ) },
     ],
   },
