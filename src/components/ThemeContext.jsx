@@ -1,10 +1,10 @@
 import { createContext, useCallback, useContext, useEffect, useLayoutEffect, useState } from "react";
 
 const STORAGE_KEY = "twinx-theme";
-const ThemeContext = createContext({ theme: "dark", toggle: () => {} });
+const ThemeContext = createContext({ theme: "light", toggle: () => {} });
 
 function readInitial() {
-  if (typeof window === "undefined") return "dark";
+  if (typeof window === "undefined") return "light";
   // SCREENSHOT-OVERRIDE: ?theme=light query param wins (used by smoke tests).
   try {
     const url = new URL(window.location.href);
@@ -17,7 +17,7 @@ function readInitial() {
   } catch {
     // localStorage unavailable (private mode / quota) — fall through to default.
   }
-  return "dark";
+  return "light";
 }
 
 export function ThemeProvider({ children }) {

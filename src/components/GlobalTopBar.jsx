@@ -37,7 +37,7 @@ export const PERSONA = {
 export default function GlobalTopBar() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { selectedThemeId, selectedHypothesisId } = useAppShell();
+  const { selectedThemeId, selectedHypothesisId, sector, setSector } = useAppShell();
   const active = NAV.find((n) => n.match(location));
   const showChips = !hidesContextChips(location);
 
@@ -52,6 +52,22 @@ export default function GlobalTopBar() {
           <Logo width={86} />
         </button>
         <div className="gtb-spacer" />
+        {/* Sector toggle — scopes the whole cockpit to a business line.
+            Retail is the built-out default; commercial layers in later. */}
+        <div className="gtb-sector" role="tablist" aria-label="Business sector">
+          {["retail", "commercial"].map((s) => (
+            <button
+              key={s}
+              type="button"
+              role="tab"
+              aria-selected={sector === s}
+              className={`gtb-sector-opt${sector === s ? " is-active" : ""}`}
+              onClick={() => setSector(s)}
+            >
+              {s === "retail" ? "Retail" : "Commercial"}
+            </button>
+          ))}
+        </div>
         <NotificationBell />
         <ThemeToggle />
         <div className="gtb-profile" title={`${PERSONA.name} · ${PERSONA.role}`}>

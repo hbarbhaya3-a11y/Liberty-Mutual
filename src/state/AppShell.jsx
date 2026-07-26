@@ -43,6 +43,7 @@ function savePersisted(state) {
       selectedThemeId: state.selectedThemeId,
       selectedHypothesisId: state.selectedHypothesisId,
       themeMode: state.themeMode, // inside_out | macro
+      sector: state.sector, // retail | commercial
     }));
   } catch { /* ignore */ }
 }
@@ -67,6 +68,11 @@ function reducer(state, action) {
       return { ...state, selectedHypothesisId: action.hypothesisId };
     case "SET_THEME_MODE":
       return { ...state, themeMode: action.themeMode };
+    case "SET_SECTOR":
+      // 'retail' | 'commercial'. Top-level business-line toggle that scopes
+      // the whole cockpit. Retail is the built-out default; commercial is
+      // the second sector we layer in later.
+      return { ...state, sector: action.sector };
     case "STAGE_POLICY":
       return { ...state, stagedPolicies: [...state.stagedPolicies, action.policy] };
     case "REMOVE_STAGED":
@@ -135,6 +141,9 @@ const INITIAL = (() => {
     selectedThemeId: seed.selectedThemeId || persisted.selectedThemeId || null,
     selectedHypothesisId: seed.selectedHypothesisId || persisted.selectedHypothesisId || null,
     themeMode: persisted.themeMode || "internal",
+    // Top-level business-line sector. Retail is the default; commercial layers
+    // in later. Persisted so a chosen sector survives reload.
+    sector: persisted.sector || "retail",
     stagedPolicies: [],
     agentActivity: [],
     // Stages the user has visited in this session — drives the loop checkmarks
@@ -248,6 +257,11 @@ export function AppShellProvider({ children }) {
     savePersisted({ ...state, themeMode });
   }, [state]);
 
+  const setSector = useCallback((sector) => {
+    dispatch({ type: "SET_SECTOR", sector });
+    savePersisted({ ...state, sector });
+  }, [state]);
+
   const stagePolicy = useCallback((policy) => dispatch({ type: "STAGE_POLICY", policy }), []);
   const removeStaged = useCallback((id) => dispatch({ type: "REMOVE_STAGED", id }), []);
   const pushAgentEvent = useCallback((event) => dispatch({ type: "PUSH_AGENT_EVENT", event }), []);
@@ -260,13 +274,13 @@ export function AppShellProvider({ children }) {
   const value = useMemo(() => ({
     ...state,
     navigate, toggleRail, toggleSidebar,
-    selectTheme, selectHypothesis, setThemeMode,
+    selectTheme, selectHypothesis, setThemeMode, setSector,
     stagePolicy, removeStaged,
     pushAgentEvent, clearAgentEvents,
     setTuneMode, setExplorationMode, recordDecisionTrace, setIntermezzo,
   }), [
     state, navigate, toggleRail, toggleSidebar,
-    selectTheme, selectHypothesis, setThemeMode,
+    selectTheme, selectHypothesis, setThemeMode, setSector,
     stagePolicy, removeStaged,
     pushAgentEvent, clearAgentEvents,
     setTuneMode, setExplorationMode, recordDecisionTrace, setIntermezzo,
