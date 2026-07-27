@@ -4,19 +4,18 @@
 
    Three menu items (routes), one shared account/RFP context, logical flow:
      1. quoteintel  → Quote Intelligence      (Screens 14–15 · PRD I.3–I.9, J.1–J.2/10/12)
-     2. elasticity  → Elasticity & Win Prob    (Screens 16–17 · PRD J.4–J.5, K)
+     2. elasticity  → Elasticity & Win Prob    (Screens 16–17 · PRD J.4–J.5, K) — Sensitivity Lab
      3. negotiation → Negotiation Intelligence (Screens 18–19 · PRD J.6–J.8/11)
 
-   Flow: pick a lead → Quote (generate + compare scenarios) → Elasticity
-   (price it, score win prob vs competitors) → Negotiation (playbook + concession).
-   Selected account persists across the three routes via localStorage.
+   All charts are self-contained SVG using app design tokens (theme.css).
    ========================================================================= */
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "@/styles/commercial-intel.css";
 
 const ACC_KEY = "twinx-ci-account";
 const go = (nav, view) => nav(`/?seed_route=${view}`);
+const money = (n) => (n >= 1000 ? "$" + (n / 1000).toFixed(n >= 100000 ? 0 : 1) + "K" : "$" + n);
 
 /* ---- Sample RFP / lead-level accounts (derived from the growth cohort) ---- */
 const ACCOUNTS = [
@@ -28,33 +27,43 @@ const ACCOUNTS = [
     triage: "auto-quote", triageWhy: "Strong appetite match · complete ACORD · no fraud flags · broker book strong",
     loss: "1 GL claim / 3 yrs · $12K · below class benchmark (0.9× ISO)",
     portfolio: "Grows target TX construction segment · concentration +0.2% (within cap) · appetite aligned",
-    competitors: [{ n: "Next Insurance", p: "$18,900" }, { n: "biBERK", p: "$17,400" }, { n: "Hiscox", p: "$19,600" }],
-    lines: ["BOP", "General Liability"], crossLine: ["Workers Comp (new payroll)", "Commercial Auto (2 vans)", "Umbrella"],
+    competitors: [{ n: "Next Insurance", pv: 18900 }, { n: "biBERK", pv: 17400 }, { n: "Hiscox", pv: 19600 }],
+    lines: ["BOP", "General Liability"], crossLine: ["Workers Comp", "Commercial Auto", "Umbrella"],
+    // quote scenarios: premium, win %, margin %, portfolio NWP $, recommended
     quotes: [
-      { id: "base", label: "Baseline", premium: "$18,200", cov: "BOP + GL · $1M/$2M", margin: "14.8%", win: 62, port: "+$18.2K NWP · neutral LR", rec: false },
-      { id: "ded", label: "Deductible-optimized", premium: "$16,600", cov: "$5K → $10K deductible", margin: "16.1%", win: 71, port: "+$16.6K NWP · LR ↓", rec: true },
-      { id: "cov", label: "Coverage-restructured", premium: "$19,400", cov: "+ Umbrella $1M", margin: "15.2%", win: 55, port: "+$19.4K NWP · +1 line", rec: false },
-      { id: "bundle", label: "Bundle-contingent", premium: "$27,800", cov: "+ WC + Auto (2 vans)", margin: "17.4%", win: 48, port: "+$27.8K NWP · +2 lines · LR ↓", rec: false },
+      { id: "base", label: "Baseline", prem: 18200, cov: "BOP + GL · $1M/$2M", margin: 14.8, win: 62, rec: false },
+      { id: "ded", label: "Deductible-optimized", prem: 16600, cov: "$5K → $10K deductible", margin: 16.1, win: 71, rec: true },
+      { id: "cov", label: "Coverage-restructured", prem: 19400, cov: "+ Umbrella $1M", margin: 15.2, win: 55, rec: false },
+      { id: "bundle", label: "Bundle-contingent", prem: 27800, cov: "+ WC + Auto (2 vans)", margin: 17.4, win: 48, rec: false },
     ],
     winScore: 71, winCI: "±6pp",
     winFactors: [
-      { k: "Broker Twin — Lockton bind rate on GL", w: 30, v: "+12" },
-      { k: "Account Twin — shopping propensity (moderate)", w: 20, v: "−4" },
-      { k: "Market Twin — insurtech pressure (high)", w: 20, v: "−7" },
-      { k: "Historical similarity — TX fab class", w: 15, v: "+6" },
-      { k: "Price position vs competitor median", w: 15, v: "+9" },
+      { k: "Broker Twin — Lockton bind rate on GL", w: 30, v: 12 },
+      { k: "Account Twin — shopping propensity", w: 20, v: -4 },
+      { k: "Market Twin — insurtech pressure", w: 20, v: -7 },
+      { k: "Historical similarity — TX fab class", w: 15, v: 6 },
+      { k: "Price position vs competitor median", w: 15, v: 9 },
     ],
     position: "At-market (52nd pctile)",
-    elasticity: { rec: "$16,600", zone: [15800, 17400],
+    elasticity: {
+      rec: 16600, zone: [15800, 17400], marginLo: 10.5, marginHi: 20.5,
       curve: [[14000, 88], [15000, 82], [16600, 71], [18200, 62], [20000, 47], [22000, 31]],
-      dims: [{ k: "Segment", s: "Elastic" }, { k: "Broker", s: "Flexible" }, { k: "Industry", s: "Moderate" }, { k: "Competitor", s: "High" }, { k: "Coverage", s: "Low" }] },
+      dims: [{ k: "Segment", v: 78 }, { k: "Broker", v: 64 }, { k: "Industry", v: 52 }, { k: "Competitor", v: 83 }, { k: "Coverage", v: 34 }],
+    },
     negotiation: {
       flex: "High — Lockton values speed + certainty over last-dollar price",
       opening: "$18,200 baseline · $1M/$2M · $5K deductible",
       counter: "Broker cites biBERK at $17,400 · asks for match + higher deductible",
       fallbacks: ["$17,400 at $10K deductible (holds adequacy)", "$16,600 + telematics/safety credit", "$16,600 floor — rate-adequacy limit"],
       nonprice: ["Faster bind (same-day COI)", "Fleet safety-program credit", "Multi-year term lock"],
-      walkaway: "$16,600 — below this, GL rate falls under adequacy",
+      walkaway: 16600,
+      // concession ladder: each step's premium, win %, margin %
+      ladder: [
+        { label: "Open", prem: 18200, win: 62, margin: 14.8 },
+        { label: "Match + $10K ded", prem: 17400, win: 71, margin: 16.1 },
+        { label: "+ safety credit", prem: 16600, win: 78, margin: 15.7 },
+        { label: "Floor", prem: 16600, win: 78, margin: 15.7 },
+      ],
       concessions: [
         { req: "Match biBERK −$800", resp: "Counter with $10K deductible", cost: "−1.3pp margin", win: "+9pp", port: "LR neutral" },
         { req: "Waive first-year fee", resp: "Offer safety credit instead", cost: "−0.4pp margin", win: "+3pp", port: "LR ↓ (safety)" },
@@ -70,41 +79,192 @@ const ACCOUNTS = [
     triage: "referral", triageWhy: "High severity (fleet auto) · 2 prior claims · routes to Commercial Auto specialist",
     loss: "2 auto claims / 3 yrs · $84K · at class benchmark (1.0× ISO)",
     portfolio: "Adds OH transportation exposure · concentration +0.6% (watch) · appetite: monitor",
-    competitors: [{ n: "biBERK", p: "$142K" }, { n: "Progressive Commercial", p: "$138K" }, { n: "Next Insurance", p: "$151K" }],
-    lines: ["Commercial Auto"], crossLine: ["Inland Marine (equipment)", "Umbrella", "General Liability"],
+    competitors: [{ n: "biBERK", pv: 142000 }, { n: "Progressive", pv: 138000 }, { n: "Next", pv: 151000 }],
+    lines: ["Commercial Auto"], crossLine: ["Inland Marine", "Umbrella", "General Liability"],
     quotes: [
-      { id: "base", label: "Baseline", premium: "$146K", cov: "Fleet CA · $1M CSL", margin: "11.2%", win: 44, port: "+$146K NWP · LR watch", rec: false },
-      { id: "ded", label: "Deductible-optimized", premium: "$134K", cov: "$2.5K → $5K deductible", margin: "12.6%", win: 53, port: "+$134K NWP · LR ↓", rec: false },
-      { id: "cov", label: "Coverage + safety", premium: "$139K", cov: "+ telematics credit", margin: "13.9%", win: 58, port: "+$139K NWP · LR ↓↓", rec: true },
-      { id: "bundle", label: "Bundle-contingent", premium: "$178K", cov: "+ Inland Marine + Umbrella", margin: "13.1%", win: 39, port: "+$178K NWP · +2 lines", rec: false },
+      { id: "base", label: "Baseline", prem: 146000, cov: "Fleet CA · $1M CSL", margin: 11.2, win: 44, rec: false },
+      { id: "ded", label: "Deductible-optimized", prem: 134000, cov: "$2.5K → $5K deductible", margin: 12.6, win: 53, rec: false },
+      { id: "cov", label: "Coverage + safety", prem: 139000, cov: "+ telematics credit", margin: 13.9, win: 58, rec: true },
+      { id: "bundle", label: "Bundle-contingent", prem: 178000, cov: "+ Inland Marine + Umbrella", margin: 13.1, win: 39, rec: false },
     ],
     winScore: 58, winCI: "±8pp",
     winFactors: [
-      { k: "Broker Twin — USI bind rate on fleet CA", w: 30, v: "+5" },
-      { k: "Account Twin — shopping propensity (high)", w: 20, v: "−9" },
-      { k: "Market Twin — Progressive aggressive", w: 20, v: "−10" },
-      { k: "Historical similarity — OH fleet class", w: 15, v: "+4" },
-      { k: "Price position (telematics credit)", w: 15, v: "+11" },
+      { k: "Broker Twin — USI bind rate on fleet CA", w: 30, v: 5 },
+      { k: "Account Twin — shopping propensity", w: 20, v: -9 },
+      { k: "Market Twin — Progressive aggressive", w: 20, v: -10 },
+      { k: "Historical similarity — OH fleet class", w: 15, v: 4 },
+      { k: "Price position (telematics credit)", w: 15, v: 11 },
     ],
     position: "Below-market with safety credit (34th pctile)",
-    elasticity: { rec: "$139K", zone: [134000, 142000],
+    elasticity: {
+      rec: 139000, zone: [134000, 142000], marginLo: 8.5, marginHi: 16.5,
       curve: [[120000, 79], [130000, 67], [139000, 58], [146000, 44], [155000, 30], [165000, 18]],
-      dims: [{ k: "Segment", s: "Elastic" }, { k: "Broker", s: "Moderate" }, { k: "Industry", s: "High" }, { k: "Competitor", s: "High" }, { k: "Coverage", s: "Moderate" }] },
+      dims: [{ k: "Segment", v: 74 }, { k: "Broker", v: 55 }, { k: "Industry", v: 82 }, { k: "Competitor", v: 86 }, { k: "Coverage", v: 48 }],
+    },
     negotiation: {
       flex: "Moderate — USI price-sensitive on fleet; safety credit is the lever",
       opening: "$146K baseline · $1M CSL · $2.5K deductible",
       counter: "Broker cites Progressive $138K · pushes for match",
       fallbacks: ["$139K with telematics safety credit (LR ↓↓)", "$134K at $5K deductible", "$134K floor — fleet CA adequacy"],
       nonprice: ["Telematics safety program", "Fleet driver-training credit", "Loss-control engineering visit"],
-      walkaway: "$134K — fleet auto loss-cost adequacy floor",
+      walkaway: 134000,
+      ladder: [
+        { label: "Open", prem: 146000, win: 44, margin: 11.2 },
+        { label: "Safety credit", prem: 139000, win: 58, margin: 13.9 },
+        { label: "$5K deductible", prem: 134000, win: 66, margin: 12.6 },
+        { label: "Floor", prem: 134000, win: 66, margin: 12.6 },
+      ],
       concessions: [
         { req: "Match Progressive −$8K", resp: "Offer $139K + telematics (better LR)", cost: "−1.1pp margin", win: "+14pp", port: "LR ↓↓" },
-        { req: "Drop deductible", resp: "Hold — raises severity", cost: "n/a", win: "−", port: "reject (LR risk)" },
+        { req: "Drop deductible", resp: "Hold — raises severity", cost: "n/a", win: "—", port: "reject (LR risk)" },
       ],
       alts: ["Coverage + safety ($139K)", "Deductible-optimized ($5K)", "Bundle (Inland Marine + Umbrella)"],
     },
   },
 ];
+
+/* linear interpolation of bind% along the elasticity curve for a given premium */
+function bindAt(curve, x) {
+  if (x <= curve[0][0]) return curve[0][1];
+  if (x >= curve[curve.length - 1][0]) return curve[curve.length - 1][1];
+  for (let i = 1; i < curve.length; i++) {
+    const [x0, y0] = curve[i - 1], [x1, y1] = curve[i];
+    if (x <= x1) return y0 + ((y1 - y0) * (x - x0)) / (x1 - x0);
+  }
+  return curve[curve.length - 1][1];
+}
+
+/* ---------------- reusable SVG chart primitives ---------------- */
+const AXIS = "var(--ink-4)", GRID = "var(--hair)", ACC = "var(--acc)", INK3 = "var(--ink-3)";
+
+function BarRow({ data, fmt, max }) {
+  const m = max || Math.max(...data.map((d) => d.v));
+  return (
+    <div className="ci-barrows">
+      {data.map((d) => (
+        <div key={d.k} className="ci-barrow">
+          <span className="ci-barrow-k">{d.k}</span>
+          <div className="ci-barrow-track">
+            <i style={{ width: `${(d.v / m) * 100}%`, background: d.c || ACC }} />
+          </div>
+          <span className="ci-barrow-v">{fmt ? fmt(d.v) : d.v}</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function Scatter({ points, xLab, yLab }) {
+  const W = 300, H = 210, pad = 34;
+  const xs = points.map((p) => p.x), ys = points.map((p) => p.y);
+  const x0 = Math.min(...xs) * 0.96, x1 = Math.max(...xs) * 1.04;
+  const y0 = Math.min(...ys) * 0.9, y1 = Math.max(...ys) * 1.08;
+  const sx = (x) => pad + ((x - x0) / (x1 - x0)) * (W - pad - 12);
+  const sy = (y) => H - pad - ((y - y0) / (y1 - y0)) * (H - pad - 12);
+  return (
+    <svg viewBox={`0 0 ${W} ${H}`} className="ci-svg">
+      <line x1={pad} y1={H - pad} x2={W - 12} y2={H - pad} stroke={AXIS} />
+      <line x1={pad} y1={12} x2={pad} y2={H - pad} stroke={AXIS} />
+      {points.map((p) => (
+        <g key={p.label}>
+          <circle cx={sx(p.x)} cy={sy(p.y)} r={p.rec ? 7 : 5} fill={p.rec ? ACC : "var(--acq)"} opacity={p.rec ? 1 : 0.75} />
+          <text x={sx(p.x)} y={sy(p.y) - 10} fontSize="8" fill={INK3} textAnchor="middle">{p.label}</text>
+        </g>
+      ))}
+      <text x={W / 2} y={H - 4} fontSize="9" fill={INK3} textAnchor="middle">{xLab}</text>
+      <text x={10} y={14} fontSize="9" fill={INK3}>{yLab}</text>
+    </svg>
+  );
+}
+
+function Radar({ dims }) {
+  const W = 240, H = 210, cx = W / 2, cy = H / 2 + 4, r = 74, n = dims.length;
+  const pt = (i, val) => {
+    const a = (Math.PI * 2 * i) / n - Math.PI / 2;
+    const rr = (val / 100) * r;
+    return [cx + rr * Math.cos(a), cy + rr * Math.sin(a)];
+  };
+  const ring = (f) => dims.map((_, i) => pt(i, f).join(",")).join(" ");
+  const poly = dims.map((d, i) => pt(i, d.v).join(",")).join(" ");
+  return (
+    <svg viewBox={`0 0 ${W} ${H}`} className="ci-svg">
+      {[100, 66, 33].map((f) => <polygon key={f} points={ring(f)} fill="none" stroke={GRID} />)}
+      {dims.map((d, i) => { const [x, y] = pt(i, 100); return <line key={d.k} x1={cx} y1={cy} x2={x} y2={y} stroke={GRID} />; })}
+      <polygon points={poly} fill={ACC} fillOpacity="0.18" stroke={ACC} strokeWidth="2" />
+      {dims.map((d, i) => {
+        const [x, y] = pt(i, 118);
+        return <text key={d.k} x={x} y={y} fontSize="8.5" fill={INK3} textAnchor="middle" dominantBaseline="middle">{d.k}</text>;
+      })}
+    </svg>
+  );
+}
+
+/* interactive Sensitivity Lab — slider over premium, live bind%/margin/expected-value */
+function SensitivityLab({ e }) {
+  const lo = e.curve[0][0], hi = e.curve[e.curve.length - 1][0];
+  const [prem, setPrem] = useState(e.rec);
+  const bind = bindAt(e.curve, prem);
+  const margin = e.marginLo + ((e.marginHi - e.marginLo) * (prem - lo)) / (hi - lo);
+  const expNWP = (bind / 100) * prem;                 // bind-weighted premium
+  const inZone = prem >= e.zone[0] && prem <= e.zone[1];
+
+  const W = 560, H = 220, pad = 38;
+  const sx = (x) => pad + ((x - lo) / (hi - lo)) * (W - pad - 12);
+  const sy = (y) => H - pad - (y / 100) * (H - pad - 14);
+  const d = e.curve.map((p, i) => `${i ? "L" : "M"}${sx(p[0]).toFixed(1)},${sy(p[1]).toFixed(1)}`).join(" ");
+  const mx = sx(prem), my = sy(bind);
+  return (
+    <div>
+      <svg viewBox={`0 0 ${W} ${H}`} className="ci-svg ci-lab-svg">
+        <rect x={sx(e.zone[0])} y={12} width={sx(e.zone[1]) - sx(e.zone[0])} height={H - pad - 12} fill={ACC} opacity="0.10" />
+        {[25, 50, 75, 100].map((g) => <line key={g} x1={pad} y1={sy(g)} x2={W - 12} y2={sy(g)} stroke={GRID} />)}
+        <path d={d} fill="none" stroke={ACC} strokeWidth="2.5" />
+        <line x1={mx} y1={12} x2={mx} y2={H - pad} stroke="var(--acq)" strokeDasharray="4 3" />
+        <line x1={pad} y1={my} x2={mx} y2={my} stroke="var(--acq)" strokeDasharray="4 3" />
+        <circle cx={mx} cy={my} r="6" fill="var(--acq)" stroke="var(--panel)" strokeWidth="2" />
+        <text x={pad} y={sy(100) - 3} fontSize="8" fill={INK3}>bind %</text>
+        <text x={W - 90} y={H - pad + 14} fontSize="9" fill={INK3}>{money(hi)} premium →</text>
+        <text x={pad} y={H - pad + 14} fontSize="9" fill={INK3}>{money(lo)}</text>
+      </svg>
+      <input type="range" className="ci-slider" min={lo} max={hi} step={(hi - lo) / 120} value={prem}
+        onChange={(ev) => setPrem(+ev.target.value)} />
+      <div className="ci-lab-read">
+        <div><span>Premium</span><b>{money(Math.round(prem))}</b></div>
+        <div><span>Bind probability</span><b>{bind.toFixed(0)}%</b></div>
+        <div><span>Margin</span><b>{margin.toFixed(1)}%</b></div>
+        <div><span>Bind-weighted NWP</span><b>{money(Math.round(expNWP))}</b></div>
+        <div className={inZone ? "ci-zone ok" : "ci-zone warn"}>{inZone ? "In recommended zone" : "Outside rec zone"}</div>
+      </div>
+    </div>
+  );
+}
+
+/* dual-line concession chart: premium ↓ vs win% ↑ across the ladder */
+function ConcessionChart({ ladder }) {
+  const W = 540, H = 210, pad = 40;
+  const prems = ladder.map((l) => l.prem), wins = ladder.map((l) => l.win);
+  const p0 = Math.min(...prems) * 0.98, p1 = Math.max(...prems) * 1.02;
+  const sx = (i) => pad + (i / (ladder.length - 1)) * (W - pad - 40);
+  const syP = (v) => 14 + (1 - (v - p0) / (p1 - p0)) * (H - pad - 14);
+  const syW = (v) => 14 + (1 - v / 100) * (H - pad - 14);
+  const line = (f) => ladder.map((l, i) => `${i ? "L" : "M"}${sx(i)},${f(l).toFixed(1)}`).join(" ");
+  return (
+    <svg viewBox={`0 0 ${W} ${H}`} className="ci-svg">
+      <line x1={pad} y1={H - pad} x2={W - 40} y2={H - pad} stroke={AXIS} />
+      <path d={line((l) => syP(l.prem))} fill="none" stroke="var(--acq)" strokeWidth="2.5" />
+      <path d={line((l) => syW(l.win))} fill="none" stroke={ACC} strokeWidth="2.5" />
+      {ladder.map((l, i) => (
+        <g key={i}>
+          <circle cx={sx(i)} cy={syP(l.prem)} r="4" fill="var(--acq)" />
+          <circle cx={sx(i)} cy={syW(l.win)} r="4" fill={ACC} />
+          <text x={sx(i)} y={H - pad + 14} fontSize="8" fill={INK3} textAnchor="middle">{l.label}</text>
+        </g>
+      ))}
+      <text x={pad} y={12} fontSize="9" fill="var(--acq)">premium</text>
+      <text x={pad + 70} y={12} fontSize="9" fill={ACC}>win %</text>
+    </svg>
+  );
+}
 
 /* ---- shared account state via localStorage ---- */
 function useAccount() {
@@ -151,10 +311,12 @@ function FlowNav({ view, nav }) {
 /* ---------- 1 · QUOTE INTELLIGENCE ---------- */
 function QuoteView({ acc, nav }) {
   const winner = acc.quotes.find((q) => q.rec);
+  const scatter = acc.quotes.map((q) => ({ x: q.win, y: q.margin, label: q.label.split("-")[0].split(" ")[0], rec: q.rec }));
+  const portBars = acc.quotes.map((q) => ({ k: q.label.split(" ")[0], v: q.prem, c: q.rec ? ACC : "var(--acq)" }));
   return (
     <>
       <div className="ci-grid2">
-        <section className="panel ci-panel">
+        <section className="ci-panel">
           <h3>Account intelligence</h3>
           <ul className="ci-kv">
             <li><b>Growth signal</b><span>{acc.growth}</span></li>
@@ -168,36 +330,40 @@ function QuoteView({ acc, nav }) {
             <span className="ci-triage-why">{acc.triageWhy}</span>
           </div>
         </section>
-        <section className="panel ci-panel">
+        <section className="ci-panel">
           <h3>Competitive intelligence</h3>
           <p className="ci-sub">Estimated competitor quotes for this account</p>
-          <ul className="ci-comp">
-            {acc.competitors.map((c) => <li key={c.n}><span>{c.n}</span><b>{c.p}</b></li>)}
-          </ul>
+          <BarRow data={acc.competitors.map((c) => ({ k: c.n, v: c.pv, c: "var(--acq)" }))} fmt={money} />
           <p className="ci-pos">Liberty position · <b>{acc.position}</b></p>
         </section>
       </div>
 
-      <section className="panel ci-panel">
+      <section className="ci-panel">
         <h3>Multi-scenario quote generator</h3>
-        <p className="ci-sub">Pre-generated structures · each with premium, coverage, margin, win probability, portfolio impact</p>
+        <p className="ci-sub">Pre-generated structures · premium, coverage, win probability, margin, portfolio impact</p>
         <div className="ci-quotes">
           {acc.quotes.map((q) => (
             <div key={q.id} className={"ci-quote" + (q.rec ? " rec" : "")}>
               {q.rec && <span className="ci-badge">Recommended</span>}
               <div className="ci-quote-h">{q.label}</div>
-              <div className="ci-quote-prem">{q.premium}</div>
+              <div className="ci-quote-prem">{money(q.prem)}</div>
               <div className="ci-quote-cov">{q.cov}</div>
-              <div className="ci-quote-metrics">
-                <span>Win <b>{q.win}%</b></span>
-                <span>Margin <b>{q.margin}</b></span>
-              </div>
-              <div className="ci-quote-port">{q.port}</div>
+              <div className="ci-quote-metrics"><span>Win <b>{q.win}%</b></span><span>Margin <b>{q.margin}%</b></span></div>
             </div>
           ))}
         </div>
+        <div className="ci-grid2" style={{ marginTop: 16 }}>
+          <div className="ci-chartbox">
+            <h4>Win probability × margin</h4>
+            <Scatter points={scatter} xLab="win probability %" yLab="margin %" />
+          </div>
+          <div className="ci-chartbox">
+            <h4>Premium / NWP by scenario</h4>
+            <BarRow data={portBars} fmt={money} />
+          </div>
+        </div>
         <div className="ci-winner">
-          <b>TwinX pick · {winner.label}</b> — best balance of win probability ({winner.win}%) and margin ({winner.margin}), held to loss ratio.
+          <b>TwinX pick · {winner.label}</b> — best balance of win probability ({winner.win}%) and margin ({winner.margin}%), held to loss ratio.
         </div>
       </section>
 
@@ -209,31 +375,11 @@ function QuoteView({ acc, nav }) {
 }
 
 /* ---------- 2 · ELASTICITY & WIN PROBABILITY ---------- */
-function ElasticityCurve({ e }) {
-  const xs = e.curve.map((p) => p[0]), ys = e.curve.map((p) => p[1]);
-  const x0 = Math.min(...xs), x1 = Math.max(...xs);
-  const W = 520, H = 200, pad = 34;
-  const sx = (x) => pad + ((x - x0) / (x1 - x0)) * (W - pad - 10);
-  const sy = (y) => H - pad - (y / 100) * (H - pad - 10);
-  const d = e.curve.map((p, i) => `${i ? "L" : "M"}${sx(p[0]).toFixed(1)},${sy(p[1]).toFixed(1)}`).join(" ");
-  const zx0 = sx(e.zone[0]), zx1 = sx(e.zone[1]);
-  return (
-    <svg viewBox={`0 0 ${W} ${H}`} className="ci-curve">
-      <rect x={zx0} y={pad - 6} width={zx1 - zx0} height={H - pad} fill="var(--acc,#4fd1c5)" opacity="0.12" />
-      <line x1={pad} y1={H - pad} x2={W - 10} y2={H - pad} stroke="var(--ink-3,#556)" strokeWidth="1" />
-      <path d={d} fill="none" stroke="var(--acc,#4fd1c5)" strokeWidth="2.5" />
-      {e.curve.map((p, i) => <circle key={i} cx={sx(p[0])} cy={sy(p[1])} r="2.6" fill="var(--acc,#4fd1c5)" />)}
-      <text x={pad} y={H - 8} fontSize="9" fill="var(--ink-3,#889)">${(x0 / 1000).toFixed(0)}K</text>
-      <text x={W - 40} y={H - 8} fontSize="9" fill="var(--ink-3,#889)">${(x1 / 1000).toFixed(0)}K premium →</text>
-      <text x={(zx0 + zx1) / 2} y={pad + 4} fontSize="9" fill="var(--acc,#4fd1c5)" textAnchor="middle">rec zone</text>
-    </svg>
-  );
-}
 function ElasticityView({ acc, nav }) {
   return (
     <>
       <div className="ci-grid2">
-        <section className="panel ci-panel">
+        <section className="ci-panel">
           <h3>Win probability · {acc.winScore}% <span className="ci-ci">{acc.winCI}</span></h3>
           <p className="ci-sub">Composite of the twins + price position · signal weights shown</p>
           <ul className="ci-factors">
@@ -241,27 +387,28 @@ function ElasticityView({ acc, nav }) {
               <li key={f.k}>
                 <span className="ci-f-k">{f.k}</span>
                 <span className="ci-f-w">w{f.w}</span>
-                <span className={"ci-f-v " + (f.v.startsWith("+") ? "up" : "dn")}>{f.v}</span>
+                <span className={"ci-f-v " + (f.v > 0 ? "up" : "dn")}>{f.v > 0 ? "+" : ""}{f.v}</span>
               </li>
             ))}
           </ul>
         </section>
-        <section className="panel ci-panel">
-          <h3>Competitive positioning</h3>
-          <ul className="ci-comp">
-            {acc.competitors.map((c) => <li key={c.n}><span>{c.n}</span><b>{c.p}</b></li>)}
-          </ul>
-          <p className="ci-pos">Liberty · <b>{acc.position}</b></p>
-          <div className="ci-dims">
-            {acc.elasticity.dims.map((d) => <span key={d.k} className="ci-dim">{d.k}: <b>{d.s}</b></span>)}
-          </div>
+        <section className="ci-panel">
+          <h3>5-dimensional elasticity</h3>
+          <p className="ci-sub">Higher = more price-sensitive on that dimension</p>
+          <Radar dims={acc.elasticity.dims} />
         </section>
       </div>
 
-      <section className="panel ci-panel">
-        <h3>Price elasticity · bind probability vs premium</h3>
-        <p className="ci-sub">Recommended price point <b>{acc.elasticity.rec}</b> · shaded zone maximizes bind × margin within adequacy</p>
-        <ElasticityCurve e={acc.elasticity} />
+      <section className="ci-panel">
+        <h3>Sensitivity Lab · bind probability vs premium</h3>
+        <p className="ci-sub">Drag the slider — live bind %, margin, and bind-weighted NWP. Shaded band is the recommended zone (max bind × margin within adequacy). Recommended price <b>{money(acc.elasticity.rec)}</b>.</p>
+        <SensitivityLab e={acc.elasticity} />
+      </section>
+
+      <section className="ci-panel">
+        <h3>Competitive positioning</h3>
+        <BarRow data={acc.competitors.map((c) => ({ k: c.n, v: c.pv, c: "var(--acq)" }))} fmt={money} />
+        <p className="ci-pos">Liberty · <b>{acc.position}</b></p>
       </section>
 
       <div className="ci-cta">
@@ -277,15 +424,23 @@ function NegotiationView({ acc, nav }) {
   const n = acc.negotiation;
   return (
     <>
-      <section className="panel ci-panel">
-        <h3>Broker negotiation context</h3>
-        <ul className="ci-kv">
-          <li><b>Broker</b><span>{acc.broker.name} · {acc.broker.tier} · bind {acc.broker.bindRate}</span></li>
-          <li><b>Flexibility</b><span>{n.flex}</span></li>
-        </ul>
-      </section>
+      <div className="ci-grid2">
+        <section className="ci-panel">
+          <h3>Broker negotiation context</h3>
+          <ul className="ci-kv">
+            <li><b>Broker</b><span>{acc.broker.name} · {acc.broker.tier} · bind {acc.broker.bindRate}</span></li>
+            <li><b>Flexibility</b><span>{n.flex}</span></li>
+            <li><b>Walk-away</b><span>{money(n.walkaway)} — rate-adequacy floor</span></li>
+          </ul>
+        </section>
+        <section className="ci-panel">
+          <h3>Concession path · premium vs win</h3>
+          <p className="ci-sub">Each concession step trades premium for bind probability</p>
+          <ConcessionChart ladder={n.ladder} />
+        </section>
+      </div>
 
-      <section className="panel ci-panel">
+      <section className="ci-panel">
         <h3>Negotiation playbook</h3>
         <div className="ci-play">
           <div><span className="ci-play-k">Opening</span>{n.opening}</div>
@@ -294,11 +449,11 @@ function NegotiationView({ acc, nav }) {
             <ol className="ci-fb">{n.fallbacks.map((f, i) => <li key={i}>{f}</li>)}</ol>
           </div>
           <div><span className="ci-play-k">Non-price levers</span>{n.nonprice.join(" · ")}</div>
-          <div className="ci-walk"><span className="ci-play-k">Walk-away</span>{n.walkaway}</div>
+          <div className="ci-walk"><span className="ci-play-k">Walk-away</span>{money(n.walkaway)} — below this, rate falls under adequacy</div>
         </div>
       </section>
 
-      <section className="panel ci-panel">
+      <section className="ci-panel">
         <h3>Concession optimizer</h3>
         <table className="ci-conc">
           <thead><tr><th>Broker asks</th><th>Recommended response</th><th>Margin cost</th><th>Win Δ</th><th>Portfolio</th></tr></thead>
@@ -308,7 +463,7 @@ function NegotiationView({ acc, nav }) {
             ))}
           </tbody>
         </table>
-        <p className="ci-sub">Alternative structures if price stalls: {n.alts.join(" · ")}</p>
+        <p className="ci-sub" style={{ marginTop: 12 }}>Alternative structures if price stalls: {n.alts.join(" · ")}</p>
       </section>
 
       <div className="ci-cta">
@@ -320,7 +475,7 @@ function NegotiationView({ acc, nav }) {
 
 const TITLES = {
   quoteintel: ["Quote Intelligence", "Multi-scenario quote generation · account / RFP level"],
-  elasticity: ["Elasticity & Win Probability", "Price the account against the competitive set"],
+  elasticity: ["Elasticity & Win Probability", "Sensitivity Lab · price the account against the market"],
   negotiation: ["Negotiation Intelligence", "Playbook + concession strategy per broker"],
 };
 
@@ -328,6 +483,8 @@ export default function CommercialIntelWorkspace({ view = "quoteintel" }) {
   const [acc, setAcc] = useAccount();
   const nav = useNavigate();
   const [title, sub] = TITLES[view] || TITLES.quoteintel;
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useMemo(() => acc.id, [acc.id]); // remount charts on account switch
   return (
     <div className="ci-ws">
       <header className="ci-head">
@@ -338,9 +495,9 @@ export default function CommercialIntelWorkspace({ view = "quoteintel" }) {
         <FlowNav view={view} nav={nav} />
       </header>
       <AccountBar acc={acc} onPick={setAcc} />
-      {view === "elasticity" ? <ElasticityView acc={acc} nav={nav} />
-        : view === "negotiation" ? <NegotiationView acc={acc} nav={nav} />
-        : <QuoteView acc={acc} nav={nav} />}
+      {view === "elasticity" ? <ElasticityView key={acc.id} acc={acc} nav={nav} />
+        : view === "negotiation" ? <NegotiationView key={acc.id} acc={acc} nav={nav} />
+        : <QuoteView key={acc.id} acc={acc} nav={nav} />}
     </div>
   );
 }
