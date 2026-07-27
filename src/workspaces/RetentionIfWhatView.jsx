@@ -519,7 +519,7 @@ export default function RetentionIfWhatView() {
   const [productOffers, setProductOffers]     = useState({ cd_12mo: [30, 50], cd_18mo: [20, 40] });
   const allowedProducts = Object.keys(productOffers);
   const [allowedChannels, setAllowedChannels] = useState(["app", "email", "banker"]);
-  /* Simulation duration — single configurable value (not a range). Default
+  /* Campaign duration — single configurable value (not a range). Default
      8wk matches the calibration anchor every result tile is scored against. */
   const [simWeeks, setSimWeeks] = useState(8);
   const [recommendations, setRecs]            = useState([]);
@@ -1089,13 +1089,13 @@ export default function RetentionIfWhatView() {
           </div>
         </div>
 
-        {/* 6 · SIMULATION DURATION — single-thumb slider, default 8wk.
+        {/* 6 · CAMPAIGN DURATION — single-thumb slider, default 8wk.
             Not a search dimension; just the model horizon every candidate
             is scored over. Pilot RCT length lives in Deploy. */}
         <div className="sim-lever-section sim-lever-section-comms">
           <div className="sim-lever-section-band">
             <span className="sim-lever-section-num">6</span>
-            <span className="sim-lever-section-name">SIMULATION DURATION</span>
+            <span className="sim-lever-section-name">CAMPAIGN DURATION</span>
             <span className="sim-lever-section-meta">Model horizon every candidate is scored over</span>
           </div>
           <div className="lever-row">
