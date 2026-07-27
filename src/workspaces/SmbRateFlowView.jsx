@@ -1,16 +1,15 @@
 /* ============================================================================
    SmbRateFlowView — SECOND B2B signal (Small Commercial · new LEAD).
-   A different flow from the growth signal: a guided, lead/RFP-level new-business
-   simulation wizard. A specific lead has come in; we simulate how to win it.
+   Guided lead/RFP-level new-business simulation wizard.
 
-   Flow (3 steps):
-     1. Signal Details    — the lead (who, why it surfaced, competitor, size)
-     2. Goals, Guardrails & Levers — objective + hard constraints + the levers
+   Flow (3 steps + running interstitial):
+     1. Signal Details    — lead, competitor pitch intel, TwinX lead insights
+     2. Goals, Guardrails & Levers — objective + guardrails + full lever set
+     ⟳  Simulating…       — running/loading interstitial (as in the normal flow)
      3. Intelligence      — simulation results + recommendation + all 3
-                            account-intelligence workbenches (Quote / Elasticity /
-                            Negotiation)
+                            account-intelligence workbenches
    ========================================================================= */
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "@/styles/commercial-intel.css";
 
@@ -24,6 +23,17 @@ const LEADS = [
     lines: "BOP + GL + Umbrella", leadIn: "quote due in 4 days",
     signal: "Broker submission · shopping 3 carriers · expanding to a 2nd location · no adverse loss history",
     competitor: { n: "biBERK", offer: 154000 }, indicated: 6.0, leadScore: 0.74,
+    pitches: [
+      { n: "biBERK", price: 154000, angle: "Aggressive digital price · minimal risk-engineering · fast bind" },
+      { n: "Next Insurance", price: 161000, angle: "Instant online quote · bundled GL+BOP · thin service model" },
+      { n: "Hiscox", price: 166000, angle: "Property specialist · higher limits · broker-friendly terms" },
+    ],
+    insights: [
+      "Expansion to a 2nd location → growth account; multi-year value is high",
+      "Clean 3-yr loss history → auto-quote eligible; price to win",
+      "Broker Lockton (Elite) values speed + certainty over last-dollar price",
+      "Cross-line white space: Umbrella + Cyber attach likely",
+    ],
   },
   {
     id: "summit", account: "Summit Precision Machining", industry: "Metal machining · manufacturing",
@@ -31,6 +41,17 @@ const LEADS = [
     lines: "Workers Comp + GL", leadIn: "quote due in 1 day",
     signal: "New submission · payroll +14% · mod factor improving · leaving prior carrier on service",
     competitor: { n: "Next Insurance", offer: 88000 }, indicated: 4.5, leadScore: 0.66,
+    pitches: [
+      { n: "Next Insurance", price: 88000, angle: "Digital WC · fast turnaround · limited class expertise" },
+      { n: "biBERK", price: 91000, angle: "Low price · standard package · minimal loss control" },
+      { n: "Travelers", price: 97000, angle: "Deep WC class expertise · safety programs · premium price" },
+    ],
+    insights: [
+      "Improving mod factor → risk trending favorable; price competitively",
+      "Payroll +14% raises WC exposure and the premium base",
+      "Leaving prior carrier on service → service + risk-control is the wedge",
+      "USI broker moderately price-sensitive; a safety credit is the lever",
+    ],
   },
   {
     id: "delmar", account: "Del Mar Coastal Eatery Group", industry: "Restaurant · multi-unit hospitality",
@@ -38,6 +59,17 @@ const LEADS = [
     lines: "BOP + Liquor Liability", leadIn: "quote due in 6 days",
     signal: "New submission · rate-shopping 3 carriers · 2 prior slip-fall claims · appetite-boundary risk",
     competitor: { n: "Hiscox", offer: 66000 }, indicated: 9.0, leadScore: 0.48,
+    pitches: [
+      { n: "Hiscox", price: 66000, angle: "Hospitality specialist · liquor liability included · mid price" },
+      { n: "biBERK", price: 69000, angle: "Cheap BOP · may exclude liquor liability · thin coverage" },
+      { n: "Next Insurance", price: 71000, angle: "Fast digital · limited restaurant appetite · higher price" },
+    ],
+    insights: [
+      "2 prior slip-fall claims + 0.79 LR → appetite-boundary; price for adequacy",
+      "Rate-shopping 3 carriers → high elasticity, but don't chase below the floor",
+      "Liquor liability is the differentiator vs cheap BOP-only competitors",
+      "Condition the quote on a slip-fall risk-control program",
+    ],
   },
 ];
 
@@ -55,6 +87,21 @@ const CROSS = [
   { id: "none", label: "Lead line only" },
   { id: "cyber", label: "Bundle Cyber", nwp: 9000 },
   { id: "wc", label: "Bundle Workers Comp", nwp: 22000 },
+];
+const PACKAGING = [
+  { id: "standard", label: "Standard limits", boost: 0 },
+  { id: "enhanced", label: "Enhanced limits", boost: 2 },
+  { id: "broad", label: "Broad-form / higher limits", boost: 3 },
+];
+const TURNAROUND = [
+  { id: "same", label: "Same-day", boost: 4 },
+  { id: "3day", label: "3-day", boost: 2 },
+  { id: "std", label: "Standard (5-7d)", boost: 0 },
+];
+const CHANNELS = [
+  { id: "broker", label: "Broker / Agent" },
+  { id: "digital", label: "Direct digital instant-quote" },
+  { id: "referral", label: "Referral underwriter" },
 ];
 
 /* bind probability vs quote price (% vs filed rate) — anchor interpolation */
@@ -80,6 +127,33 @@ function Steps({ step, setStep }) {
         </button>
       ))}
     </div>
+  );
+}
+
+/* running / loading interstitial — mirrors the normal simulate flow */
+function RunLoader() {
+  const msgs = [
+    "Pulling submission + loss history…",
+    "Scoring appetite & rate adequacy…",
+    "Running win-probability model…",
+    "Simulating price elasticity vs competitor pitches…",
+    "Checking guardrails · assembling recommendation…",
+  ];
+  const [pct, setPct] = useState(4);
+  const [mi, setMi] = useState(0);
+  useEffect(() => {
+    const iv = setInterval(() => setPct((p) => Math.min(100, p + Math.random() * 13 + 6)), 190);
+    const mv = setInterval(() => setMi((m) => Math.min(msgs.length - 1, m + 1)), 380);
+    return () => { clearInterval(iv); clearInterval(mv); };
+  }, []);
+  return (
+    <section className="ci-panel sr-loader">
+      <div className="sr-spinner" />
+      <div className="sr-load-title">Simulating the lead…</div>
+      <div className="sr-load-msg">{msgs[mi]}</div>
+      <div className="sr-load-track"><i style={{ width: `${pct}%` }} /></div>
+      <div className="sr-load-pct">{Math.round(pct)}%</div>
+    </section>
   );
 }
 
@@ -111,6 +185,7 @@ const LEAD_KEY = "twinx-smbrate-lead";
 export default function SmbRateFlowView() {
   const nav = useNavigate();
   const [step, setStep] = useState(1);
+  const [running, setRunning] = useState(false);
   const [leadId, setLeadId] = useState(() => {
     try { return localStorage.getItem(LEAD_KEY) || LEADS[0].id; } catch { return LEADS[0].id; }
   });
@@ -122,18 +197,31 @@ export default function SmbRateFlowView() {
   const [offer, setOffer] = useState("loyalty");
   const [nonprice, setNonprice] = useState(["riskctrl"]);
   const [cross, setCross] = useState("none");
+  const [pkg, setPkg] = useState("standard");
+  const [turn, setTurn] = useState("3day");
+  const [channels, setChannels] = useState(["broker"]);
+  const [ded, setDed] = useState(5);
 
   const offerBoost = OFFERS.find((o) => o.id === offer)?.boost || 0;
   const npBoost = nonprice.reduce((s, id) => s + (NONPRICE.find((n) => n.id === id)?.boost || 0), 0);
-  const boost = offerBoost + npBoost;
+  const pkgBoost = PACKAGING.find((p) => p.id === pkg)?.boost || 0;
+  const turnBoost = TURNAROUND.find((t) => t.id === turn)?.boost || 0;
+  const boost = offerBoost + npBoost + pkgBoost + turnBoost;
   const bind = Math.min(96, interp(BIND_ANCHORS, price) + boost);
   const crossNwp = CROSS.find((c) => c.id === cross)?.nwp || 0;
   const nwpWon = LEAD.estPremium * (1 + price / 100) * (bind / 100) + crossNwp * (bind / 100);
   const adequate = price >= -3;
-  const margin = 11 + price * 0.8;
+  const margin = 11 + price * 0.8 + ded * 0.12;
   const linesPer = cross === "none" ? 3.0 : 3.3;
 
   const toggleNp = (id) => setNonprice((c) => c.includes(id) ? c.filter((x) => x !== id) : [...c, id]);
+  const toggleCh = (id) => setChannels((c) => c.includes(id) ? c.filter((x) => x !== id) : [...c, id]);
+
+  // Run: show the loading interstitial, then reveal the Intelligence step.
+  const runSim = () => {
+    setRunning(true);
+    setTimeout(() => { setRunning(false); setStep(3); }, 1900);
+  };
 
   return (
     <div className="ci-ws">
@@ -161,8 +249,11 @@ export default function SmbRateFlowView() {
         </div>
       </div>
 
+      {/* RUNNING INTERSTITIAL */}
+      {running && <RunLoader />}
+
       {/* STEP 1 · SIGNAL DETAILS (the lead) */}
-      {step === 1 && (
+      {!running && step === 1 && (
         <>
           <section className="ci-panel">
             <h3>Signal · why this lead surfaced</h3>
@@ -172,17 +263,39 @@ export default function SmbRateFlowView() {
               <li><b>Class / State</b><span>{LEAD.classCode} · {LEAD.state}</span></li>
               <li><b>Source</b><span>{LEAD.source}</span></li>
               <li><b>Est. premium</b><span>{money(LEAD.estPremium)} · {LEAD.lines} · revenue {LEAD.revenue}</span></li>
-              <li><b>Competitor pressure</b><span>{LEAD.competitor.n} circling at ~{money(LEAD.competitor.offer)}</span></li>
               <li><b>Lead score</b><span>{Math.round(LEAD.leadScore * 100)}% win-likelihood (pre-sim)</span></li>
               <li><b>Indicated rate</b><span>+{LEAD.indicated}% vs filed (actuarial)</span></li>
             </ul>
           </section>
+
+          <div className="ci-grid2">
+            <section className="ci-panel">
+              <h3>Competitor pitch intelligence</h3>
+              <p className="ci-sub">What the competition is likely putting in front of this lead</p>
+              <div className="sr-pitches">
+                {LEAD.pitches.map((c) => (
+                  <div key={c.n} className="sr-pitch">
+                    <div className="sr-pitch-h"><span>{c.n}</span><b>{money(c.price)}</b></div>
+                    <div className="sr-pitch-a">{c.angle}</div>
+                  </div>
+                ))}
+              </div>
+            </section>
+            <section className="ci-panel">
+              <h3>TwinX lead insights</h3>
+              <p className="ci-sub">What matters for winning this account</p>
+              <ul className="sr-insights">
+                {LEAD.insights.map((t, i) => <li key={i}>{t}</li>)}
+              </ul>
+            </section>
+          </div>
+
           <div className="ci-cta"><button className="ci-btn" onClick={() => setStep(2)}>Set goals, guardrails & levers →</button></div>
         </>
       )}
 
       {/* STEP 2 · GOALS, GUARDRAILS & LEVERS */}
-      {step === 2 && (
+      {!running && step === 2 && (
         <>
           <div className="ci-grid2">
             <section className="ci-panel">
@@ -213,16 +326,26 @@ export default function SmbRateFlowView() {
 
           <section className="ci-panel">
             <h3>Levers</h3>
-            <p className="ci-sub">Tune the offer — results compute live in the Intelligence step</p>
+            <p className="ci-sub">Tune the offer — results compute after the simulation runs</p>
             <div className="sr-lever">
               <div className="sr-lever-h"><span>Quote price vs filed rate</span><b>{price > 0 ? "+" : ""}{price.toFixed(1)}%</b></div>
               <input type="range" className="ci-slider" min={-5} max={12} step={0.5} value={price} onChange={(e) => setPrice(+e.target.value)} />
               {!adequate && <div className="sr-warn">Below rate-adequacy floor (−3%) — guardrail breach</div>}
             </div>
             <div className="sr-lever">
+              <div className="sr-lever-h"><span>Deductible</span><b>${ded}K</b></div>
+              <input type="range" className="ci-slider" min={1} max={25} step={1} value={ded} onChange={(e) => setDed(+e.target.value)} />
+            </div>
+            <div className="sr-lever">
               <div className="sr-lever-h"><span>Offer structure</span></div>
               <div className="sr-chips">
                 {OFFERS.map((o) => <button key={o.id} className={"sr-chip" + (offer === o.id ? " on" : "")} onClick={() => setOffer(o.id)}>{o.label}</button>)}
+              </div>
+            </div>
+            <div className="sr-lever">
+              <div className="sr-lever-h"><span>Coverage / packaging</span></div>
+              <div className="sr-chips">
+                {PACKAGING.map((o) => <button key={o.id} className={"sr-chip" + (pkg === o.id ? " on" : "")} onClick={() => setPkg(o.id)}>{o.label}</button>)}
               </div>
             </div>
             <div className="sr-lever">
@@ -237,17 +360,29 @@ export default function SmbRateFlowView() {
                 {CROSS.map((c) => <button key={c.id} className={"sr-chip" + (cross === c.id ? " on" : "")} onClick={() => setCross(c.id)}>{c.label}</button>)}
               </div>
             </div>
+            <div className="sr-lever">
+              <div className="sr-lever-h"><span>Quote turnaround</span></div>
+              <div className="sr-chips">
+                {TURNAROUND.map((t) => <button key={t.id} className={"sr-chip" + (turn === t.id ? " on" : "")} onClick={() => setTurn(t.id)}>{t.label}</button>)}
+              </div>
+            </div>
+            <div className="sr-lever">
+              <div className="sr-lever-h"><span>Delivery channel</span></div>
+              <div className="sr-chips">
+                {CHANNELS.map((c) => <button key={c.id} className={"sr-chip" + (channels.includes(c.id) ? " on" : "")} onClick={() => toggleCh(c.id)}>{c.label}</button>)}
+              </div>
+            </div>
           </section>
 
           <div className="ci-cta">
             <button className="ci-btn ghost" onClick={() => setStep(1)}>← Signal</button>
-            <button className="ci-btn" onClick={() => setStep(3)}>Run → Intelligence →</button>
+            <button className="ci-btn" onClick={runSim}>Run simulation →</button>
           </div>
         </>
       )}
 
-      {/* STEP 3 · INTELLIGENCE — simulation results + recommendation + 3 workbenches */}
-      {step === 3 && (
+      {/* STEP 3 · INTELLIGENCE — results + recommendation + 3 workbenches */}
+      {!running && step === 3 && (
         <>
           <div className="ci-grid2">
             <section className="ci-panel">
