@@ -39,7 +39,27 @@ import {
   RETENTION_HYPOTHESIS_ID,
   RETENTION_HYPOTHESIS_TITLE,
   RETENTION_CALIBRATION,
+  RETENTION_SEGMENT_NBA,
 } from "@/data/retentionConfig";
+
+/* Segment-specific Next-Best-Action panel — the per-segment recommended
+   action the Twin serves alongside the chosen policy. Shared shape across
+   the What-If and If-What result screens. */
+export function SegmentNbaPanel() {
+  return (
+    <div className="seg-nba">
+      <div className="seg-nba-h">Segment-specific next-best-action</div>
+      <div className="seg-nba-list">
+        {RETENTION_SEGMENT_NBA.map((x) => (
+          <div className={`seg-nba-row seg-nba-${x.tone}`} key={x.seg}>
+            <span className="seg-nba-seg">{x.seg}</span>
+            <span className="seg-nba-act">{x.nba}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
 
 const PAGE_SUBTITLE = RETENTION_HYPOTHESIS_TITLE;
 
@@ -1308,6 +1328,11 @@ function ResultsReveal({ results, onReRun, onStage }) {
           charts={chartsGrid}
           anchorRate={4.15}
         />
+      </section>
+
+      {/* SEGMENT-SPECIFIC NEXT-BEST-ACTION — per-segment recommended action */}
+      <section className={`panel reveal ${showChart ? "in" : ""}`}>
+        <SegmentNbaPanel />
       </section>
 
       {/* GUARDRAILS — constraint pills, separate from outcome KPIs */}

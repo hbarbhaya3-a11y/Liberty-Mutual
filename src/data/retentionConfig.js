@@ -122,4 +122,15 @@ export const RETENTION_PRESIM_RANGES = [
   { label: "Policies retained",             value: "+400–700", unit: "est. range",                  tone: "g" },
 ];
 
+/* Segment-specific Next-Best-Action — the per-segment recommended action the
+   Twin serves alongside the chosen policy. Rendered on the results /
+   recommendation screens (What-If + If-What). */
+export const RETENTION_SEGMENT_NBA = [
+  { seg: "HIGH-LTV BUNDLED", tone: "g", nba: "Rate cap; personalized loyalty offer via Comparion agent" },
+  { seg: "SHOPPING RISK",    tone: "a", nba: "$100–200 retention discount + Home-bundle contingent price" },
+  { seg: "CLAIMS-FRESH",     tone: "g", nba: "Warm renewal via digital app; skip agent friction" },
+  { seg: "SINGLE-LINE 5Y+",  tone: "v", nba: "Bundle nudge Auto → Home / Life, 45d pre-renewal, agent-led" },
+  { seg: "ADVERSE SELECT",   tone: "r", nba: "Nonrenewal via HITL review; portfolio concentration check" },
+];
+
 export default RETENTION_CONFIG;
