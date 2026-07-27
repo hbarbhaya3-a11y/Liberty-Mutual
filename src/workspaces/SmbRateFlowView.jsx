@@ -13,14 +13,30 @@ import "@/styles/commercial-intel.css";
 
 const money = (n) => (n >= 1000 ? "$" + Math.round(n / 1000) + "K" : "$" + Math.round(n));
 
-/* the renewal RFP / lead under decision */
-const RFP = {
-  account: "Harborview Property Mgmt", industry: "Commercial real estate · property mgmt",
-  classCode: "BOP 65112", state: "FL", inForce: 168000, tenure: "6 yrs", lossRatio: "0.61",
-  lines: "BOP + GL + Umbrella", renewalIn: "38 days",
-  signal: "Broker requested a competitor quote · digital engagement −22% · no adverse loss trend",
-  competitor: { n: "biBERK", offer: 154000 }, indicated: 6.0, retentionRisk: 0.63,
-};
+/* renewal RFPs / leads under decision (pick one in the wizard) */
+const RFPS = [
+  {
+    id: "harborview", account: "Harborview Property Mgmt", industry: "Commercial real estate · property mgmt",
+    classCode: "BOP 65112", state: "FL", inForce: 168000, tenure: "6 yrs", lossRatio: "0.61",
+    lines: "BOP + GL + Umbrella", renewalIn: "38 days",
+    signal: "Broker requested a competitor quote · digital engagement −22% · no adverse loss trend",
+    competitor: { n: "biBERK", offer: 154000 }, indicated: 6.0, retentionRisk: 0.63,
+  },
+  {
+    id: "summit", account: "Summit Precision Machining", industry: "Metal machining · manufacturing",
+    classCode: "WC 3632", state: "OH", inForce: 94000, tenure: "9 yrs", lossRatio: "0.58",
+    lines: "Workers Comp + GL", renewalIn: "22 days",
+    signal: "Non-renewal notice modeled · payroll audit swing +14% · mod factor improving",
+    competitor: { n: "Next Insurance", offer: 88000 }, indicated: 4.5, retentionRisk: 0.55,
+  },
+  {
+    id: "delmar", account: "Del Mar Coastal Eatery Group", industry: "Restaurant · multi-unit hospitality",
+    classCode: "BOP 16900", state: "CA", inForce: 61000, tenure: "3 yrs", lossRatio: "0.79",
+    lines: "BOP + Liquor Liability", renewalIn: "45 days",
+    signal: "Rate-shopping across 3 carriers · 2 slip-fall claims · loss ratio drifting up",
+    competitor: { n: "Hiscox", offer: 66000 }, indicated: 9.0, retentionRisk: 0.71,
+  },
+];
 
 /* B2B renewal levers */
 const OFFERS = [
@@ -87,9 +103,16 @@ function RetCurve({ rate, boost }) {
   );
 }
 
+const RFP_KEY = "twinx-smbrate-rfp";
+
 export default function SmbRateFlowView() {
   const nav = useNavigate();
   const [step, setStep] = useState(1);
+  const [rfpId, setRfpId] = useState(() => {
+    try { return localStorage.getItem(RFP_KEY) || RFPS[0].id; } catch { return RFPS[0].id; }
+  });
+  const RFP = RFPS.find((r) => r.id === rfpId) || RFPS[0];
+  const pickRfp = (v) => { setRfpId(v); setStep(1); try { localStorage.setItem(RFP_KEY, v); } catch { /* ignore */ } };
   // levers
   const [rate, setRate] = useState(4.5);
   const [offer, setOffer] = useState("loyalty");
@@ -118,6 +141,22 @@ export default function SmbRateFlowView() {
         </div>
         <Steps step={step} setStep={setStep} />
       </header>
+
+      <div className="ci-accbar">
+        <div className="ci-accbar-l">
+          <span className="ci-accbar-lab">Renewal RFP</span>
+          <select value={rfpId} onChange={(e) => pickRfp(e.target.value)}>
+            {RFPS.map((r) => <option key={r.id} value={r.id}>{r.account}</option>)}
+          </select>
+        </div>
+        <div className="ci-accbar-meta">
+          <span>{RFP.industry}</span><i />
+          <span>Class {RFP.classCode}</span><i />
+          <span>{RFP.state}</span><i />
+          <span>{money(RFP.inForce)} in-force</span><i />
+          <span>renews in {RFP.renewalIn}</span>
+        </div>
+      </div>
 
       {/* STEP 1 · SIGNAL DETAILS */}
       {step === 1 && (
