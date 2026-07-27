@@ -67,7 +67,7 @@ function interp(anchors, x) {
 }
 
 function Steps({ step, setStep }) {
-  const labels = ["Signal Details", "Goals & Guardrails", "Simulation", "Intelligence Outputs"];
+  const labels = ["Signal Details", "Goals & Guardrails", "Intelligence"];
   return (
     <div className="ci-flow">
       {labels.map((l, i) => (
@@ -261,16 +261,7 @@ export default function SmbRateFlowView() {
             <p className="ci-sub">Offer + non-price value lift the curve · shaded band is rate-adequate</p>
             <RetCurve rate={rate} boost={boost} />
           </section>
-          <div className="ci-cta">
-            <button className="ci-btn ghost" onClick={() => setStep(2)}>← Goals</button>
-            <button className="ci-btn" onClick={() => setStep(4)}>View intelligence outputs →</button>
-          </div>
-        </>
-      )}
 
-      {/* STEP 4 · INTELLIGENCE OUTPUTS */}
-      {step === 4 && (
-        <>
           <section className="ci-panel">
             <h3>TwinX recommended renewal action</h3>
             <div className="ci-winner">
@@ -291,17 +282,17 @@ export default function SmbRateFlowView() {
               </table>
             </section>
             <section className="ci-panel">
-              <h3>Hand off to account intelligence</h3>
-              <p className="ci-sub">Take this RFP into the deep intelligence workbenches</p>
+              <h3>Open the account intelligence workbenches</h3>
+              <p className="ci-sub">Take this RFP into the deep intelligence tabs</p>
               <div className="sr-links">
-                <button className="ci-btn" onClick={() => nav("/?seed_route=elasticity")}>Open Elasticity & Win-Prob Lab →</button>
-                <button className="ci-btn ghost" onClick={() => nav("/?seed_route=negotiation")}>Open Negotiation Playbook →</button>
-                <button className="ci-btn ghost" onClick={() => nav("/?seed_route=quoteintel")}>Open Quote Intelligence →</button>
+                <button className="ci-btn" onClick={() => nav("/?seed_route=elasticity")}>Elasticity & Win-Prob Lab →</button>
+                <button className="ci-btn ghost" onClick={() => nav("/?seed_route=negotiation")}>Negotiation Playbook →</button>
+                <button className="ci-btn ghost" onClick={() => nav("/?seed_route=quoteintel")}>Quote Intelligence →</button>
               </div>
             </section>
           </div>
           <div className="ci-cta">
-            <button className="ci-btn ghost" onClick={() => setStep(3)}>← Simulation</button>
+            <button className="ci-btn ghost" onClick={() => setStep(2)}>← Goals & Guardrails</button>
           </div>
         </>
       )}
