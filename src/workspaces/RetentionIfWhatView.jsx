@@ -26,6 +26,7 @@ import {
   RETENTION_HYPOTHESIS_ID,
   RETENTION_HYPOTHESIS_TITLE,
   RETENTION_CALIBRATION,
+  RETENTION_SEGMENT_NBA,
 } from "@/data/retentionConfig";
 import "@/styles/ifwhat.css";
 
@@ -60,7 +61,20 @@ const OFFER_PRODUCT_OPTIONS = [
   { id: "cd_18mo",         label: "Rate cap + $150 offer" },
   { id: "cd_trade_up_24",  label: "Multi-year rate lock" },
   { id: "elite_mma",       label: "Deductible-adjusted" },
-  { id: "smart_savings",   label: "Smart Savings" },
+  { id: "smart_savings",   label: "Loyalty discount tier" },
+];
+
+const COVERAGE_OPTIONS = [
+  { id: "dd_switch", label: "Rebalance coverage" },
+  { id: "bill_pay",  label: "Premium-tier restructuring" },
+  { id: "auto_save", label: "Value add-ons" },
+  { id: "zelle",     label: "Telematics safety credit" },
+];
+
+const BUNDLE_OPTIONS = [
+  { id: "auto_home",    label: "Auto → Home" },
+  { id: "auto_life",    label: "Auto → Life (Ethos)" },
+  { id: "renters_auto", label: "Renters → Auto" },
 ];
 
 const CHANNEL_OPTIONS = [
@@ -519,6 +533,12 @@ export default function RetentionIfWhatView() {
   const [productOffers, setProductOffers]     = useState({ cd_12mo: [30, 50], cd_18mo: [20, 40] });
   const allowedProducts = Object.keys(productOffers);
   const [allowedChannels, setAllowedChannels] = useState(["app", "email", "banker"]);
+  const [allowedCoverage, setAllowedCoverage] = useState([]);
+  const [allowedBundles,  setAllowedBundles]  = useState(["auto_home"]);
+  const [noticeDays,      setNoticeDays]      = useState(45);
+  const [multiTouch,      setMultiTouch]      = useState(true);
+  const toggleCoverage = (id) => setAllowedCoverage((cur) => cur.includes(id) ? cur.filter((c) => c !== id) : [...cur, id]);
+  const toggleBundle   = (id) => setAllowedBundles((cur) => cur.includes(id) ? cur.filter((c) => c !== id) : [...cur, id]);
   /* Campaign duration — single configurable value (not a range). Default
      8wk matches the calibration anchor every result tile is scored against. */
   const [simWeeks, setSimWeeks] = useState(8);
@@ -643,10 +663,13 @@ export default function RetentionIfWhatView() {
     const _policy = selected ? [
       { k: "Cohort", v: (selected.picks.cohortPresets || []).map((id) => COHORT_OPTIONS.find((c) => c.id === id)?.name).filter(Boolean).join(", ") || "All" },
       { k: "Min LTV", v: `$${selected.picks.minBalanceK}K` },
-      { k: "Product × Offer", v: Object.entries(selected.picks.productOffers || {})
+      { k: "Pricing", v: Object.entries(selected.picks.productOffers || {})
           .map(([id, bps]) => `${fmtProduct(id)} ${((PRODUCT_MARKET[id] ?? 0) + bps / 100).toFixed(2)}%`)
           .join(" · ") || "—" },
+      { k: "Coverage", v: allowedCoverage.map((c) => COVERAGE_OPTIONS.find((o) => o.id === c)?.label).filter(Boolean).join(", ") || "—" },
+      { k: "Bundle", v: allowedBundles.map((c) => BUNDLE_OPTIONS.find((o) => o.id === c)?.label).filter(Boolean).join(", ") || "—" },
       { k: "Channels", v: selected.picks.channels.map((c) => CHANNEL_OPTIONS.find((o) => o.id === c)?.label).filter(Boolean).join(", ") },
+      { k: "Timing", v: `${noticeDays}-day notice${multiTouch ? " · multi-touch" : ""}` },
       { k: "Treated", v: `${(_seg ? _seg.rollup.reach : 0).toLocaleString()} customers` },
     ] : [];
     const _chartsGrid = selected ? (
@@ -777,6 +800,21 @@ export default function RetentionIfWhatView() {
               })}
               </div>
             </section>
+
+        {/* SEGMENT-SPECIFIC NEXT-BEST-ACTION — per-segment recommended action */}
+        <section className="panel reveal in">
+          <div className="seg-nba">
+            <div className="seg-nba-h">Segment-specific next-best-action</div>
+            <div className="seg-nba-list">
+              {RETENTION_SEGMENT_NBA.map((x) => (
+                <div className={`seg-nba-row seg-nba-${x.tone}`} key={x.seg}>
+                  <span className="seg-nba-seg">{x.seg}</span>
+                  <span className="seg-nba-act">{x.nba}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
 
         {/* DEEP DIVE — selected recommendation's full picture */}
         {selected && (
@@ -1022,8 +1060,8 @@ export default function RetentionIfWhatView() {
         <div className="sim-lever-section sim-lever-section-policy">
           <div className="sim-lever-section-band">
             <span className="sim-lever-section-num">4</span>
-            <span className="sim-lever-section-name">PRODUCT × OFFER</span>
-            <span className="sim-lever-section-meta">Products the optimizer may use — set each one's uplift range over its own market</span>
+            <span className="sim-lever-section-name">PRICING</span>
+            <span className="sim-lever-section-meta">Rate spreading by tenure × LTV · deductible swap · retention discount tiers — set each offer's range</span>
           </div>
           <div className="lever-row">
             <div className="lever-head">
@@ -1062,12 +1100,66 @@ export default function RetentionIfWhatView() {
           </div>
         </div>
 
-        {/* 5 · CHANNEL — multi-select */}
-        <div className="sim-lever-section sim-lever-section-comms">
+        {/* 5 · COVERAGE — levers the optimizer may layer on */}
+        <div className="sim-lever-section sim-lever-section-products">
           <div className="sim-lever-section-band">
             <span className="sim-lever-section-num">5</span>
+            <span className="sim-lever-section-name">COVERAGE</span>
+            <span className="sim-lever-section-meta">Rebalance coverage · premium-tier restructuring · value add-ons</span>
+          </div>
+          <div className="lever-row">
+            <div className="lever-head">
+              <span className="lever-name">Coverage levers allowed</span>
+              <span className="lever-value">{allowedCoverage.length} of {COVERAGE_OPTIONS.length}</span>
+            </div>
+            <div className="lever-caption">Non-price levers the optimizer may add to hold the policy on value.</div>
+            <div className="lever-checks">
+              {COVERAGE_OPTIONS.map((c) => {
+                const on = allowedCoverage.includes(c.id);
+                return (
+                  <label key={c.id} className={"lever-check" + (on ? " on" : "")}>
+                    <input type="checkbox" checked={on} onChange={() => toggleCoverage(c.id)} disabled={isAutopilot} />
+                    {c.label}
+                  </label>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+
+        {/* 6 · BUNDLE — cross-line contingent-pricing plays */}
+        <div className="sim-lever-section sim-lever-section-products">
+          <div className="sim-lever-section-band">
+            <span className="sim-lever-section-num">6</span>
+            <span className="sim-lever-section-name">BUNDLE</span>
+            <span className="sim-lever-section-meta">Auto → Home · Auto → Life (Ethos) · Renters → Auto — contingent pricing</span>
+          </div>
+          <div className="lever-row">
+            <div className="lever-head">
+              <span className="lever-name">Bundle plays allowed</span>
+              <span className="lever-value">{allowedBundles.length} of {BUNDLE_OPTIONS.length}</span>
+            </div>
+            <div className="lever-caption">Cross-line offers the optimizer may attach; bundled households retain 7.0y vs 5.5y.</div>
+            <div className="lever-checks">
+              {BUNDLE_OPTIONS.map((c) => {
+                const on = allowedBundles.includes(c.id);
+                return (
+                  <label key={c.id} className={"lever-check" + (on ? " on" : "")}>
+                    <input type="checkbox" checked={on} onChange={() => toggleBundle(c.id)} disabled={isAutopilot} />
+                    {c.label}
+                  </label>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+
+        {/* 7 · CHANNEL — multi-select */}
+        <div className="sim-lever-section sim-lever-section-comms">
+          <div className="sim-lever-section-band">
+            <span className="sim-lever-section-num">7</span>
             <span className="sim-lever-section-name">CHANNEL</span>
-            <span className="sim-lever-section-meta">Which channels the optimizer may use</span>
+            <span className="sim-lever-section-meta">Agent call vs app push vs email — which the optimizer may use</span>
           </div>
           <div className="lever-row">
             <div className="lever-head">
@@ -1089,12 +1181,47 @@ export default function RetentionIfWhatView() {
           </div>
         </div>
 
-        {/* 6 · CAMPAIGN DURATION — single-thumb slider, default 8wk.
-            Not a search dimension; just the model horizon every candidate
-            is scored over. Pilot RCT length lives in Deploy. */}
+        {/* 8 · TIMING — renewal-notice lead + multi-touch sequencing */}
         <div className="sim-lever-section sim-lever-section-comms">
           <div className="sim-lever-section-band">
-            <span className="sim-lever-section-num">6</span>
+            <span className="sim-lever-section-num">8</span>
+            <span className="sim-lever-section-name">TIMING</span>
+            <span className="sim-lever-section-meta">35 / 45 / 60-day notice · multi-touch sequencing per Customer Twin</span>
+          </div>
+          <div className="lever-row">
+            <div className="lever-head">
+              <span className="lever-name">Renewal notice</span>
+              <span className="lever-value">{noticeDays}-day notice</span>
+            </div>
+            <div className="lever-caption">How many days before renewal the optimizer may open outreach.</div>
+            <div className="lever-checks">
+              {[35, 45, 60].map((d) => (
+                <label key={d} className={"lever-check" + (noticeDays === d ? " on" : "")}>
+                  <input type="radio" name="iw-notice" checked={noticeDays === d} onChange={() => setNoticeDays(d)} disabled={isAutopilot} />
+                  {d}-day
+                </label>
+              ))}
+            </div>
+          </div>
+          <div className="lever-row">
+            <div className="lever-head">
+              <span className="lever-name">Multi-touch sequencing</span>
+              <span className="lever-value">{multiTouch ? "on" : "single-touch"}</span>
+            </div>
+            <div className="lever-caption">Allow multiple sequenced touchpoints per Customer Twin.</div>
+            <div className="lever-checks">
+              <label className={"lever-check" + (multiTouch ? " on" : "")}>
+                <input type="checkbox" checked={multiTouch} onChange={() => setMultiTouch((v) => !v)} disabled={isAutopilot} />
+                Multi-touch sequence
+              </label>
+            </div>
+          </div>
+        </div>
+
+        {/* 9 · CAMPAIGN DURATION — model horizon every candidate is scored over. */}
+        <div className="sim-lever-section sim-lever-section-comms">
+          <div className="sim-lever-section-band">
+            <span className="sim-lever-section-num">9</span>
             <span className="sim-lever-section-name">CAMPAIGN DURATION</span>
             <span className="sim-lever-section-meta">Model horizon every candidate is scored over</span>
           </div>
@@ -1120,7 +1247,7 @@ export default function RetentionIfWhatView() {
         {/* 7 · GUARDRAILS — collapsed by default, at the end */}
         <details className="sim-lever-section">
           <summary className="sim-lever-section-band">
-            <span className="sim-lever-section-num">7</span>
+            <span className="sim-lever-section-num">10</span>
             <span className="sim-lever-section-name">GUARDRAILS</span>
             <span className="sim-lever-section-meta">Always on · enforced on every recommendation</span>
           </summary>
