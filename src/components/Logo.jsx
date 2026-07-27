@@ -11,10 +11,10 @@ export function Logo({ width = 96, className = "" }) {
     <span
       className={`twinx-logo lm-wordmark ${className}`}
       style={{ fontSize: Math.max(13, width / 6.2) }}
-      aria-label="Liberty Mutual · TwinX"
+      aria-label="Liberty OS"
     >
-      <b>Liberty Mutual</b>
-      <em>TwinX</em>
+      <b>Liberty</b>
+      <em>OS</em>
     </span>
   );
 }
