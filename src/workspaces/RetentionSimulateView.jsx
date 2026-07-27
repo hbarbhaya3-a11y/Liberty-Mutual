@@ -61,8 +61,10 @@ const RECOMMENDED = {
   offerCeilingBps:    40,
   offerTerm:          "cd_12mo",
   channels:           ["app", "email", "banker"],   // multi-select
-  bankingServices:    [],                            // Strategy A default: off; Strategy B turns these on
-  triggerWindowDays:  60,                            // pre-shopping intervention window
+  bankingServices:    [],                            // COVERAGE levers · Strategy A default off; Strategy B turns on
+  bundles:            [],                            // BUNDLE levers · cross-line contingent-pricing plays
+  multiTouch:         true,                          // TIMING · multi-touch sequencing per Customer Twin
+  triggerWindowDays:  45,                            // TIMING · renewal-notice lead (35 / 45 / 60-day)
 };
 
 /* Default per-product offers (bps over each product's OWN market). Blended uplift
@@ -75,11 +77,22 @@ const RECOMMENDED_OFFERS = { cd_12mo: 45, cd_18mo: 35 };
    B (Re-engage Before Shopping) is anchored on this lever; Strategy A can layer
    them on top of a capped-rate + retention offer.
 ---------------------------------------------------------------------------- */
+/* COVERAGE levers — rebalance coverage, premium-tier restructuring, value
+   add-ons (the "COVERAGE" category in the simulation-lever blueprint). Held
+   as the `bankingServices` state for mechanical fork-compatibility. */
 const BANKING_SERVICES = [
-  { id: "dd_switch", label: "Telematics enrollment (RightTrack)", sub: "Safe-driver program · usage-based discount offered at renewal" },
-  { id: "bill_pay",  label: "Auto-pay + paperless enrollment",    sub: "Loyalty anchor · one-click setup with billing discount" },
-  { id: "auto_save", label: "Roadside / coverage upgrade",        sub: "Value-add · roadside or rental add-on at no/low cost" },
-  { id: "zelle",     label: "Bundle nudge (Home / Umbrella)",     sub: "Cross-sell anchor · quote pre-filled from household data" },
+  { id: "dd_switch", label: "Rebalance coverage",            sub: "Right-size limits / deductibles to the risk without dropping core protection" },
+  { id: "bill_pay",  label: "Premium-tier restructuring",   sub: "Move to a matched tier with equivalent core coverage at a better price" },
+  { id: "auto_save", label: "Value add-ons",                sub: "Roadside, rental or accident-forgiveness at no / low cost" },
+  { id: "zelle",     label: "Telematics safety credit (RightTrack)", sub: "Usage-based safe-driver credit offered at renewal" },
+];
+
+/* BUNDLE levers — cross-line contingent-pricing plays (the "BUNDLE" category
+   in the blueprint). Multi-select; each drives bundle penetration. */
+const BUNDLE_OPTIONS = [
+  { id: "auto_home",    label: "Auto → Home",          sub: "Home quote pre-filled from household data · contingent bundle discount" },
+  { id: "auto_life",    label: "Auto → Life (Ethos)",  sub: "Life offer at a life-event moment via the Ethos partnership" },
+  { id: "renters_auto", label: "Renters → Auto",       sub: "Auto quote for renters with a vehicle in the household · contingent pricing" },
 ];
 
 /* ----------------------------------------------------------------------------
@@ -132,6 +145,7 @@ function simulateOutcomes(opts) {
     channels, holdoutPct, pilotDuration,
     cohortPresets,
     bankingServices = [], triggerWindowDays = 60,
+    bundles = [], multiTouch = false,
   } = opts;
 
   /* Multi-select cohort: sum the bases of the selected cohorts. Picking
@@ -175,15 +189,18 @@ function simulateOutcomes(opts) {
      offer attractiveness (relative to recommended 40bps). */
   const ceilingFactor = offerCeilingBps / RECOMMENDED.offerCeilingBps;
 
-  /* Primary-banking-setup factor — each enrolled service raises the primacy
-     mechanism. Anchored on the Strategy A v1 RCT (direct-deposit recovery
-     overshoot of +8pp): full 4-service enrollment ≈ +60% retention vs no
-     services, with diminishing returns past 3. */
+  /* Coverage-lever factor — each COVERAGE lever (rebalance / premium-tier /
+     add-on / telematics) raises retention, with diminishing returns past 3. */
   const servicesFactor = 1 + Math.min(0.6, bankingServices.length * 0.18);
 
-  /* Trigger-window factor — 60d pre-shopping is the sweet spot. Earlier
-     and the signal hasn't formed yet; later and rate-shopping has begun. */
-  const triggerFactor = 1 - Math.abs(triggerWindowDays - 60) / 120;
+  /* Bundle factor — bundled households retain materially better (7.0-yr vs
+     5.5-yr tenure); each BUNDLE play compounds retention. */
+  const bundleFactor = 1 + Math.min(0.12, bundles.length * 0.05);
+
+  /* Timing factor — the right renewal-notice lead plus multi-touch sequencing
+     lifts save-rate. 45d notice is the sweet spot for this cohort. */
+  const triggerFactor = 1 - Math.abs(triggerWindowDays - 45) / 120;
+  const timingFactor = triggerFactor * (multiTouch ? 1.03 : 1.0);
 
   /* Per-treated retention math — calibrated to hit anchor at defaults. */
   const retainedM = C.retainedDepositsAnnualM
@@ -192,7 +209,8 @@ function simulateOutcomes(opts) {
                   * Math.min(1.3, ceilingFactor)
                   * termFactor
                   * servicesFactor
-                  * triggerFactor;
+                  * bundleFactor
+                  * timingFactor;
 
   /* Runoff reduction scales with offer strength + channel reach. */
   const runoffWithPolicy = Math.max(
@@ -221,7 +239,7 @@ function simulateOutcomes(opts) {
      drives the prior-anchor in this v2 simulation. Baseline +6pp; each
      enrolled banking service adds ~2pp because the service is the
      intervention this KPI actually measures. */
-  const ddRecoveryPp = 6 + bankingServices.length * 2;
+  const ddRecoveryPp = Math.round(6 + bankingServices.length * 1.5 + bundles.length * 3 + (multiTouch ? 1 : 0));
 
   /* Profitability gates */
   const profitabilityOk = netAnnualisedK > 0;
@@ -398,12 +416,17 @@ export default function RetentionSimulateView() {
   const [channels,          setChannels]          = useState(RECOMMENDED.channels);
   const [cohortPresets,     setCohortPresets]     = useState(["rate-sensitive"]);
   const [bankingServices,   setBankingServices]   = useState(RECOMMENDED.bankingServices);
+  const [bundles,           setBundles]           = useState(RECOMMENDED.bundles);
+  const [multiTouch,        setMultiTouch]        = useState(RECOMMENDED.multiTouch);
   const [triggerWindowDays, setTriggerWindowDays] = useState(RECOMMENDED.triggerWindowDays);
-  // Simulation duration — own section above the Run button. Default 8wk
+  // Campaign duration — own section above the Run button. Default 8wk
   // because the result tiles are calibrated against an 8-wk anchor.
   const [simWeeks,          setSimWeeks]          = useState(PILOT_DEFAULTS.pilotDuration);
 
   const toggleService = (id) => setBankingServices((cur) =>
+    cur.includes(id) ? cur.filter((s) => s !== id) : [...cur, id]
+  );
+  const toggleBundle = (id) => setBundles((cur) =>
     cur.includes(id) ? cur.filter((s) => s !== id) : [...cur, id]
   );
 
@@ -460,10 +483,10 @@ export default function RetentionSimulateView() {
     holdoutPct:    PILOT_DEFAULTS.holdoutPct,
     pilotDuration: PILOT_DEFAULTS.pilotDuration,
     cohortPresets,
-    bankingServices, triggerWindowDays,
+    bankingServices, triggerWindowDays, bundles, multiTouch,
   }), [minBalanceK, offerCeilingBps, offerTerm, blendedTermFactor,
        channels, cohortPresets,
-       bankingServices, triggerWindowDays]);
+       bankingServices, triggerWindowDays, bundles, multiTouch]);
 
   // ---- Results snapshot (taken on Run, frozen until next Run) ----
   const [results, setResults] = useState(null);
@@ -492,7 +515,7 @@ export default function RetentionSimulateView() {
       verdict,
       playKey: Date.now(),
       outcomes: o,
-      lever: { cohortPresets, offerCeilingBps, channels, minBalanceK, offerTerm, productOffers },
+      lever: { cohortPresets, offerCeilingBps, channels, minBalanceK, offerTerm, productOffers, bankingServices, bundles, multiTouch, triggerWindowDays },
     });
     setMode("results");
     pushAgentEvent({
@@ -536,11 +559,12 @@ export default function RetentionSimulateView() {
         levers: {
           minBalanceK, offerCeilingBps, offerTerm,
           channels, cohortPresets,
+          bankingServices, bundles, multiTouch, triggerWindowDays,
         },
         reasoning: [
           "Sticky-bundled filter at 0.70 — fair-lending-defensible cohort",
           "Rate cap + $100 retention offer — holds the renewal within combined-ratio floor",
-          "App + email + Comparion agent — mid-value scale plus relationship-tier reach",
+          "45-day notice · multi-touch (email → app → Comparion agent) — right channel × time",
         ],
         scenarios: 96400,
       });
@@ -598,6 +622,8 @@ export default function RetentionSimulateView() {
     setChannels(RECOMMENDED.channels);
     setCohortPresets(["rate-sensitive"]);
     setBankingServices(RECOMMENDED.bankingServices);
+    setBundles(RECOMMENDED.bundles);
+    setMultiTouch(RECOMMENDED.multiTouch);
     setTriggerWindowDays(RECOMMENDED.triggerWindowDays);
   }, []);
 
@@ -860,8 +886,8 @@ export default function RetentionSimulateView() {
         <div className="sim-lever-section sim-lever-section-policy">
           <div className="sim-lever-section-band">
             <div className="sim-lever-section-num">3</div>
-            <div className="sim-lever-section-name">PRODUCT × OFFER</div>
-            <div className="sim-lever-section-meta">Select the products to offer — set each one's rate over its own market</div>
+            <div className="sim-lever-section-name">PRICING</div>
+            <div className="sim-lever-section-meta">Rate spreading by tenure × LTV · deductible swap · retention discount tiers</div>
           </div>
 
           <LeverRow
@@ -914,13 +940,13 @@ export default function RetentionSimulateView() {
         <div className="sim-lever-section sim-lever-section-products">
           <div className="sim-lever-section-band">
             <div className="sim-lever-section-num">4</div>
-            <div className="sim-lever-section-name">VALUE-ADDED SERVICES</div>
-            <div className="sim-lever-section-meta">Real Liberty offerings we add at renewal to hold the policy on value, not price</div>
+            <div className="sim-lever-section-name">COVERAGE</div>
+            <div className="sim-lever-section-meta">Rebalance coverage · premium-tier restructuring · value add-ons</div>
           </div>
 
           <LeverRow
-            label="Service enrollment"
-            caption="Each option is a real Liberty offering — telematics (RightTrack), auto-pay/paperless, a roadside/coverage upgrade, or a pre-filled bundle quote. Multiple enrollments compound but with diminishing returns past 3."
+            label="Coverage levers"
+            caption="Hold the policy on value, not price — right-size coverage, restructure the premium tier, or add a value-add (roadside, rental, telematics credit). Multiple levers compound with diminishing returns past 3."
             value={bankingServices.length === 0 ? "none selected" : `${bankingServices.length} of ${BANKING_SERVICES.length}`}
             offDefault={bankingServices.length !== RECOMMENDED.bankingServices.length}
           >
@@ -947,29 +973,46 @@ export default function RetentionSimulateView() {
               })}
             </div>
           </LeverRow>
+        </div>
+
+        {/* Section 5 · BUNDLE — cross-line contingent-pricing plays */}
+        <div className="sim-lever-section sim-lever-section-products">
+          <div className="sim-lever-section-band">
+            <div className="sim-lever-section-num">5</div>
+            <div className="sim-lever-section-name">BUNDLE</div>
+            <div className="sim-lever-section-meta">Auto → Home · Auto → Life (Ethos) · Renters → Auto — contingent pricing</div>
+          </div>
 
           <LeverRow
-            label="Trigger window"
-            caption="How many days before predicted rate-shopping starts to fire the enrollment prompt. 60d is the sweet spot — earlier and the drift signal hasn't formed; later and the customer is already shopping."
-            value={`${triggerWindowDays}d pre-shopping`}
-            offDefault={triggerWindowDays !== RECOMMENDED.triggerWindowDays}
+            label="Bundle plays"
+            caption="Cross-line offers that turn a single-line renewal into a multi-line household — bundled households retain 7.0 years vs 5.5. Each play is contingent-priced and pre-filled from household data."
+            value={bundles.length === 0 ? "none selected" : `${bundles.length} of ${BUNDLE_OPTIONS.length}`}
+            offDefault={bundles.length !== RECOMMENDED.bundles.length}
           >
-            <RangeWithBubble
-              min={30} max={90} step={15} value={triggerWindowDays}
-              onChange={(e) => setTriggerWindowDays(+e.target.value)}
-              disabled={isAutopilot}
-              formatter={(v) => `${v}d pre-shopping`}
-            />
-            <RangeScale marks={["30d", "60d", "90d"]} />
+            <div className="iw-objectives">
+              {BUNDLE_OPTIONS.map((s) => {
+                const checked = bundles.includes(s.id);
+                return (
+                  <label key={s.id} className={"iw-objective" + (checked ? " is-selected" : "")}>
+                    <input type="checkbox" checked={checked}
+                      onChange={() => toggleBundle(s.id)} disabled={isAutopilot} />
+                    <span className="iw-objective-body">
+                      <span className="iw-objective-l">{s.label}</span>
+                      <span className="iw-objective-d">{s.sub}</span>
+                    </span>
+                  </label>
+                );
+              })}
+            </div>
           </LeverRow>
         </div>
 
-        {/* Section 5 · CHANNEL (green accent) — How it reaches the customer */}
+        {/* Section 6 · CHANNEL — How it reaches the customer */}
         <div className="sim-lever-section sim-lever-section-comms">
           <div className="sim-lever-section-band">
-            <div className="sim-lever-section-num">5</div>
+            <div className="sim-lever-section-num">6</div>
             <div className="sim-lever-section-name">CHANNEL</div>
-            <div className="sim-lever-section-meta">How the offer reaches the customer - pick one or more</div>
+            <div className="sim-lever-section-meta">Agent call vs app push vs email — right channel × time</div>
           </div>
 
           <LeverRow
@@ -997,19 +1040,59 @@ export default function RetentionSimulateView() {
           </LeverRow>
         </div>
 
-        {/* Section 6 · SIMULATION DURATION — own section, mirrors gig
-            What-If + both If-What flows. Model horizon every result is
-            scored over; pilot RCT length lives in Deploy. */}
+        {/* Section 7 · TIMING — renewal-notice lead + multi-touch sequencing */}
         <div className="sim-lever-section">
           <div className="sim-lever-section-band">
-            <div className="sim-lever-section-num">6</div>
-            <div className="sim-lever-section-name">SIMULATION DURATION</div>
-            <div className="sim-lever-section-meta">Model horizon the simulator runs over</div>
+            <div className="sim-lever-section-num">7</div>
+            <div className="sim-lever-section-name">TIMING</div>
+            <div className="sim-lever-section-meta">35 / 45 / 60-day notice · multi-touch sequencing per Customer Twin</div>
+          </div>
+
+          <LeverRow
+            label="Renewal notice"
+            caption="How many days before renewal to open the outreach. 45d is the sweet spot for this cohort — earlier and intent hasn't formed; later and the customer is already shopping a competitor quote."
+            value={`${triggerWindowDays}-day notice`}
+            offDefault={triggerWindowDays !== RECOMMENDED.triggerWindowDays}
+          >
+            <div className="lever-checks">
+              {[35, 45, 60].map((d) => (
+                <label key={d} className={"lever-check" + (triggerWindowDays === d ? " on" : "")}>
+                  <input type="radio" name="notice-days" checked={triggerWindowDays === d}
+                    onChange={() => setTriggerWindowDays(d)} disabled={isAutopilot} />
+                  {d}-day
+                </label>
+              ))}
+            </div>
+          </LeverRow>
+
+          <LeverRow
+            label="Multi-touch sequencing"
+            caption="Sequence multiple touchpoints (e.g. email → app → agent call) per Customer Twin instead of a single send. Lifts save-rate at some fatigue cost."
+            value={multiTouch ? "on" : "single-touch"}
+            offDefault={multiTouch !== RECOMMENDED.multiTouch}
+          >
+            <div className="lever-checks">
+              <label className={"lever-check" + (multiTouch ? " on" : "")}>
+                <input type="checkbox" checked={multiTouch}
+                  onChange={() => setMultiTouch((v) => !v)} disabled={isAutopilot} />
+                Multi-touch sequence
+              </label>
+            </div>
+          </LeverRow>
+        </div>
+
+        {/* Section 8 · CAMPAIGN DURATION — model horizon every result is scored
+            over; pilot RCT length lives in Deploy. */}
+        <div className="sim-lever-section">
+          <div className="sim-lever-section-band">
+            <div className="sim-lever-section-num">8</div>
+            <div className="sim-lever-section-name">CAMPAIGN DURATION</div>
+            <div className="sim-lever-section-meta">Campaign horizon the simulator runs over</div>
           </div>
 
           <LeverRow
             label="Weeks"
-            caption="Time horizon the model runs over. The pilot RCT length is set separately in Deploy."
+            caption="Campaign horizon the model runs over. The pilot RCT length is set separately in Deploy."
             value={`${simWeeks} weeks`}
             offDefault={simWeeks !== PILOT_DEFAULTS.pilotDuration}
           >
@@ -1146,10 +1229,13 @@ function ResultsReveal({ results, onReRun, onStage }) {
   const policy = [
     { k: "Cohort", v: (lever.cohortPresets || []).map((id) => COHORT_LABELS[id]).filter(Boolean).join(", ") || "All" },
     { k: "Min LTV", v: `$${lever.minBalanceK}K` },
-    { k: "Product × Offer", v: Object.entries(lever.productOffers || {})
+    { k: "Pricing", v: Object.entries(lever.productOffers || {})
         .map(([id, bps]) => `${(OFFER_PRODUCTS.find((p) => p.id === id) || {}).label || id} ${((PRODUCT_MARKET[id] ?? 0) + bps / 100).toFixed(2)}%`)
         .join(" · ") || "—" },
+    { k: "Coverage", v: (lever.bankingServices || []).map((s) => (BANKING_SERVICES.find((x) => x.id === s) || {}).label).filter(Boolean).join(", ") || "—" },
+    { k: "Bundle", v: (lever.bundles || []).map((s) => (BUNDLE_OPTIONS.find((x) => x.id === s) || {}).label).filter(Boolean).join(", ") || "—" },
     { k: "Channels", v: (lever.channels || []).map((c) => CHANNEL_OPTIONS.find((o) => o.id === c)?.label).filter(Boolean).join(", ") },
+    { k: "Timing", v: `${lever.triggerWindowDays || RECOMMENDED.triggerWindowDays}-day notice${lever.multiTouch ? " · multi-touch" : ""}` },
   ];
 
   const chartsGrid = (
