@@ -37,7 +37,18 @@ export const PERSONA = {
 export default function GlobalTopBar() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { selectedThemeId, selectedHypothesisId, sector, setSector } = useAppShell();
+  const { selectedThemeId, selectedHypothesisId, sector, setSector, selectTheme } = useAppShell();
+
+  // Switching sector re-scopes the whole app: pick that sector's default
+  // signal (so the Analyze/Simulate flow shows the right B2C vs B2B content,
+  // numbers and guardrails) and return to the default Sense screen.
+  const SECTOR_DEFAULT_THEME = { retail: "retention", commercial: "smbgrowth" };
+  const onSector = (s) => {
+    if (s === sector) return;
+    setSector(s);
+    selectTheme(SECTOR_DEFAULT_THEME[s]);
+    navigate("/");
+  };
   const active = NAV.find((n) => n.match(location));
   const showChips = !hidesContextChips(location);
 
@@ -62,7 +73,7 @@ export default function GlobalTopBar() {
               role="tab"
               aria-selected={sector === s}
               className={`gtb-sector-opt${sector === s ? " is-active" : ""}`}
-              onClick={() => setSector(s)}
+              onClick={() => onSector(s)}
             >
               {s === "retail" ? "Retail" : "Commercial"}
             </button>
