@@ -22,6 +22,7 @@ import LiquiditySimulateView from "@/workspaces/LiquiditySimulateView";
 import WealthSimulateView from "@/workspaces/WealthSimulateView";
 import B2BSimulateView from "@/workspaces/B2BSimulateView";
 import SmbRateSimulateView from "@/workspaces/SmbRateSimulateView";
+import SmbRateFlowView from "@/workspaces/SmbRateFlowView";
 import SmbGrowthSimulateView from "@/workspaces/SmbGrowthSimulateView";
 import { isB2B } from "@/data/b2bConfigs";
 import SimulationLoader from "@/components/loaders/SimulationLoader";
@@ -547,7 +548,7 @@ export default function SimulateWorkspace() {
     return <WealthSimulateView />;
   }
   if (selectedThemeId === "smbrate") {
-    return <SmbRateSimulateView />;
+    return <SmbRateFlowView />;
   }
   if (selectedThemeId === "smbgrowth") {
     return <SmbGrowthSimulateView />;

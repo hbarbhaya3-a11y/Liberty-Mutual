@@ -22,6 +22,7 @@ import LiquidityAnalyzeView from "@/workspaces/LiquidityAnalyzeView";
 import WealthAnalyzeView from "@/workspaces/WealthAnalyzeView";
 import B2BClusterView from "@/workspaces/B2BClusterView";
 import SmbRateAnalyzeView from "@/workspaces/SmbRateAnalyzeView";
+import SmbRateFlowView from "@/workspaces/SmbRateFlowView";
 import SmbGrowthAnalyzeView from "@/workspaces/SmbGrowthAnalyzeView";
 import { isB2B } from "@/data/b2bConfigs";
 import SenseAssetCard from "@/components/SenseAssetCard";
@@ -271,7 +272,7 @@ export default function AnalyzeWorkspace() {
     return <WealthAnalyzeView />;
   }
   if (selectedThemeId === "smbrate") {
-    return <SmbRateAnalyzeView />;
+    return <SmbRateFlowView />;
   }
   if (selectedThemeId === "smbgrowth") {
     return <SmbGrowthAnalyzeView />;
