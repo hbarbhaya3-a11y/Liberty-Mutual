@@ -26,7 +26,6 @@ import {
   RETENTION_HYPOTHESIS_ID,
   RETENTION_HYPOTHESIS_TITLE,
   RETENTION_CALIBRATION,
-  RETENTION_SEGMENT_NBA,
 } from "@/data/retentionConfig";
 import "@/styles/ifwhat.css";
 
@@ -800,21 +799,6 @@ export default function RetentionIfWhatView() {
               })}
               </div>
             </section>
-
-        {/* SEGMENT-SPECIFIC NEXT-BEST-ACTION — per-segment recommended action */}
-        <section className="panel reveal in">
-          <div className="seg-nba">
-            <div className="seg-nba-h">Segment-specific next-best-action</div>
-            <div className="seg-nba-list">
-              {RETENTION_SEGMENT_NBA.map((x) => (
-                <div className={`seg-nba-row seg-nba-${x.tone}`} key={x.seg}>
-                  <span className="seg-nba-seg">{x.seg}</span>
-                  <span className="seg-nba-act">{x.nba}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
 
         {/* DEEP DIVE — selected recommendation's full picture */}
         {selected && (
