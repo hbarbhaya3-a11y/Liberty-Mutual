@@ -344,11 +344,11 @@ export default function Cockpit({ embedded = false, onOpenTheme }) {
      that sector rather than a partially-built / off-context journey.
      In embedded mode the caller (HubWorkspace) provides a custom theme
      handler via `onOpenTheme`; standalone keeps the URL navigate. */
-  const SECTOR_USECASE = { retail: "retention", commercial: "smbgrowth" };
   const openTheme = (clickedId) => {
-    const id = SECTOR_USECASE[sector] || clickedId;
-    if (typeof onOpenTheme === "function") { onOpenTheme(id, mode); return; }
-    navigate(`/theme?id=${encodeURIComponent(id)}&mode=${encodeURIComponent(mode)}`);
+    // Honor the tile the user actually clicked — each signal opens its own
+    // flow (e.g. smbrate → renewal RFP wizard, smbgrowth → growth journey).
+    if (typeof onOpenTheme === "function") { onOpenTheme(clickedId, mode); return; }
+    navigate(`/theme?id=${encodeURIComponent(clickedId)}&mode=${encodeURIComponent(mode)}`);
   };
 
   const cockpitContent = (
