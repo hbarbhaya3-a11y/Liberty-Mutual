@@ -19,13 +19,17 @@ import AnalyzeWorkspace from "@/workspaces/AnalyzeWorkspace";
 import SimulateWorkspace from "@/workspaces/SimulateWorkspace";
 import DeployWorkspace from "@/workspaces/DeployWorkspace";
 import LearnWorkspace from "@/workspaces/LearnWorkspace";
+import CommercialIntelWorkspace from "@/workspaces/CommercialIntelWorkspace";
 import { CxoCompanion } from "@/components/CxoCompanion";
 import { PageContextProvider } from "@/state/pageContext";
 import StagedIntermezzo from "@/components/StagedIntermezzo";
 
 export default function Shell() {
   const { route, sidebarCollapsed, intermezzo } = useAppShell();
+  // Account/RFP-level commercial intelligence routes (Quote / Elasticity / Negotiation).
+  const ciView = route === "quoteintel" || route === "elasticity" || route === "negotiation" ? route : null;
   const Workspace =
+    ciView ? () => <CommercialIntelWorkspace view={ciView} /> :
     route === "cockpit" ? CockpitWorkspace :
     (route === "analyse" || route === "analyze") ? AnalyzeWorkspace :
     route === "simulate" ? SimulateWorkspace :

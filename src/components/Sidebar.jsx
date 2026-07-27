@@ -77,10 +77,21 @@ export const NAV = [
   })),
 ];
 
+/* Account / RFP-level intelligence — commercial sector only. Three screens
+   with a logical flow: Quote → Elasticity & Win-Prob → Negotiation. */
+export const ACCOUNT_INTEL = [
+  { id: "quoteintel", iconName: "hypothesize", verb: "Quote Intel", sub: "Multi-scenario quotes",
+    path: "/?seed_route=quoteintel", match: (l) => l.search.includes("seed_route=quoteintel") },
+  { id: "elasticity", iconName: "test", verb: "Elasticity & Win-Prob", sub: "Price vs the market",
+    path: "/?seed_route=elasticity", match: (l) => l.search.includes("seed_route=elasticity") },
+  { id: "negotiation", iconName: "deploy", verb: "Negotiation Intel", sub: "Playbook + concessions",
+    path: "/?seed_route=negotiation", match: (l) => l.search.includes("seed_route=negotiation") },
+];
+
 export default function Sidebar() {
   const {
     sidebarCollapsed, toggleSidebar,
-    stagedPolicies, agentActivity, visitedStages,
+    stagedPolicies, agentActivity, visitedStages, sector,
   } = useAppShell();
   const navigate = useNavigate();
   const location = useLocation();
@@ -139,6 +150,29 @@ export default function Sidebar() {
           })}
         </div>
       </div>
+
+      {/* ACCOUNT INTELLIGENCE — commercial only. Account/RFP-level quote,
+          elasticity and negotiation intelligence (Underwriter of the Future). */}
+      {sector === "commercial" && (
+        <div className="ss-section">
+          {!sidebarCollapsed && <div className="ss-section-h">ACCOUNT INTELLIGENCE</div>}
+          <div className="ss-ops">
+            {ACCOUNT_INTEL.map((s) => (
+              <OpsItem
+                key={s.id}
+                iconName={s.iconName}
+                verb={s.verb}
+                sub={s.sub}
+                isActive={s.match(location)}
+                isVisited={false}
+                collapsed={sidebarCollapsed}
+                badge={null}
+                onClick={() => navigate(s.path)}
+              />
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* OPERATIONS — portfolio dashboards (Deploy, Learn). Flat icons +
           labels, no numbering — these aren't a sequence, they're consoles
