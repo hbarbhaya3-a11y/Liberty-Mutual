@@ -27,6 +27,10 @@ export default function CockpitWorkspace() {
     selectTheme(id);
     setThemeMode(mode === "macro" ? "macro" : "internal");
     pushAgentEvent({ kind: "info", src: "Cockpit", text: `Opened theme · ${id}` });
+    // Renewal signal (smbrate) runs its own guided RFP wizard (signal details →
+    // goals & guardrails → simulation → outputs), so open it directly in the
+    // Analyze stage instead of the generic Theme detail page.
+    if (id === "smbrate") { navigate(`/?seed_route=analyse`); return; }
     navigate(`/theme?id=${encodeURIComponent(id)}&mode=${encodeURIComponent(mode)}`);
   };
 
