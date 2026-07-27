@@ -11,6 +11,7 @@
    the same agentActivity feed in a topbar popover.
    ========================================================================= */
 import "@/styles/shell.css";
+import { useEffect } from "react";
 import { useAppShell } from "@/state/AppShell";
 import Sidebar from "@/components/Sidebar";
 import GlobalTopBar from "@/components/GlobalTopBar";
@@ -25,7 +26,17 @@ import { PageContextProvider } from "@/state/pageContext";
 import StagedIntermezzo from "@/components/StagedIntermezzo";
 
 export default function Shell() {
-  const { route, sidebarCollapsed, intermezzo } = useAppShell();
+  const { route, sidebarCollapsed, intermezzo, sector, selectedThemeId, selectTheme } = useAppShell();
+
+  // Sector is authoritative for the whole exploration flow: keep the active
+  // signal in-sector so Analyze/Simulate always show the right B2C vs B2B
+  // content, numbers and guardrails — even if a stale B2C theme was persisted.
+  useEffect(() => {
+    const b2b = ["smbgrowth", "smbrate", "limits"].includes(selectedThemeId);
+    if (sector === "commercial" && !b2b) selectTheme("smbgrowth");
+    if (sector === "retail" && b2b) selectTheme("retention");
+  }, [sector, selectedThemeId, selectTheme]);
+
   // Account/RFP-level commercial intelligence routes (Quote / Elasticity / Negotiation).
   const ciView = route === "quoteintel" || route === "elasticity" || route === "negotiation" ? route : null;
   const Workspace =
