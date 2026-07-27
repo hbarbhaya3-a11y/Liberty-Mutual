@@ -39,7 +39,7 @@ export const INTERNAL_THEMES = [
   { id: "sweep", type: "New Product Opportunity", name: "Usage-based-insurance demand", obj: "deep", status: "strengthening", valueM: 72, vq: "CLV opportunity", count: 184, vel: 4, conf: 71, urg: 0.40, desc: "Low-mileage behaviour plus competitor-telematics queries point to latent demand for a pay-per-mile product.", macro: "Telematics / UBI adoption" },
   { id: "mobile", type: "Service Degradation", name: "Mobile FNOL / claims-app friction", obj: "ret", status: "spiking", valueM: 88, vq: "lapse exposure", count: 147, vel: 9, conf: 84, urg: 0.85, desc: "Failed photo-estimate uploads and complaint spikes cluster on a single claims-app flow.", macro: "Rising digital-service expectations" },
   { id: "wallet", type: "Competitive Displacement", name: "Coverage-reduction erosion", obj: "ret", status: "confirmed", valueM: 64, vq: "premium at risk", count: 203, vel: 5, conf: 86, urg: 0.50, desc: "Coverage down-shifts and deductible increases to cut premium across the core base — value perception eroding toward a rival quote.", macro: "Price-driven coverage cutting" },
-  { id: "elder", type: "Claims-Experience Watch", name: "Claims-driven churn watch", obj: "ret", status: "spiking", valueM: 0.5, vq: "lapse exposure", count: 5567, vel: 2, conf: 84, urg: 0.85, desc: "Long-cycle claims and low post-settlement NPS, concentrated in long-tenured policyholders — smooth-claim customers renew; poor-experience ones lapse at the next renewal.", macro: "Claims-experience retention link" },
+  { id: "elder", type: "Claims-Experience Watch", name: "Claims-driven churn watch", obj: "ret", status: "spiking", valueM: 42, vq: "lapse exposure", count: 2600, vel: 6, conf: 84, urg: 0.85, desc: "Long-cycle claims and low post-settlement NPS, concentrated in long-tenured policyholders — smooth-claim customers renew; poor-experience ones lapse at the next renewal.", macro: "Claims-experience retention link" },
 
   /* ── Roadmap use-case tiles (preview / "Coming soon" — not yet enterable).
      Rendered as cockpit tiles alongside the live 4 + 2 SMB; together they form
@@ -89,7 +89,7 @@ export const INTERNAL_SIGS = [
   ["#ffb15a", "Complaint: claims app will not upload", "care-nlp", "mobile"],
   ["#5b9dff", "Exposure grew past policy limit · SMB twin", "exposure-engine", "limits"],
   ["#5b9dff", "Under-limit flag · umbrella gap widening", "exposure-engine", "limits"],
-  ["#9f7aea", "New-mover address change · MX corridor", "public-records", "newcomer"],
+  ["#9f7aea", "New-mover · out-of-state relocation", "public-records", "newcomer"],
   ["#63b3ed", "First-time driver quote · thin history", "quote-engine", "newcomer"],
   ["#4fd1c5", "Coverage reduced -22% · 30d", "policy-admin", "wallet"],
   ["#5b9dff", "Deductible raised · premium-cutting pattern", "policy-admin", "wallet"],
@@ -103,7 +103,7 @@ export const INTERNAL_FORMING = [
   { nm: "Engagement decay ahead of renewal shopping", em: "digital-engagement decline detected 60 days before competitor quote-shopping in the silent-pre-shopper sub-segment", obj: "ret" },
   { nm: "Rideshare coverage-gap clustering", em: "personal-auto policies with rideshare-platform activity across the under-35 base", obj: "deep" },
   { nm: "New-driver bundle moment", em: "teen-turning-16 signals meeting home-ownership in the household", obj: "acq" },
-  { nm: "Agent-to-digital migration", em: "branch-agent contact decline meeting portal-adoption rise", obj: "ret" },
+  { nm: "Agent-to-digital migration", em: "captive-agent (Comparion) contact decline meeting portal-adoption rise", obj: "ret" },
   { nm: "Bundle-readiness clustering in the high-LTV tenure band", em: "home-purchase signals meeting auto-only tenure and competitor home-quote history, ahead of any bundle offer", obj: "deep" },
 ];
 
