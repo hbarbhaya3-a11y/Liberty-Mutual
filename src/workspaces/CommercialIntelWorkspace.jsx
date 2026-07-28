@@ -52,6 +52,7 @@ const ACCOUNTS = [
     },
     negotiation: {
       flex: "High — Lockton values speed + certainty over last-dollar price",
+      bridge: { start: 14.8, steps: [{ k: "Rate concession", d: -1.3 }, { k: "Deductible ↑", d: 1.5 }, { k: "Safety credit", d: -0.3 }, { k: "Cross-line", d: 1.0 }] },
       opening: "$18,200 baseline · $1M/$2M · $5K deductible",
       counter: "Broker cites biBERK at $17,400 · asks for match + higher deductible",
       fallbacks: ["$17,400 at $10K deductible (holds adequacy)", "$16,600 + telematics/safety credit", "$16,600 floor — rate-adequacy limit"],
@@ -103,6 +104,7 @@ const ACCOUNTS = [
     },
     negotiation: {
       flex: "Moderate — USI price-sensitive on fleet; safety credit is the lever",
+      bridge: { start: 11.2, steps: [{ k: "Rate concession", d: -1.1 }, { k: "Deductible ↑", d: 1.4 }, { k: "Telematics credit", d: 0.6 }, { k: "Bundle", d: 0.9 }] },
       opening: "$146K baseline · $1M CSL · $2.5K deductible",
       counter: "Broker cites Progressive $138K · pushes for match",
       fallbacks: ["$139K with telematics safety credit (LR ↓↓)", "$134K at $5K deductible", "$134K floor — fleet CA adequacy"],
@@ -310,16 +312,50 @@ function FlowNav({ view, nav }) {
 
 /* ---------- 1 · QUOTE INTELLIGENCE ---------- */
 /* KPI ribbon — headline stat cards (Quote Workbench pattern) */
-function KpiRibbon({ items }) {
+function KpiRibbon({ items, cols }) {
   return (
-    <div className="ci-kpis">
+    <div className={"ci-kpis" + (cols === 4 ? " ci-kpis-4" : "")}>
       {items.map((k) => (
         <div key={k.label} className="ci-kpi">
           <div className="ci-kpi-h"><span>{k.label}</span><em>{k.icon}</em></div>
           <div className="ci-kpi-v" style={k.color ? { color: k.color } : undefined}>{k.value}</div>
+          {k.sub && <div className="ci-kpi-sub">{k.sub}</div>}
         </div>
       ))}
     </div>
+  );
+}
+
+/* Margin Bridge waterfall — how each concession moves margin start→end */
+function MarginBridge({ bridge }) {
+  const W = 560, H = 210, pad = 34, gap = 10;
+  let cum = bridge.start;
+  const bars = [{ label: "Start", lo: 0, hi: bridge.start, kind: "total" }];
+  bridge.steps.forEach((s) => {
+    const from = cum; cum += s.d;
+    bars.push({ label: s.k, lo: Math.min(from, cum), hi: Math.max(from, cum), kind: s.d >= 0 ? "up" : "down", d: s.d });
+  });
+  bars.push({ label: "End", lo: 0, hi: cum, kind: "total" });
+  const max = Math.max(...bars.map((b) => b.hi)) * 1.18;
+  const bw = (W - pad - 12 - gap * (bars.length - 1)) / bars.length;
+  const sy = (v) => H - pad - (v / max) * (H - pad - 16);
+  const col = { total: "var(--acq)", up: "var(--green)", down: "var(--red)" };
+  return (
+    <svg viewBox={`0 0 ${W} ${H}`} className="ci-svg">
+      <line x1={pad} y1={H - pad} x2={W - 12} y2={H - pad} stroke="var(--ink-4)" />
+      {bars.map((b, i) => {
+        const x = pad + i * (bw + gap);
+        return (
+          <g key={i}>
+            <rect x={x} y={sy(b.hi)} width={bw} height={Math.max(2, sy(b.lo) - sy(b.hi))} rx="3" fill={col[b.kind]} opacity={b.kind === "total" ? 0.9 : 0.85} />
+            <text x={x + bw / 2} y={sy(b.hi) - 4} fontSize="9" fill="var(--ink)" textAnchor="middle">
+              {b.kind === "total" ? b.hi.toFixed(1) + "%" : (b.d >= 0 ? "+" : "") + b.d.toFixed(1)}
+            </text>
+            <text x={x + bw / 2} y={H - pad + 13} fontSize="8" fill="var(--ink-3)" textAnchor="middle">{b.label}</text>
+          </g>
+        );
+      })}
+    </svg>
   );
 }
 
@@ -496,8 +532,17 @@ function ElasticityView({ acc, nav }) {
 /* ---------- 3 · NEGOTIATION INTELLIGENCE ---------- */
 function NegotiationView({ acc, nav }) {
   const n = acc.negotiation;
+  const winner = acc.quotes.find((q) => q.rec);
+  const endMargin = n.bridge.start + n.bridge.steps.reduce((s, x) => s + x.d, 0);
   return (
     <>
+      <KpiRibbon cols={4} items={[
+        { label: "Win probability", value: acc.winScore + "%", icon: "↗", sub: "target > 60%", color: "var(--acc)" },
+        { label: "Proj. margin", value: endMargin.toFixed(1) + "%", icon: "$", sub: "target > 12%", color: "var(--green)" },
+        { label: "Loss ratio", value: acc.projLR, icon: "%", sub: "held to target" },
+        { label: "Price position", value: acc.position.split(" (")[0], icon: "≈", sub: acc.position.match(/\(([^)]+)\)/)?.[1] || "" },
+      ]} />
+
       <div className="ci-grid2">
         <section className="ci-panel">
           <h3>Broker negotiation context</h3>
@@ -539,6 +584,20 @@ function NegotiationView({ acc, nav }) {
         </table>
         <p className="ci-sub" style={{ marginTop: 12 }}>Alternative structures if price stalls: {n.alts.join(" · ")}</p>
       </section>
+
+      <div className="ci-grid2">
+        <section className="ci-panel">
+          <h3>Margin bridge</h3>
+          <p className="ci-sub">How each concession lever moves margin, start → end</p>
+          <MarginBridge bridge={n.bridge} />
+        </section>
+        <section className="ci-panel ci-propose">
+          <div className="ci-propose-ic">🛡️</div>
+          <h3>Ready to propose?</h3>
+          <p className="ci-sub">Improved win probability to <b>{acc.winScore}%</b> at a margin of <b>{endMargin.toFixed(1)}%</b>, held to loss ratio.</p>
+          <button className="ci-btn">Save &amp; generate term sheet →</button>
+        </section>
+      </div>
 
       <AuditTrail />
 
