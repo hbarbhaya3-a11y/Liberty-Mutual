@@ -36,7 +36,7 @@ const ACCOUNTS = [
       { id: "cov", label: "Coverage-restructured", prem: 19400, cov: "+ Umbrella $1M", margin: 15.2, win: 55, rec: false },
       { id: "bundle", label: "Bundle-contingent", prem: 27800, cov: "+ WC + Auto (2 vans)", margin: 17.4, win: 48, rec: false },
     ],
-    winScore: 71, winCI: "±6pp",
+    projLR: "72.5%", winScore: 71, winCI: "±6pp",
     winFactors: [
       { k: "Broker Twin — Lockton bind rate on GL", w: 30, v: 12 },
       { k: "Account Twin — shopping propensity", w: 20, v: -4 },
@@ -87,7 +87,7 @@ const ACCOUNTS = [
       { id: "cov", label: "Coverage + safety", prem: 139000, cov: "+ telematics credit", margin: 13.9, win: 58, rec: true },
       { id: "bundle", label: "Bundle-contingent", prem: 178000, cov: "+ Inland Marine + Umbrella", margin: 13.1, win: 39, rec: false },
     ],
-    winScore: 58, winCI: "±8pp",
+    projLR: "78.1%", winScore: 58, winCI: "±8pp",
     winFactors: [
       { k: "Broker Twin — USI bind rate on fleet CA", w: 30, v: 5 },
       { k: "Account Twin — shopping propensity", w: 20, v: -9 },
@@ -309,12 +309,83 @@ function FlowNav({ view, nav }) {
 }
 
 /* ---------- 1 · QUOTE INTELLIGENCE ---------- */
+/* KPI ribbon — headline stat cards (Quote Workbench pattern) */
+function KpiRibbon({ items }) {
+  return (
+    <div className="ci-kpis">
+      {items.map((k) => (
+        <div key={k.label} className="ci-kpi">
+          <div className="ci-kpi-h"><span>{k.label}</span><em>{k.icon}</em></div>
+          <div className="ci-kpi-v" style={k.color ? { color: k.color } : undefined}>{k.value}</div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/* Submission-readiness checklist + package CTA (Finalize pattern) */
+const READINESS = [
+  { k: "Data extraction & validation", d: "42 fields extracted · >90% confidence", ok: true },
+  { k: "Appetite & risk assessment", d: "Within class / state appetite · rate adequate", ok: true },
+  { k: "Regulatory compliance", d: "NAIC 24-08 fair-pricing · disparate-impact clear", ok: true },
+  { k: "Portfolio & authority approval", d: "Within underwriter authority band", ok: true },
+];
+function ReadinessPanel({ winner }) {
+  return (
+    <section className="ci-panel">
+      <div className="ci-ready-h">
+        <h3>Submission readiness</h3>
+        <span className="ci-ready-badge">Ready to quote</span>
+      </div>
+      <ul className="ci-ready">
+        {READINESS.map((r) => (
+          <li key={r.k}><span className="ci-ready-dot" /><b>{r.k}</b><i>{r.d}</i></li>
+        ))}
+      </ul>
+      <div className="ci-ready-cta">
+        <button className="ci-btn ci-btn-ok">Generate quote package →</button>
+        <span className="ci-ready-note">Bind-ready · {winner.label} · logged to the decision audit trail</span>
+      </div>
+    </section>
+  );
+}
+
+/* Decision audit trail — AI actions + underwriter decisions (governance) */
+const AUDIT = [
+  { role: "AI", who: "TwinX · Submission AI", t: "10:14", txt: "Extracted ACORD + loss runs (42 fields) · triaged the submission" },
+  { role: "AI", who: "TwinX · Pricing Engine", t: "10:16", txt: "Ran elasticity + win-probability model · 10k iterations" },
+  { role: "user", who: "J. Rivera · Underwriter", t: "10:21", txt: "Reviewed appetite match · accepted the recommended structure" },
+  { role: "system", who: "TwinX · Governance", t: "10:22", txt: "Fair-pricing + disparate-impact checks passed (NAIC 24-08)" },
+];
+function AuditTrail() {
+  return (
+    <section className="ci-panel">
+      <h3>Decision audit trail</h3>
+      <p className="ci-sub">Full traceability of AI actions and underwriter decisions</p>
+      <ul className="ci-audit">
+        {AUDIT.map((e, i) => (
+          <li key={i} className={"ci-audit-" + e.role}>
+            <span className="ci-audit-t">{e.t}</span>
+            <span className="ci-audit-dot" />
+            <div className="ci-audit-b"><b>{e.who}</b><span>{e.txt}</span></div>
+          </li>
+        ))}
+      </ul>
+    </section>
+  );
+}
+
 function QuoteView({ acc, nav }) {
   const winner = acc.quotes.find((q) => q.rec);
   const scatter = acc.quotes.map((q) => ({ x: q.win, y: q.margin, label: q.label.split("-")[0].split(" ")[0], rec: q.rec }));
   const portBars = acc.quotes.map((q) => ({ k: q.label.split(" ")[0], v: q.prem, c: q.rec ? ACC : "var(--acq)" }));
   return (
     <>
+      <KpiRibbon items={[
+        { label: "Win probability", value: winner.win + "%", icon: "↗", color: "var(--acc)" },
+        { label: "Margin impact", value: winner.margin + "%", icon: "$" },
+        { label: "Proj. loss ratio", value: acc.projLR, icon: "%", color: "var(--green)" },
+      ]} />
       <div className="ci-grid2">
         <section className="ci-panel">
           <h3>Account intelligence</h3>
@@ -366,6 +437,9 @@ function QuoteView({ acc, nav }) {
           <b>TwinX pick · {winner.label}</b> — best balance of win probability ({winner.win}%) and margin ({winner.margin}%), held to loss ratio.
         </div>
       </section>
+
+      <ReadinessPanel winner={winner} />
+      <AuditTrail />
 
       <div className="ci-cta">
         <button className="ci-btn" onClick={() => go(nav, "elasticity")}>Price it → Elasticity & Win-Probability</button>
@@ -465,6 +539,8 @@ function NegotiationView({ acc, nav }) {
         </table>
         <p className="ci-sub" style={{ marginTop: 12 }}>Alternative structures if price stalls: {n.alts.join(" · ")}</p>
       </section>
+
+      <AuditTrail />
 
       <div className="ci-cta">
         <button className="ci-btn ghost" onClick={() => go(nav, "elasticity")}>← Elasticity & Win-Prob</button>
