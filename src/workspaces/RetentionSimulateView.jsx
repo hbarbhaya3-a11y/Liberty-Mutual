@@ -22,7 +22,7 @@ import SimulationLoader from "@/components/loaders/SimulationLoader";
 import Icon from "@/components/Icon";
 import { ResultTileNII, ResultTileBars, ResultTileCohort } from "@/components/SimResultTiles";
 import SegmentedResults from "@/components/SegmentedResults";
-import { RETENTION_SEGMENTS, deriveSegments, PRODUCT_MARKET } from "@/data/segmentModels";
+import { RETENTION_SEGMENTS, deriveSegments, PRODUCT_MARKET, RETENTION_PRODUCT_LABEL, RETENTION_CHANNEL_LABEL } from "@/data/segmentModels";
 
 /* Cohort sizes (mirror the CUSTOMER cards) — the engine splits these across the
    micro-segments and filters by what the user selected. */
@@ -31,6 +31,10 @@ const RET_SEG_MODEL = {
   cohortCounts: { full: 75000, "rate-sensitive": 22000, "operating-decliner": 18000, "high-value": 3000, "long-tenured": 8000, "multi-product": 12000 },
   heldBackLabel: "Will-stay & already-gone",
   heldBackShare: 0.06,
+  // Insurance-context label overrides so the recommendation table speaks our
+  // language (rate caps / Comparion agents) instead of the banking defaults.
+  productLabels: RETENTION_PRODUCT_LABEL,
+  channelLabels: RETENTION_CHANNEL_LABEL,
 };
 import RangeWithBubble from "@/components/RangeWithBubble";
 import { MOCK_EXPERIMENTS } from "@/workspaces/LearnWorkspace";
@@ -64,8 +68,22 @@ const RECOMMENDED = {
   bankingServices:    [],                            // COVERAGE levers · Strategy A default off; Strategy B turns on
   bundles:            [],                            // BUNDLE levers · cross-line contingent-pricing plays
   multiTouch:         true,                          // TIMING · multi-touch sequencing per Customer Twin
-  triggerWindowDays:  45,                            // TIMING · renewal-notice lead (35 / 45 / 60-day)
+  noticeDays:         [45],                           // TIMING · renewal-notice lead(s) — multi-select + custom
 };
+
+/* Renewal-notice lead presets offered on the TIMING lever. Users can also add a
+   custom lead. Each micro-segment picks its preferred lead from the selected set
+   (see RETENTION_SEGMENTS.noticeDays + deriveSegments). */
+const NOTICE_DAY_PRESETS = [35, 45, 60];
+
+/* Representative scalar lead for the outcome math (the simulator scores a single
+   horizon). 45d is the calibrated sweet spot, so prefer it when selected; else
+   fall back to the average of the selected leads. */
+function primaryNoticeDay(days) {
+  const list = (days && days.length) ? days : [45];
+  if (list.includes(45)) return 45;
+  return Math.round(list.reduce((a, d) => a + d, 0) / list.length);
+}
 
 /* Default per-product offers (bps over each product's OWN market). Blended uplift
    equals RECOMMENDED.offerCeilingBps so the retention outcome math stays anchored. */
@@ -418,7 +436,19 @@ export default function RetentionSimulateView() {
   const [bankingServices,   setBankingServices]   = useState(RECOMMENDED.bankingServices);
   const [bundles,           setBundles]           = useState(RECOMMENDED.bundles);
   const [multiTouch,        setMultiTouch]        = useState(RECOMMENDED.multiTouch);
-  const [triggerWindowDays, setTriggerWindowDays] = useState(RECOMMENDED.triggerWindowDays);
+  const [noticeDays,        setNoticeDays]        = useState(RECOMMENDED.noticeDays);
+  const [customNotice,      setCustomNotice]      = useState("");
+  // Representative scalar the outcome math scores against (single horizon).
+  const triggerWindowDays = primaryNoticeDay(noticeDays);
+  const toggleNotice = (d) => setNoticeDays((cur) =>
+    cur.includes(d) ? (cur.length === 1 ? cur : cur.filter((x) => x !== d)) : [...cur, d].sort((a, b) => a - b)
+  );
+  const addCustomNotice = () => {
+    const d = parseInt(customNotice, 10);
+    if (!Number.isFinite(d) || d < 7 || d > 120) return;
+    setNoticeDays((cur) => cur.includes(d) ? cur : [...cur, d].sort((a, b) => a - b));
+    setCustomNotice("");
+  };
   // Campaign duration — own section above the Run button. Default 8wk
   // because the result tiles are calibrated against an 8-wk anchor.
   const [simWeeks,          setSimWeeks]          = useState(PILOT_DEFAULTS.pilotDuration);
@@ -486,7 +516,7 @@ export default function RetentionSimulateView() {
     bankingServices, triggerWindowDays, bundles, multiTouch,
   }), [minBalanceK, offerCeilingBps, offerTerm, blendedTermFactor,
        channels, cohortPresets,
-       bankingServices, triggerWindowDays, bundles, multiTouch]);
+       bankingServices, triggerWindowDays, noticeDays, bundles, multiTouch]);
 
   // ---- Results snapshot (taken on Run, frozen until next Run) ----
   const [results, setResults] = useState(null);
@@ -515,7 +545,7 @@ export default function RetentionSimulateView() {
       verdict,
       playKey: Date.now(),
       outcomes: o,
-      lever: { cohortPresets, offerCeilingBps, channels, minBalanceK, offerTerm, productOffers, bankingServices, bundles, multiTouch, triggerWindowDays },
+      lever: { cohortPresets, offerCeilingBps, channels, minBalanceK, offerTerm, productOffers, bankingServices, bundles, multiTouch, triggerWindowDays, noticeDays },
     });
     setMode("results");
     pushAgentEvent({
@@ -539,7 +569,7 @@ export default function RetentionSimulateView() {
       experimentType: "retention",
       minBalanceK, offerCeilingBps, offerTerm, productOffers, channels,
       cohortPresets,
-      bankingServices, triggerWindowDays,
+      bankingServices, triggerWindowDays, noticeDays,
       // Pilot defaults — Deploy will own these when the user actually
       // configures the RCT. Carried along so the staged-policy record
       // is complete for downstream consumers.
@@ -559,7 +589,7 @@ export default function RetentionSimulateView() {
         levers: {
           minBalanceK, offerCeilingBps, offerTerm,
           channels, cohortPresets,
-          bankingServices, bundles, multiTouch, triggerWindowDays,
+          bankingServices, bundles, multiTouch, triggerWindowDays, noticeDays,
         },
         reasoning: [
           "Sticky-bundled filter at 0.70 — fair-lending-defensible cohort",
@@ -586,7 +616,7 @@ export default function RetentionSimulateView() {
   }, [
     activeHypId, minBalanceK, offerCeilingBps, offerTerm,
     channels, cohortPresets,
-    bankingServices, triggerWindowDays,
+    bankingServices, triggerWindowDays, noticeDays,
     tuneMode, stagePolicy, recordDecisionTrace, setIntermezzo,
     pushAgentEvent, navWorkspace,
   ]);
@@ -624,7 +654,8 @@ export default function RetentionSimulateView() {
     setBankingServices(RECOMMENDED.bankingServices);
     setBundles(RECOMMENDED.bundles);
     setMultiTouch(RECOMMENDED.multiTouch);
-    setTriggerWindowDays(RECOMMENDED.triggerWindowDays);
+    setNoticeDays(RECOMMENDED.noticeDays);
+    setCustomNotice("");
   }, []);
 
   // ---- Cohort-preset label (joins multi-selection) ----
@@ -1049,19 +1080,40 @@ export default function RetentionSimulateView() {
           </div>
 
           <LeverRow
-            label="Renewal notice"
-            caption="How many days before renewal to open the outreach. 45d is the sweet spot for this cohort — earlier and intent hasn't formed; later and the customer is already shopping a competitor quote."
-            value={`${triggerWindowDays}-day notice`}
-            offDefault={triggerWindowDays !== RECOMMENDED.triggerWindowDays}
+            label="Renewal notice — days to reach out"
+            caption="How many days before renewal to open the outreach. Select any number of leads (or add a custom one) — each micro-segment is then reached out to at its most-effective lead from your set. 45d is the sweet spot for most; high-value shoppers warrant an earlier 60-day start."
+            value={noticeDays.map((d) => `${d}d`).join(" · ")}
+            offDefault={JSON.stringify(noticeDays) !== JSON.stringify(RECOMMENDED.noticeDays)}
           >
             <div className="lever-checks">
-              {[35, 45, 60].map((d) => (
-                <label key={d} className={"lever-check" + (triggerWindowDays === d ? " on" : "")}>
-                  <input type="radio" name="notice-days" checked={triggerWindowDays === d}
-                    onChange={() => setTriggerWindowDays(d)} disabled={isAutopilot} />
+              {NOTICE_DAY_PRESETS.map((d) => (
+                <label key={d} className={"lever-check" + (noticeDays.includes(d) ? " on" : "")}>
+                  <input type="checkbox" checked={noticeDays.includes(d)}
+                    onChange={() => toggleNotice(d)} disabled={isAutopilot} />
                   {d}-day
                 </label>
               ))}
+              {noticeDays.filter((d) => !NOTICE_DAY_PRESETS.includes(d)).map((d) => (
+                <label key={d} className="lever-check on">
+                  <input type="checkbox" checked onChange={() => toggleNotice(d)} disabled={isAutopilot} />
+                  {d}-day
+                </label>
+              ))}
+            </div>
+            <div className="notice-custom">
+              <input
+                type="number"
+                min={7}
+                max={120}
+                placeholder="custom (7–120)"
+                value={customNotice}
+                onChange={(e) => setCustomNotice(e.target.value)}
+                onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addCustomNotice(); } }}
+                disabled={isAutopilot}
+              />
+              <button type="button" className="notice-custom-add" onClick={addCustomNotice} disabled={isAutopilot}>
+                + Add lead
+              </button>
             </div>
           </LeverRow>
 
@@ -1235,7 +1287,7 @@ function ResultsReveal({ results, onReRun, onStage }) {
     { k: "Coverage", v: (lever.bankingServices || []).map((s) => (BANKING_SERVICES.find((x) => x.id === s) || {}).label).filter(Boolean).join(", ") || "—" },
     { k: "Bundle", v: (lever.bundles || []).map((s) => (BUNDLE_OPTIONS.find((x) => x.id === s) || {}).label).filter(Boolean).join(", ") || "—" },
     { k: "Channels", v: (lever.channels || []).map((c) => CHANNEL_OPTIONS.find((o) => o.id === c)?.label).filter(Boolean).join(", ") },
-    { k: "Timing", v: `${lever.triggerWindowDays || RECOMMENDED.triggerWindowDays}-day notice${lever.multiTouch ? " · multi-touch" : ""}` },
+    { k: "Reach-out lead", v: `${(lever.noticeDays && lever.noticeDays.length ? lever.noticeDays : [lever.triggerWindowDays || 45]).map((d) => `${d}d`).join(" · ")} notice${lever.multiTouch ? " · multi-touch" : ""}` },
   ];
 
   const chartsGrid = (
@@ -1302,7 +1354,9 @@ function ResultsReveal({ results, onReRun, onStage }) {
         <SegmentedResults
           kpis={kpis}
           accent="#ffb15a"
-          valueLabel="Retained / yr"
+          valueLabel="NWP protected / yr"
+          offerLabel="Rate-cap move"
+          rateLabel="Renewal rate"
           segments={seg}
           policy={policy}
           charts={chartsGrid}

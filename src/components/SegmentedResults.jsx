@@ -23,6 +23,7 @@ import "@/styles/segmented-results.css";
 export default function SegmentedResults({
   kpis = [], charts, segments, policy = [], objective, valueLabel = "Value", accent = "#5b9dff",
   anchorRate = null, valueScale = 1,
+  offerLabel = "Offer increment", rateLabel = "Recommended APY",
 }) {
   const [tab, setTab] = useState("aggregate");
   const rows = (segments && segments.rows) || [];
@@ -99,11 +100,11 @@ export default function SegmentedResults({
                 <span className="seg-th seg-col-num">Conversion</span>
               ) : (
                 <>
-                  <span className="seg-th seg-col-num">Offer increment</span>
-                  <span className="seg-th seg-col-num">Recommended APY</span>
+                  <span className="seg-th seg-col-num">{offerLabel}</span>
+                  <span className="seg-th seg-col-num">{rateLabel}</span>
                 </>
               )}
-              <span className="seg-th">Channel</span>
+              <span className="seg-th">Channel &amp; reach-out</span>
               <span className="seg-th seg-col-num seg-col-size">Customers</span>
               <span className="seg-th seg-col-num">{valueLabel}</span>
             </div>
@@ -122,7 +123,12 @@ export default function SegmentedResults({
                     <span className="seg-td seg-col-num seg-offer">{r.noRate ? "—" : <span className="seg-offer-apy">{((r.marketRate != null ? r.marketRate : (anchorRate || 0)) + r.rateBps / 100).toFixed(2)}%</span>}</span>
                   </>
                 )}
-                <span className="seg-td seg-channel">{r.channel}</span>
+                <span className="seg-td seg-channel">
+                  <span className="seg-channel-name">{r.channel}</span>
+                  {r.reachOutDays != null && (
+                    <span className="seg-channel-lead">{r.reachOutDays}-day reach-out</span>
+                  )}
+                </span>
                 <span className="seg-td seg-col-num seg-col-size">{r.size.toLocaleString()}</span>
                 <span className="seg-td seg-col-num seg-val">+${(r.niiM * valueScale).toFixed(1)}M</span>
               </div>

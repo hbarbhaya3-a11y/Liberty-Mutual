@@ -89,7 +89,9 @@
 .seg-row-held .seg-val, .seg-row-flat .seg-offer { color: var(--ink-4); }
 /* Tier 3 — count + channel are context, not the decision: keep them quiet */
 .seg-col-size { color: var(--ink-4); font-weight: 400; }
-.seg-channel { color: var(--ink-3); }
+.seg-channel { color: var(--ink-3); display: inline-flex; flex-direction: column; align-items: center; gap: 2px; }
+.seg-channel-name { color: var(--ink-3); }
+.seg-channel-lead { font: 600 9.5px/1 var(--ui); letter-spacing: .03em; text-transform: uppercase; color: var(--ink-4); background: var(--bg-2); border: 1px solid var(--hair); border-radius: 5px; padding: 2px 5px; }
 
 .seg-foot {
   margin-top: 11px; font: 400 11.5px/1.5 var(--ui); color: var(--ink-3);
