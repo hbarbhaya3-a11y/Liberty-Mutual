@@ -23,6 +23,7 @@ const LEADS = [
     lines: "BOP + GL + Umbrella", leadIn: "quote due in 4 days",
     signal: "Broker submission · shopping 3 carriers · expanding to a 2nd location · no adverse loss history",
     competitor: { n: "biBERK", offer: 154000 }, indicated: 6.0, leadScore: 0.74,
+    segment: "Mid-Market", lossRatio: 61, status: "ready",
     pitches: [
       { n: "biBERK", price: 154000, angle: "Aggressive digital price · minimal risk-engineering · fast bind" },
       { n: "Next Insurance", price: 161000, angle: "Instant online quote · bundled GL+BOP · thin service model" },
@@ -41,6 +42,7 @@ const LEADS = [
     lines: "Workers Comp + GL", leadIn: "quote due in 1 day",
     signal: "New submission · payroll +14% · mod factor improving · leaving prior carrier on service",
     competitor: { n: "Next Insurance", offer: 88000 }, indicated: 4.5, leadScore: 0.66,
+    segment: "Mid-Market", lossRatio: 58, status: "negotiating",
     pitches: [
       { n: "Next Insurance", price: 88000, angle: "Digital WC · fast turnaround · limited class expertise" },
       { n: "biBERK", price: 91000, angle: "Low price · standard package · minimal loss control" },
@@ -59,6 +61,7 @@ const LEADS = [
     lines: "BOP + Liquor Liability", leadIn: "quote due in 6 days",
     signal: "New submission · rate-shopping 3 carriers · 2 prior slip-fall claims · appetite-boundary risk",
     competitor: { n: "Hiscox", offer: 66000 }, indicated: 9.0, leadScore: 0.48,
+    segment: "Small Group", lossRatio: 79, status: "at-risk",
     pitches: [
       { n: "Hiscox", price: 66000, angle: "Hospitality specialist · liquor liability included · mid price" },
       { n: "biBERK", price: 69000, angle: "Cheap BOP · may exclude liquor liability · thin coverage" },
@@ -182,7 +185,7 @@ function BindCurve({ price, boost }) {
 
 const LEAD_KEY = "twinx-smbrate-lead";
 
-export default function SmbRateFlowView() {
+function LeadWizard({ onBack }) {
   const nav = useNavigate();
   const [step, setStep] = useState(1);
   const [running, setRunning] = useState(false);
@@ -228,7 +231,7 @@ export default function SmbRateFlowView() {
       <header className="ci-head">
         <div>
           <h1>New Lead Simulation · {LEAD.account}</h1>
-          <p>Small Commercial · new-business lead · guided decision flow · {LEAD.leadIn}</p>
+          <p><button className="ci-linkback" onClick={onBack}>← Renewal book</button> · Small Commercial · guided decision flow · {LEAD.leadIn}</p>
         </div>
         <Steps step={step} setStep={setStep} />
       </header>
@@ -448,4 +451,98 @@ export default function SmbRateFlowView() {
       )}
     </div>
   );
+}
+
+/* ---- Renewal Book Cockpit — book-level view; click a case → the wizard ---- */
+const STATUS_LABEL = { ready: "Ready", negotiating: "Negotiating", "at-risk": "At risk" };
+function statusCls(s) { return "sr-status sr-status-" + s; }
+
+function BookCockpit({ onOpen }) {
+  const [q, setQ] = useState("");
+  const [seg, setSeg] = useState("All");
+  const segs = ["All", ...Array.from(new Set(LEADS.map((l) => l.segment)))];
+  const rows = LEADS.filter((l) =>
+    (seg === "All" || l.segment === seg) &&
+    (q === "" || l.account.toLowerCase().includes(q.toLowerCase())));
+  const maxLR = 100;
+  return (
+    <div className="ci-ws">
+      <header className="ci-head">
+        <div>
+          <h1>Renewal Strategy Cockpit</h1>
+          <p>Small Commercial · book-level view of renewal & new-business cases and negotiation readiness</p>
+        </div>
+        <button className="ci-btn">⚡ Run prediction model</button>
+      </header>
+
+      <div className="ci-kpis ci-kpis-4">
+        {[["Cases in book", "142", "↑ 8%"], ["Avg. rate ask", "+6.4%", "↑ 1.2%"], ["Avg. win / retention", "63%", "↓ 2%"], ["At-risk cases", "18", "↑ 5%"]].map(([l, v, d]) => (
+          <div key={l} className="ci-kpi">
+            <div className="ci-kpi-h"><span>{l}</span><em>{d}</em></div>
+            <div className="ci-kpi-v">{v}</div>
+          </div>
+        ))}
+      </div>
+
+      <div className="ci-grid2" style={{ gridTemplateColumns: "0.9fr 2fr" }}>
+        <section className="ci-panel sr-alert">
+          <div className="sr-alert-h">⚠ Predictive risk alert</div>
+          <p>TwinX flags <b>3 cases</b> with rising loss ratios (&gt; 75%) and heavy competitor pressure.</p>
+          <div className="sr-alert-bar"><span>Portfolio churn risk</span><b>Elevated</b></div>
+          <div className="sr-alert-track"><i style={{ width: "72%" }} /></div>
+          <p className="ci-sub" style={{ marginTop: 10 }}>Select a case to run its guided simulation.</p>
+        </section>
+        <section className="ci-panel">
+          <div className="sr-book-tools">
+            <input className="sr-search" placeholder="Search cases…" value={q} onChange={(e) => setQ(e.target.value)} />
+            <select value={seg} onChange={(e) => setSeg(e.target.value)}>
+              {segs.map((s) => <option key={s} value={s}>{s === "All" ? "Segment: All" : s}</option>)}
+            </select>
+          </div>
+          <table className="sr-book">
+            <thead><tr><th>Case</th><th>Est. premium</th><th>Rate ask</th><th>Loss ratio</th><th>Win prob.</th><th>Status</th></tr></thead>
+            <tbody>
+              {rows.map((l) => (
+                <tr key={l.id} onClick={() => onOpen(l.id)}>
+                  <td><b>{l.account}</b><div className="sr-book-seg">{l.segment}</div></td>
+                  <td>{money(l.estPremium)}</td>
+                  <td><span className="sr-ask">+{l.indicated}%</span></td>
+                  <td>{l.lossRatio}%</td>
+                  <td>
+                    <div className="sr-winbar"><i style={{ width: Math.round(l.leadScore * 100) + "%",
+                      background: l.leadScore >= 0.65 ? "var(--green)" : l.leadScore >= 0.5 ? "var(--ret)" : "var(--red)" }} /></div>
+                    <span className="sr-winpct">{Math.round(l.leadScore * 100)}%</span>
+                  </td>
+                  <td><span className={statusCls(l.status)}>{STATUS_LABEL[l.status]}</span></td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </section>
+      </div>
+
+      <section className="ci-panel">
+        <h3>Loss ratio vs win probability</h3>
+        <div className="sr-lrbars">
+          {LEADS.map((l) => (
+            <div key={l.id} className="sr-lrbar">
+              <div className="sr-lrbar-cols">
+                <i className="lr" style={{ height: (l.lossRatio / maxLR * 100) + "%" }} title={"LR " + l.lossRatio + "%"} />
+                <i className="win" style={{ height: (l.leadScore * 100) + "%" }} title={"Win " + Math.round(l.leadScore * 100) + "%"} />
+              </div>
+              <span>{l.account.split(" ")[0]}</span>
+            </div>
+          ))}
+        </div>
+        <div className="sr-lrlegend"><span><i className="lr" /> Loss ratio</span><span><i className="win" /> Win prob.</span></div>
+      </section>
+    </div>
+  );
+}
+
+export default function SmbRateFlowView() {
+  const [opened, setOpened] = useState(false);
+  const open = (id) => { try { localStorage.setItem(LEAD_KEY, id); } catch { /* ignore */ } setOpened(true); };
+  if (!opened) return <BookCockpit onOpen={open} />;
+  return <LeadWizard key="lead" onBack={() => setOpened(false)} />;
 }

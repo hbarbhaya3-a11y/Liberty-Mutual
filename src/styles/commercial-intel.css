@@ -201,3 +201,52 @@
 .ci-audit-system .ci-audit-dot { background: var(--ink-4); }
 .ci-audit-b b { display: block; font-size: 12.5px; color: var(--ink); }
 .ci-audit-b span { font-size: 12px; color: var(--ink-2); }
+
+/* ---- negotiation: 4-col KPIs, margin bridge, propose panel ---- */
+.ci-kpis-4 { grid-template-columns: repeat(4, 1fr); }
+@media (max-width: 820px) { .ci-kpis-4 { grid-template-columns: 1fr 1fr; } }
+.ci-kpi-sub { font-size: 11px; color: var(--ink-3); margin-top: 4px; }
+.ci-propose { display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 4px; }
+.ci-propose-ic { width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; font-size: 20px;
+  background: color-mix(in srgb, var(--acc) 14%, transparent); margin-bottom: 4px; }
+.ci-propose .ci-btn { margin-top: 10px; }
+.ci-propose b { color: var(--ink); }
+
+/* ---- Renewal Strategy Cockpit (book-level) ---- */
+.ci-linkback { background: none; border: 0; color: var(--acc); font: inherit; cursor: pointer; padding: 0; }
+.sr-alert { background: linear-gradient(160deg, color-mix(in srgb, var(--deep) 22%, var(--panel)), var(--panel)); }
+.sr-alert-h { font-size: 13px; font-weight: 700; color: var(--ink); margin-bottom: 8px; }
+.sr-alert p { font-size: 12.5px; color: var(--ink-2); margin: 0 0 12px; }
+.sr-alert b { color: var(--ink); }
+.sr-alert-bar { display: flex; justify-content: space-between; font-size: 12px; color: var(--ink-2); }
+.sr-alert-bar b { color: var(--ret); }
+.sr-alert-track { height: 8px; border-radius: 5px; background: var(--hair); overflow: hidden; margin-top: 5px; }
+.sr-alert-track i { display: block; height: 100%; background: linear-gradient(90deg, var(--ret), var(--red)); }
+
+.sr-book-tools { display: flex; gap: 10px; margin-bottom: 10px; }
+.sr-search { flex: 1; padding: 8px 12px; border: 1px solid var(--hair); border-radius: 8px; background: var(--bg-2); color: var(--ink); font-family: var(--ui); font-size: 13px; }
+.sr-book-tools select { padding: 8px 10px; border: 1px solid var(--hair); border-radius: 8px; background: var(--bg-2); color: var(--ink); font-family: var(--ui); font-size: 13px; }
+.sr-book { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+.sr-book th { text-align: left; color: var(--ink-3); font-weight: 600; font-size: 10.5px; text-transform: uppercase; letter-spacing: .04em; padding: 8px; border-bottom: 1px solid var(--hair); }
+.sr-book td { padding: 11px 8px; border-bottom: 1px dashed var(--hair); color: var(--ink); vertical-align: middle; }
+.sr-book tbody tr { cursor: pointer; }
+.sr-book tbody tr:hover { background: var(--bg-2); }
+.sr-book-seg { font-size: 10.5px; color: var(--ink-3); margin-top: 2px; }
+.sr-ask { background: color-mix(in srgb, var(--acq) 14%, transparent); color: var(--acq); font-weight: 700; padding: 2px 8px; border-radius: 6px; }
+.sr-winbar { display: inline-block; width: 70px; height: 7px; border-radius: 4px; background: var(--hair); overflow: hidden; vertical-align: middle; }
+.sr-winbar i { display: block; height: 100%; }
+.sr-winpct { font-size: 11.5px; color: var(--ink-2); margin-left: 7px; }
+.sr-status { font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 20px; }
+.sr-status-ready { background: color-mix(in srgb, var(--green) 15%, transparent); color: var(--green); }
+.sr-status-negotiating { background: color-mix(in srgb, var(--acq) 15%, transparent); color: var(--acq); }
+.sr-status-at-risk { background: color-mix(in srgb, var(--red) 15%, transparent); color: var(--red); }
+
+.sr-lrbars { display: flex; gap: 22px; align-items: flex-end; height: 150px; padding: 6px 4px 0; }
+.sr-lrbar { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.sr-lrbar-cols { display: flex; gap: 5px; align-items: flex-end; height: 120px; }
+.sr-lrbar-cols i { width: 16px; border-radius: 3px 3px 0 0; }
+.sr-lrbar-cols i.lr { background: var(--red); } .sr-lrbar-cols i.win { background: var(--green); }
+.sr-lrbar span { font-size: 10.5px; color: var(--ink-3); }
+.sr-lrlegend { display: flex; gap: 16px; margin-top: 10px; font-size: 11.5px; color: var(--ink-2); }
+.sr-lrlegend i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 5px; vertical-align: middle; }
+.sr-lrlegend i.lr { background: var(--red); } .sr-lrlegend i.win { background: var(--green); }
