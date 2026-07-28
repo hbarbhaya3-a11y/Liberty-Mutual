@@ -65,19 +65,23 @@ export const WEALTH_SEGMENTS = [
     product: ["education"], channel: ["email", "app"], rateFactor: 0.8, weight: 1.0, convPct: 1.5 },
 ];
 
+/* Retention (retail / auto-renewal) micro-segments — insurance context.
+   noticeDays = the segment's preferred renewal-notice lead(s); deriveSegments
+   picks the first that the user actually allowed on the TIMING lever, so the
+   reach-out day varies per segment the same way product/channel do. */
 export const RETENTION_SEGMENTS = [
-  { parent: "rate-sensitive", name: "Rate-driven · high balance", need: "Genuinely rate-driven and large — the minimum-effective rate, banker-led.",
-    product: ["cd_12mo", "cd_18mo"], channel: ["banker", "app"], rateFactor: 1.4, weight: 0.40 },
-  { parent: "rate-sensitive", name: "Rate-driven · standard", need: "Sensitive but smaller — a scaled digital rate offer holds them cheaply.",
-    product: ["cd_12mo", "cd_6mo"], channel: ["app", "email"], rateFactor: 1.0, weight: 0.60 },
-  { parent: "operating-decliner", name: "Primacy slipping", need: "Leaving because payroll/bill-pay are thinning — re-engage, don't pay rate.",
-    product: ["reengage", "cd_6mo"], channel: ["app", "banker"], rateFactor: 0.0, weight: 1.0 },
-  { parent: "high-value", name: "High-value at risk", need: "Top attrition decile — a banker-negotiated rate, capped.",
-    product: ["cd_18mo", "cd_12mo"], channel: ["banker"], rateFactor: 1.5, weight: 1.0 },
-  { parent: "long-tenured", name: "Long-tenured savers", need: "Loyal, eroding slowly — a modest rate rewards them without overpaying.",
-    product: ["cd_12mo", "cd_6mo"], channel: ["email", "banker"], rateFactor: 0.8, weight: 1.0 },
-  { parent: "multi-product", name: "Relationship-anchorable", need: "Multi-product — a relationship rate conditional on keeping payroll on-us.",
-    product: ["cd_trade_up_24", "cd_12mo"], channel: ["banker", "app"], rateFactor: 0.6, weight: 1.0 },
+  { parent: "rate-sensitive", name: "Shopping-elastic · high-premium", need: "Actively comparing quotes on a large auto + home premium — a capped renewal rate, agent-led.",
+    product: ["cd_18mo", "cd_12mo"], channel: ["banker", "app"], noticeDays: [60, 45], rateFactor: 1.4, weight: 0.40 },
+  { parent: "rate-sensitive", name: "Shopping-elastic · standard", need: "Price-comparing on a smaller premium — a scaled digital rate cap holds them cheaply.",
+    product: ["cd_12mo", "cd_6mo"], channel: ["app", "email"], noticeDays: [45, 35], rateFactor: 1.0, weight: 0.60 },
+  { parent: "operating-decliner", name: "Disengaging · pre-shopper", need: "Lapsing because engagement is thinning — re-engage on value early, don't cut price.",
+    product: ["reengage", "cd_6mo"], channel: ["app", "banker"], noticeDays: [60, 45], rateFactor: 0.0, weight: 1.0 },
+  { parent: "high-value", name: "High-value at risk", need: "Top attrition decile — an agent-negotiated capped rate before they bind elsewhere.",
+    product: ["cd_18mo", "cd_12mo"], channel: ["banker"], noticeDays: [60], rateFactor: 1.5, weight: 1.0 },
+  { parent: "long-tenured", name: "Long-tenured loyalists", need: "Loyal, eroding slowly — a loyalty discount tier rewards tenure without overpaying.",
+    product: ["smart_savings", "cd_12mo"], channel: ["email", "banker"], noticeDays: [45, 35], rateFactor: 0.8, weight: 1.0 },
+  { parent: "multi-product", name: "Bundle-anchorable", need: "Multi-policy household — a relationship rate contingent on keeping the bundle intact.",
+    product: ["cd_trade_up_24", "cd_12mo"], channel: ["banker", "app"], noticeDays: [45], rateFactor: 0.6, weight: 1.0 },
 ];
 
 /* Friendly product labels (fallback to the id if not mapped). */
@@ -90,6 +94,19 @@ const PRODUCT_LABEL = {
   education: "Educational nudge", digital_starter: "Digital wealth starter",
 };
 const CHANNEL_LABEL = { app: "In-app", email: "Email", banker: "Banker", mail: "Direct mail", rm: "RM", fa: "FA outreach", phone: "Phone", branch: "Branch" };
+
+/* Retention (retail / auto-renewal) label overrides — the SAME product/channel
+   ids carry insurance-context labels here so the recommendation table speaks
+   our language (rate caps, Comparion agents) instead of the banking defaults
+   (CDs, bankers). Passed in via model.productLabels / model.channelLabels. */
+export const RETENTION_PRODUCT_LABEL = {
+  cd_6mo: "Rate cap · light", cd_12mo: "Rate cap + $100 offer", cd_18mo: "Rate cap + $150 offer",
+  cd_trade_up_24: "Multi-year rate lock", elite_mma: "Deductible-adjusted", smart_savings: "Loyalty discount tier",
+  reengage: "Re-engage on value (no rate)",
+};
+export const RETENTION_CHANNEL_LABEL = {
+  app: "App / portal", email: "Email", mail: "Direct mail", banker: "Comparion agent",
+};
 
 /* Competitive MARKET rate per product (June 2026, verified ranges). The offer
    is anchored PER PRODUCT — a CD and a high-yield savings trade in different
@@ -110,6 +127,19 @@ const firstAllowed = (prefs, allowed, fallbackPool) => {
    outcomes: { eligibleN, retainedM }  (the aggregate the rows must sum to) */
 export function deriveSegments(model, lever, outcomes) {
   const { segments, cohortCounts } = model;
+  // Label maps default to the banking labels; a model can override them with
+  // context-specific labels (e.g. retention → insurance rate caps / Comparion).
+  const productLabelMap = model.productLabels || PRODUCT_LABEL;
+  const channelLabelMap = model.channelLabels || CHANNEL_LABEL;
+  // Allowed reach-out leads the user selected on the TIMING lever (multi-select
+  // + custom). Each segment then picks its most-preferred lead FROM that set —
+  // so the recommended reach-out day genuinely varies per segment.
+  const allowedNoticeDays = (lever.noticeDays && lever.noticeDays.length) ? lever.noticeDays : null;
+  const noticeDayFor = (seg) => {
+    if (!allowedNoticeDays) return seg.noticeDays ? seg.noticeDays[0] : null;
+    const pref = (seg.noticeDays || []).find((d) => allowedNoticeDays.includes(d));
+    return pref != null ? pref : allowedNoticeDays[0];
+  };
   const allCohorts = Object.keys(cohortCounts).filter((c) => c !== "full" && c !== "all");
   // "full" (idle cash / deposits) and "all" (wealth) are both all-cohorts sentinels.
   const presets = lever.cohortPresets || [];
@@ -172,8 +202,9 @@ export function deriveSegments(model, lever, outcomes) {
     const valueW = size * (0.4 + s.rateFactor);   // bigger + higher-need = more value at stake
     return { name: s.name, need: s.need, parent: s.parent, size, rateBps, valueW, marketRate,
       convPct: s.convPct,   // wealth: display conversion rate, passed through to the table
-      product: PRODUCT_LABEL[productId] || productId,
-      channel: CHANNEL_LABEL[channelId] || channelId, noRate: s.rateFactor === 0 };
+      reachOutDays: noticeDayFor(s),   // retention: per-segment renewal-notice lead
+      product: productLabelMap[productId] || productId,
+      channel: channelLabelMap[channelId] || channelId, noRate: s.rateFactor === 0 };
   });
 
   // Optional reach target: scale the segment sizes so the reached population

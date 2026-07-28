@@ -2333,6 +2333,22 @@ html.theme-light .lever-check { background: #ffffff; border-color: #e2e8f0; }
   background: var(--acc-soft, rgba(255, 177, 90, 0.13));
 }
 
+/* Custom renewal-notice lead — inline number input + add button under the
+   TIMING lever's preset chips. */
+.notice-custom { display: flex; align-items: center; gap: 6px; margin-top: 8px; }
+.notice-custom input {
+  width: 130px; padding: 5px 9px; border: 1px solid var(--hair); border-radius: 6px;
+  background: var(--bg-2); color: var(--ink); font: 600 11px var(--ui);
+}
+html.theme-light .notice-custom input { background: #ffffff; border-color: #e2e8f0; }
+.notice-custom input:focus { outline: none; border-color: var(--acc, #ffb15a); }
+.notice-custom-add {
+  padding: 5px 11px; border: 1px solid var(--acc, #ffb15a); border-radius: 6px;
+  background: var(--acc-soft, rgba(255, 177, 90, 0.13)); color: var(--ink);
+  font: 700 11px var(--ui); cursor: pointer;
+}
+.notice-custom-add:disabled { opacity: .5; cursor: not-allowed; }
+
 .lever-section-title {
   font-family: var(--mono);
   font-size: 9px;

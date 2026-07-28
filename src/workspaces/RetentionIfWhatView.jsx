@@ -20,7 +20,7 @@ import SimulationLoader from "@/components/loaders/SimulationLoader";
 import Icon from "@/components/Icon";
 import { ResultTileNII, ResultTileBars, ResultTileCohort } from "@/components/SimResultTiles";
 import SegmentedResults from "@/components/SegmentedResults";
-import { RETENTION_SEGMENTS, deriveSegments, PRODUCT_MARKET } from "@/data/segmentModels";
+import { RETENTION_SEGMENTS, deriveSegments, PRODUCT_MARKET, RETENTION_PRODUCT_LABEL, RETENTION_CHANNEL_LABEL } from "@/data/segmentModels";
 import RangeWithBubble from "@/components/RangeWithBubble";
 import {
   RETENTION_HYPOTHESIS_ID,
@@ -37,6 +37,8 @@ const RET_SEG_MODEL = {
   cohortCounts: { full: 75000, "rate-sensitive": 22000, "operating-decliner": 18000, "high-value": 3000, "long-tenured": 8000, "multi-product": 12000 },
   heldBackLabel: "Will-stay & already-gone",
   heldBackShare: 0.06,
+  productLabels: RETENTION_PRODUCT_LABEL,
+  channelLabels: RETENTION_CHANNEL_LABEL,
 };
 
 const OBJECTIVES = [
@@ -641,6 +643,7 @@ export default function RetentionIfWhatView() {
       cohortPresets: selected.picks.cohortPresets,
       productOffers: selected.picks.productOffers,   // per-product picked offers → per-product effective rates
       channels: (allowedChannels && allowedChannels.length ? allowedChannels : ["app", "email", "banker"]),
+      noticeDays: [noticeDays],   // per-segment reach-out lead in the deep-dive table
     }, _o) : null;
     // runoffReductionPp from the optimizer is ALREADY in pp (= C.runoffBau*100*scale).
     const _baseRunoffPp = RETENTION_CALIBRATION.runoffBau * 100;
@@ -839,7 +842,9 @@ export default function RetentionIfWhatView() {
                   kpis={_kpis}
                   accent="#ffb15a"
                   objective={objLabel}
-                  valueLabel="Retained / yr"
+                  valueLabel="NWP protected / yr"
+                  offerLabel="Rate-cap move"
+                  rateLabel="Renewal rate"
                   segments={_seg}
                   policy={_policy}
                   charts={_chartsGrid}
