@@ -11,7 +11,9 @@
    ========================================================================= */
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import RangeWithBubble from "@/components/RangeWithBubble";
 import "@/styles/commercial-intel.css";
+import "@/styles/ifwhat.css";
 
 const ACC_KEY = "twinx-ci-account";
 const go = (nav, view) => nav(`/?seed_route=${view}`);
@@ -228,8 +230,9 @@ function SensitivityLab({ e }) {
         <text x={W - 90} y={H - pad + 14} fontSize="9" fill={INK3}>{money(hi)} premium →</text>
         <text x={pad} y={H - pad + 14} fontSize="9" fill={INK3}>{money(lo)}</text>
       </svg>
-      <input type="range" className="ci-slider" min={lo} max={hi} step={(hi - lo) / 120} value={prem}
-        onChange={(ev) => setPrem(+ev.target.value)} />
+      <RangeWithBubble min={lo} max={hi} step={(hi - lo) / 120} value={prem}
+        onChange={(ev) => setPrem(+ev.target.value)}
+        formatter={(v) => money(Math.round(v))} />
       <div className="ci-lab-read">
         <div><span>Premium</span><b>{money(Math.round(prem))}</b></div>
         <div><span>Bind probability</span><b>{bind.toFixed(0)}%</b></div>

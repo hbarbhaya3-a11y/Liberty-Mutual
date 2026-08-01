@@ -30,10 +30,10 @@ import "@/styles/experiment-workflow.css";
 const MOCK_HISTORY = [
   {
     id: "mock-hist-1",
-    name: "Subscription-stacking nudge",
+    name: "Renewal cadence nudge",
     hypothesis: "H-2026-03-22",
     cluster: "under-35",
-    themeName: "Subscription stacking",
+    themeName: "Auto Retention",
     stage: "live-pilot",
     stageWeek: 6,
     stageTotal: 8,
@@ -59,10 +59,10 @@ const MOCK_HISTORY = [
   },
   {
     id: "mock-hist-2",
-    name: "B2B wholesale ladder",
+    name: "Small Commercial growth-capture ladder",
     hypothesis: "H-2026-04-08",
     cluster: "b2b-deposits",
-    themeName: "B2B deposits",
+    themeName: "Small Commercial",
     stage: "live-pilot",
     stageWeek: 3,
     stageTotal: 8,
@@ -80,19 +80,19 @@ const MOCK_HISTORY = [
     pilotTotal: 8,
     treatmentN: 8400,
     controlN: 940,
-    blurb: "Tiered rate ladder for commercial deposit pricing. Pilot wk 3/8.",
+    blurb: "Tiered rate-flexibility ladder for Small Commercial growth-capture. Pilot wk 3/8.",
     interimFindings: [
       { wk: 1, tone: "neutral", text: "$10M+ tier is held back per approval condition — wk 4 readout will determine whether to release it into the policy." },
-      { wk: 2, tone: "good",    text: "Mid-tier ($1M–$10M) deposit retention is 11% higher in treatment vs control. NII run-rate tracking within CI." },
+      { wk: 2, tone: "good",    text: "Mid-tier ($1M–$10M premium) account retention is 11% higher in treatment vs control. NWP run-rate tracking within CI." },
       { wk: 3, tone: "warn",    text: "Average ticket size at sub-$500K tier is 7% lower than predicted — investigating whether ladder pricing nudges customers down a tier rather than retaining them at current tier." },
     ],
   },
   {
     id: "mock-hist-3",
-    name: "Mass-affluent SMA bridge",
+    name: "Auto-only bundle-attach bridge",
     hypothesis: "H-2026-02-19",
     cluster: "mass-affluent",
-    themeName: "Wealth onramp",
+    themeName: "Bundle Attach",
     stage: "compliance",
     stagedBy: "user",
     stagedAt: dayBack(16),
@@ -102,26 +102,26 @@ const MOCK_HISTORY = [
     approverDecision: "Approve · proceed to compliance",
     /* compliance in progress — no date yet */
     complianceReviewer: "Risk &amp; Compliance · L. Tanaka (in review)",
-    blurb: "SMA pathway for high-balance checking customers. In compliance review.",
+    blurb: "Bundle-attach pathway for auto-only households. In compliance review.",
   },
   {
     id: "mock-hist-4",
-    name: "Conservative RTP send-limit lift",
+    name: "Rideshare endorsement auto-add",
     hypothesis: "H-2026-04-12",
     cluster: "gig-economy",
-    themeName: "Gig money movement",
+    themeName: "Gig & rideshare",
     stage: "approval",
     stagedBy: "user",
     stagedAt: dayBack(4),
     pendingApprover: "Maria Chen, Director · USRM Personal Lines",
-    blurb: "Variant of Trust-Aware Lift with +10% cap and 24-month gate. Awaiting approval.",
+    blurb: "Auto-adds the rideshare endorsement with a +10% rate cap and 24-month claims-free gate. Awaiting approval.",
   },
   {
     id: "mock-hist-5",
-    name: "Earned-wage access · gig variant",
+    name: "Telematics enrollment · gig variant",
     hypothesis: "H-2026-04-19",
     cluster: "gig-economy",
-    themeName: "Gig money movement",
+    themeName: "Gig & rideshare",
     stage: "live-pilot",
     stageWeek: 4,
     stageTotal: 8,
@@ -138,19 +138,19 @@ const MOCK_HISTORY = [
     pilotTotal: 8,
     treatmentN: 64800,
     controlN: 7200,
-    blurb: "EWA pathway for verified-pattern gig customers. Pilot wk 4/8.",
+    blurb: "Telematics (RightTrack) enrollment for verified-pattern gig drivers. Pilot wk 4/8.",
     interimFindings: [
       { wk: 2, tone: "good",    text: "Adoption among verified-pattern gig customers reached 38% by wk 2 — 5pp ahead of the pre-sim prediction." },
-      { wk: 3, tone: "good",    text: "Default behaviour holding at baseline; no signal of EWA usage cannibalizing payroll deposit primacy. Risk team reviewing wk 4." },
-      { wk: 4, tone: "neutral", text: "Average advance size trending toward the lower end of the predicted band ($180 vs $220 predicted) — may indicate cohort is using EWA for top-up rather than full-cycle." },
+      { wk: 3, tone: "good",    text: "Enrollment holding at baseline; no signal of telematics enrollment cannibalizing bundle primacy. Risk team reviewing wk 4." },
+      { wk: 4, tone: "neutral", text: "Average mileage-discount capture trending toward the lower end of the predicted band (8% vs 11% predicted) — may indicate the cohort drives fewer low-risk miles than modeled." },
     ],
   },
   {
     id: "mock-hist-6",
-    name: "Retention nudge · attrition risk",
+    name: "High-value retention outreach",
     hypothesis: "H-2026-03-08",
     cluster: "mass-affluent",
-    themeName: "Wealth onramp",
+    themeName: "Bundle Attach",
     stage: "live-pilot",
     stageWeek: 7,
     stageTotal: 8,
@@ -167,19 +167,19 @@ const MOCK_HISTORY = [
     pilotTotal: 8,
     treatmentN: 41400,
     controlN: 4600,
-    blurb: "Outreach + advisor handoff for high-balance attrition signals. Pilot wk 7/8.",
+    blurb: "Outreach + agent handoff for high-LTV attrition signals. Pilot wk 7/8.",
     interimFindings: [
       { wk: 3, tone: "good",    text: "Attrition rate in treatment cohort dropped to 1.9% (vs 4.7% in control by same week) — outreach is moving the needle." },
-      { wk: 5, tone: "warn",    text: "RM advisor handoff completion rate at 64% — below 78% target. Advisor capacity flagged as the bottleneck; ops reviewing reassignment rules." },
-      { wk: 6, tone: "good",    text: "Saved relationships averaging $1.4M AUM each. NAV-weighted save value is 18% above pre-sim." },
+      { wk: 5, tone: "warn",    text: "Agent handoff completion rate at 64% — below 78% target. Agent capacity flagged as the bottleneck; ops reviewing reassignment rules." },
+      { wk: 6, tone: "good",    text: "Saved households averaging $1.4M lifetime premium each. Value-weighted save is 18% above pre-sim." },
     ],
   },
   {
     id: "mock-hist-7",
-    name: "Small-business overdraft buffer",
+    name: "Small Commercial limit-adequacy review",
     hypothesis: "H-2026-04-02",
     cluster: "b2b-deposits",
-    themeName: "B2B deposits",
+    themeName: "Small Commercial",
     stage: "compliance",
     stagedBy: "user",
     stagedAt: dayBack(12),
@@ -188,38 +188,38 @@ const MOCK_HISTORY = [
     approverRole: "MD · Small Commercial",
     approverDecision: "Approve · proceed to compliance",
     complianceReviewer: "Risk &amp; Compliance · L. Tanaka (in review)",
-    blurb: "Dynamic overdraft buffer for SMB checking. In compliance review.",
+    blurb: "Coverage-limit adequacy review for growing small businesses. In compliance review.",
   },
   {
     id: "mock-hist-8",
-    name: "Pre-payday Rail Re-Route",
+    name: "Pre-renewal rate-shopping intercept",
     hypothesis: "H-2026-04-25",
     cluster: "gig-economy",
-    themeName: "Gig money movement",
+    themeName: "Gig & rideshare",
     stage: "approval",
     stagedBy: "autopilot",
     stagedAt: dayBack(2),
     pendingApprover: "Maria Chen, Director · USRM Personal Lines",
-    blurb: "When a pre-payday RTP payment hits the send-limit, auto-offers ACH-Same-Day to the verified payee. Awaiting approval.",
+    blurb: "When a competitor quote-shopping signal fires pre-renewal, auto-offers a retention rate review to the policyholder. Awaiting approval.",
   },
   {
     id: "mock-hist-9",
-    name: "Treasury sweep elasticity ladder",
+    name: "SMB new-business lead ladder",
     hypothesis: "H-2026-04-30",
     cluster: "b2b-deposits",
-    themeName: "B2B deposits",
+    themeName: "Small Commercial",
     stage: "approval",
     stagedBy: "user",
     stagedAt: dayBack(1),
     pendingApprover: "Daniel Park, MD · Small Commercial",
-    blurb: "Variable-rate sweep ladder for $5M+ treasury balances. Awaiting MD review.",
+    blurb: "Rate-flexibility ladder for $5M+ revenue Small Commercial leads. Awaiting MD review.",
   },
   {
     id: "mock-hist-10",
-    name: "Senior outreach · scam-pattern wires",
+    name: "Claims-experience save · long-tenure",
     hypothesis: "H-2026-03-31",
     cluster: "elder",
-    themeName: "Elder protection",
+    themeName: "Claims Experience",
     stage: "live-pilot",
     stageWeek: 2,
     stageTotal: 8,
@@ -236,7 +236,7 @@ const MOCK_HISTORY = [
     pilotTotal: 8,
     treatmentN: 22100,
     controlN: 2460,
-    blurb: "Trusted-contact outreach + holding pattern on flagged wires. Pilot wk 2/8.",
+    blurb: "Proactive claims-experience outreach for long-tenure policyholders. Pilot wk 2/8.",
     interimFindings: [
       { wk: 1, tone: "good",    text: "247 wires intercepted in wk 1 · 41 confirmed scam-pattern · $1.8M fraud loss avoided. Trusted-contact outreach reaching 89% within 4h SLA." },
       { wk: 2, tone: "neutral", text: "False-positive hold rate at 6.3% — slightly above the 5% acceptable threshold. Ops reviewing whether to tune the model's scam-pattern signal." },
@@ -247,10 +247,10 @@ const MOCK_HISTORY = [
      vs predicted retro. This row uses pilotEndedAt to drive that panel. */
   {
     id: "mock-hist-11",
-    name: "Verified-Landlord RTP Enablement (Q4'25)",
+    name: "Rideshare Endorsement Rollout (Q4'25)",
     hypothesis: "H-2025-11-08",
     cluster: "gig-economy",
-    themeName: "Gig money movement",
+    themeName: "Gig & rideshare",
     stage: "completed",
     stagedBy: "user",
     stagedAt: dayBack(98),
@@ -273,14 +273,14 @@ const MOCK_HISTORY = [
     learnings: {
       headline: "Q4 pilot landed inside CI on all 4 KPIs · promoted to full rollout.",
       actuals: [
-        { k: "NII",                 predicted: "+$9.4M / 8wk",   actual: "+$9.1M",        delta: "−3% vs prediction", tone: "ok" },
-        { k: "Blocked payments",    predicted: "−24,800 / qtr",  actual: "−23,940",       delta: "within CI",          tone: "ok" },
+        { k: "NWP protected",                 predicted: "+$9.4M / 8wk",   actual: "+$9.1M",        delta: "−3% vs prediction", tone: "ok" },
+        { k: "At-risk renewals saved", predicted: "+24,800 / qtr",  actual: "+23,940",       delta: "within CI",          tone: "ok" },
         { k: "Complaints",          predicted: "−712 / qtr",     actual: "−688",          delta: "within CI",          tone: "ok" },
         { k: "Fair-lending margin", predicted: "0.93",           actual: "0.92",          delta: "+0.07 above floor",  tone: "ok" },
       ],
       surprises: [
-        "Verified-recurring cohort adoption hit 84% (vs predicted 78%) — customers shifted to the lifted tier faster than the simulation modelled.",
-        "Friday-evening rent-payment volume held its 67% concentration through all 8 weeks — pattern was structurally stable, not a one-quarter blip.",
+        "Verified-driver enrollment hit 84% (vs predicted 78%) — customers added the rideshare endorsement faster than the simulation modelled.",
+        "Weekend rideshare-driving volume held its 67% concentration through all 8 weeks — pattern was structurally stable, not a one-quarter blip.",
       ],
       didntWork: [
         "Follow-on attach landed flat at 12.4% (vs predicted 17.8%) — the warm-up window may need to extend past the 8-week pilot.",
@@ -295,10 +295,10 @@ const MOCK_HISTORY = [
   },
   {
     id: "mock-gig-2",
-    name: "Instant-Payout Rails for Multi-Platform Earners (Q3'25)",
+    name: "Multi-Platform Driver Coverage (Q3'25)",
     hypothesis: "H-2025-08-14",
     cluster: "gig-economy",
-    themeName: "Gig money movement",
+    themeName: "Gig & rideshare",
     stage: "completed",
     stagedBy: "user",
     stagedAt: dayBack(196),
@@ -320,22 +320,22 @@ const MOCK_HISTORY = [
     learnings: {
       headline: "Q3 pilot landed inside CI on all 4 KPIs · promoted to full rollout.",
       actuals: [
-        { k: "NII",                 predicted: "+$8.6M / 8wk",   actual: "+$8.4M",        delta: "−2% vs prediction", tone: "ok" },
-        { k: "Blocked payments",    predicted: "−21,300 / qtr",  actual: "−20,710",       delta: "within CI",          tone: "ok" },
+        { k: "NWP protected",                 predicted: "+$8.6M / 8wk",   actual: "+$8.4M",        delta: "−2% vs prediction", tone: "ok" },
+        { k: "At-risk renewals saved", predicted: "+21,300 / qtr",  actual: "+20,710",       delta: "within CI",          tone: "ok" },
         { k: "Complaints",          predicted: "−640 / qtr",     actual: "−624",          delta: "within CI",          tone: "ok" },
         { k: "Fair-lending margin", predicted: "0.93",           actual: "0.93",          delta: "+0.08 above floor",  tone: "ok" },
       ],
       surprises: [
-        "Multi-platform earners adopted instant-payout at 81% (vs predicted 74%) — earners juggling three or more apps valued same-day settlement more than the simulation assumed.",
+        "Multi-platform drivers took the coverage at 81% (vs predicted 74%) — drivers juggling three or more apps valued the tailored endorsement more than the simulation assumed.",
         "Average linked-platform count held at 3.4 across the cohort — these earners are structurally multi-source, not transitional, so the rails demand is durable.",
       ],
       didntWork: [
-        "Savings-sweep attach on the instant-payout flow came in at 9.8% (vs predicted 14.2%) — the sweep prompt competes with the very same-day liquidity the payout just delivered.",
+        "Umbrella attach on the multi-platform driver flow came in at 9.8% (vs predicted 14.2%) — the umbrella prompt competes with the endorsement the policy just added.",
       ],
       nextMove: {
         verdict: "Promoted",
         tone: "ok",
-        rationale: "All primary KPIs landed inside CI · margin held · pilot ran full duration. Promoted to full rollout on the multi-platform cohort effective wk 9; sweep-attach timing flagged for a follow-on test.",
+        rationale: "All primary KPIs landed inside CI · margin held · pilot ran full duration. Promoted to full rollout on the multi-platform cohort effective wk 9; umbrella-attach timing flagged for a follow-on test.",
       },
     },
     blurb: "Q3 pilot · ran full 8 weeks · promoted to full rollout.",
@@ -345,10 +345,10 @@ const MOCK_HISTORY = [
      wasting time and unfair to the control arm. */
   {
     id: "mock-hist-12",
-    name: "Fraud-pattern Wire Hold",
+    name: "Claims-experience save · early-stop",
     hypothesis: "H-2026-02-04",
     cluster: "retired-stable",
-    themeName: "Elder protection",
+    themeName: "Claims Experience",
     stage: "completed",
     stagedBy: "autopilot",
     stagedAt: dayBack(72),
@@ -373,14 +373,14 @@ const MOCK_HISTORY = [
     learnings: {
       headline: "Effect size and significance threshold both met at wk 4 — stopping rule fired, pilot ended early.",
       actuals: [
-        { k: "Fraud rate (bps)",    predicted: "−1.8 bps",       actual: "−2.1 bps",      delta: "+0.3 bps stronger",  tone: "ok" },
+        { k: "Post-claim NPS detractor rate", predicted: "−1.8pp", actual: "−2.1pp", delta: "+0.3pp stronger", tone: "ok" },
         { k: "Loss avoided",        predicted: "$5.4M / 8wk",    actual: "$3.8M / 4wk",   delta: "tracking to +$7.6M",  tone: "ok" },
-        { k: "False-positive holds", predicted: "<2.0%",         actual: "1.7%",          delta: "below threshold",     tone: "ok" },
-        { k: "Customer harm complaints", predicted: "≤ 6 / wk",  actual: "3.2 / wk avg",  delta: "below ceiling",       tone: "ok" },
+        { k: "False-flag reviews", predicted: "<2.0%", actual: "1.7%", delta: "below threshold", tone: "ok" },
+        { k: "Repeat complaints", predicted: "≤ 6 / wk", actual: "3.2 / wk avg", delta: "below ceiling", tone: "ok" },
       ],
       surprises: [
         "Effect size at wk 3 already exceeded the pre-registered minimum (−1.4 bps) AND the stopping-rule p-value crossed 0.01 — stronger and faster than the simulation modelled.",
-        "Trusted-contact outreach pickup rate was 71% — well above the 55% used in the sim. The 'who to call' graph was more current than expected.",
+        "Proactive claims-outreach pickup rate was 71% — well above the 55% used in the sim. The post-settlement contact list was more current than expected.",
       ],
       didntWork: [
         "False-positive resolution time averaged 38 minutes (vs target 30) — the contact-centre routing needs tightening before scale.",
@@ -388,7 +388,7 @@ const MOCK_HISTORY = [
       nextMove: {
         verdict: "Promoted · ethical stop",
         tone: "ok",
-        rationale: "Continuing the RCT would be withholding a proven intervention from vulnerable seniors in the control arm. Promoted to full deployment effective wk 5; contact-centre routing fix queued as a follow-up.",
+        rationale: "Continuing the RCT would be withholding a proven claims-experience intervention from long-tenure policyholders in the control arm. Promoted to full deployment effective wk 5; contact-centre routing fix queued as a follow-up.",
       },
     },
     blurb: "Pilot stopped early at wk 4 · stat-sig threshold reached · promoted.",
@@ -630,10 +630,10 @@ export default function DeployWorkspace() {
   const aggregates = useMemo(() => {
     const totalTreated = livePilots.reduce((acc, r) => acc + (r.treatmentN || 0), 0);
     const totalControl = livePilots.reduce((acc, r) => acc + (r.controlN || 0), 0);
-    // Predicted NII at stake (annual run-rate $M) per live pilot. Hard-coded
+    // Predicted NWP at stake (annual run-rate $M) per live pilot. Hard-coded
     // here for the demo; real product derives from each row's sim payload.
     // Scaled to US Bank portfolio range — multi-tens of $M per live pilot.
-    const predictedNiiAtStake = livePilots.reduce((acc, r) => {
+    const predictedNwpAtStake = livePilots.reduce((acc, r) => {
       // Staged pilots carry their own value-at-stake ($M run-rate); mock rows
       // keep the per-id lookup so the historical portfolio is unchanged.
       const nii = r.projected?.valueAtStakeM != null
@@ -641,7 +641,7 @@ export default function DeployWorkspace() {
         : ({
             "mock-hist-1": 18,  // Subscription nudge
             "mock-hist-2": 64,  // Wholesale ladder
-            "mock-hist-5": 31,  // EWA gig
+            "mock-hist-5": 31,  // telematics gig
             "mock-hist-6": 24,  // Retention nudge
             "mock-hist-10": 14, // Senior outreach (fraud loss avoided)
           }[r.id] || 12);
@@ -660,7 +660,7 @@ export default function DeployWorkspace() {
       pendingReview,
       totalTreated,
       totalControl,
-      predictedNiiAtStake,
+      predictedNwpAtStake,
       avgPilotWeek,
       autopilotShare,
     };
@@ -730,8 +730,8 @@ export default function DeployWorkspace() {
             </div>
           </div>
           <div className="portfolio-agg-cell">
-            <div className="portfolio-agg-k">Predicted NII at stake</div>
-            <div className="portfolio-agg-v">+${aggregates.predictedNiiAtStake.toFixed(1)}M</div>
+            <div className="portfolio-agg-k">Predicted NWP at stake</div>
+            <div className="portfolio-agg-v">+${aggregates.predictedNwpAtStake.toFixed(1)}M</div>
             <div className="portfolio-agg-s">
               Across {aggregates.livePilots} live pilots · cumulative
             </div>
@@ -930,10 +930,10 @@ const CLUSTER_TO_THEME = {
 function prettyTheme(cluster) {
   if (!cluster) return "—";
   const map = {
-    "gig-economy": "Gig money movement",
-    "under-35": "Subscription stacking",
-    "b2b-deposits": "B2B deposits",
-    "mass-affluent": "Wealth onramp",
+    "gig-economy": "Gig & rideshare",
+    "under-35": "Auto Retention",
+    "b2b-deposits": "Small Commercial",
+    "mass-affluent": "Bundle Attach",
     "mass-affluent-deposit-drift": "Auto retention",
     "high-ltv-renewal-shopping": "Auto retention",
   };

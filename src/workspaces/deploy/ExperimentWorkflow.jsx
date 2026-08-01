@@ -637,9 +637,9 @@ function LiveLegend() {
    the experiment is testing. Three archetypes:
 
      · friction       (gig ceiling lift, payout-window relax, rail re-route)
-                      → NII · Blocked · Complaints
+                      → NWP · Bound · Complaints
      · deepening      (subscription stacking, B2B ladder, life-event capture)
-                      → NII · Adoption · Attach · Engagement
+                      → NWP · Adoption · Attach · Engagement
      · loss-prevention (elder protection, fraud-pattern wire hold)
                       → Fraud rate · Loss avoided · False-positive holds
 
@@ -710,33 +710,33 @@ function buildRctKpis(row) {
   if (theme === "liquidity") {
     const a = 11.4 * magScale(1), b = -7.2 * magScale(2), c = 8.0 * magScale(3);
     return [
-      { key: "nii",          label: "Net interest income",     simShape: expo(a, 2.2 * tauScale(1)), drift: 0.04 * driftScale(1), driftSeed: 13 + seedOffset(1), simAtEnd: a },
-      { key: "flight_pp",    label: "Idle-cash flight (Δ pp)",  simShape: expo(b, 1.8 * tauScale(2)), drift: 0.05 * driftScale(2), driftSeed: 23 + seedOffset(2), simAtEnd: b },
-      { key: "activated_pp", label: "Balances activated (pp)",  simShape: expo(c, 2.2 * tauScale(3)), drift: 0.04 * driftScale(3), driftSeed: 37 + seedOffset(3), simAtEnd: c },
+      { key: "nii",          label: "Premium retained ($M)",     simShape: expo(a, 2.2 * tauScale(1)), drift: 0.04 * driftScale(1), driftSeed: 13 + seedOffset(1), simAtEnd: a },
+      { key: "flight_pp",    label: "Competitor loss (Δ pp)",  simShape: expo(b, 1.8 * tauScale(2)), drift: 0.05 * driftScale(2), driftSeed: 23 + seedOffset(2), simAtEnd: b },
+      { key: "activated_pp", label: "Telematics enrolled (pp)",  simShape: expo(c, 2.2 * tauScale(3)), drift: 0.04 * driftScale(3), driftSeed: 37 + seedOffset(3), simAtEnd: c },
     ];
   }
   if (theme === "retention") {
     const a = 11.0 * magScale(1), b = -5.4 * magScale(2), c = 8.0 * magScale(3);
     return [
-      { key: "retained_pp", label: "Retained deposits",            simShape: expo(a, 2.2 * tauScale(1)), drift: 0.04 * driftScale(1), driftSeed: 13 + seedOffset(1), simAtEnd: a },
-      { key: "runoff_pp",   label: "Deposit runoff (Δ pp)",        simShape: expo(b, 1.8 * tauScale(2)), drift: 0.05 * driftScale(2), driftSeed: 23 + seedOffset(2), simAtEnd: b },
-      { key: "dd_pp",       label: "Direct-deposit recovery (pp)", simShape: expo(c, 2.4 * tauScale(3)), drift: 0.04 * driftScale(3), driftSeed: 37 + seedOffset(3), simAtEnd: c },
+      { key: "retained_pp", label: "Retained policies",            simShape: expo(a, 2.2 * tauScale(1)), drift: 0.04 * driftScale(1), driftSeed: 13 + seedOffset(1), simAtEnd: a },
+      { key: "runoff_pp",   label: "Lapse rate (Δ pp)",        simShape: expo(b, 1.8 * tauScale(2)), drift: 0.05 * driftScale(2), driftSeed: 23 + seedOffset(2), simAtEnd: b },
+      { key: "dd_pp",       label: "Re-engagement recovery (pp)", simShape: expo(c, 2.4 * tauScale(3)), drift: 0.04 * driftScale(3), driftSeed: 37 + seedOffset(3), simAtEnd: c },
     ];
   }
   if (theme === "smbrate") {
     const a = 41.0 * magScale(1), b = -6.5 * magScale(2), c = 5.2 * magScale(3);
     return [
-      { key: "margin_m",      label: "Margin defended ($M/yr)",         simShape: expo(a, 2.2 * tauScale(1)), drift: 0.04 * driftScale(1), driftSeed: 13 + seedOffset(1), simAtEnd: a },
-      { key: "deflection_pp", label: "Rate-shopping deflection (Δ pp)", simShape: expo(b, 1.8 * tauScale(2)), drift: 0.05 * driftScale(2), driftSeed: 23 + seedOffset(2), simAtEnd: b },
-      { key: "retained_pp",   label: "Balances retained (pp)",          simShape: expo(c, 2.2 * tauScale(3)), drift: 0.04 * driftScale(3), driftSeed: 37 + seedOffset(3), simAtEnd: c },
+      { key: "margin_m",      label: "NWP won ($M/yr)",         simShape: expo(a, 2.2 * tauScale(1)), drift: 0.04 * driftScale(1), driftSeed: 13 + seedOffset(1), simAtEnd: a },
+      { key: "deflection_pp", label: "Competitor-quote deflection (Δ pp)", simShape: expo(b, 1.8 * tauScale(2)), drift: 0.05 * driftScale(2), driftSeed: 23 + seedOffset(2), simAtEnd: b },
+      { key: "retained_pp",   label: "Leads bound (pp)",          simShape: expo(c, 2.2 * tauScale(3)), drift: 0.04 * driftScale(3), driftSeed: 37 + seedOffset(3), simAtEnd: c },
     ];
   }
   if (theme === "smbgrowth") {
     const a = 28.0 * magScale(1), b = 6.0 * magScale(2), c = 5.5 * magScale(3);
     return [
-      { key: "balances_m",  label: "New deposit balances ($M)", simShape: expo(a, 2.4 * tauScale(1)), drift: 0.05 * driftScale(1), driftSeed: 13 + seedOffset(1), simAtEnd: a },
-      { key: "growth_pp",   label: "Relationship growth (pp)",  simShape: expo(b, 2.0 * tauScale(2)), drift: 0.06 * driftScale(2), driftSeed: 23 + seedOffset(2), simAtEnd: b },
-      { key: "attach_pp",   label: "Cross-sell attach (pp)",    simShape: expo(c, 2.4 * tauScale(3)), drift: 0.04 * driftScale(3), driftSeed: 37 + seedOffset(3), simAtEnd: c },
+      { key: "balances_m",  label: "Incremental NWP ($M)", simShape: expo(a, 2.4 * tauScale(1)), drift: 0.05 * driftScale(1), driftSeed: 13 + seedOffset(1), simAtEnd: a },
+      { key: "growth_pp",   label: "Account growth (pp)",  simShape: expo(b, 2.0 * tauScale(2)), drift: 0.06 * driftScale(2), driftSeed: 23 + seedOffset(2), simAtEnd: b },
+      { key: "attach_pp",   label: "Cross-line attach (pp)",    simShape: expo(c, 2.4 * tauScale(3)), drift: 0.04 * driftScale(3), driftSeed: 37 + seedOffset(3), simAtEnd: c },
     ];
   }
   /* Wealth attach — investable-assets / advisory metric set. Used as the
@@ -745,10 +745,10 @@ function buildRctKpis(row) {
   if (theme === "wealth") {
     const a = 9.2 * magScale(1), b = 184 * magScale(2), c = -2.4 * magScale(3), d = 320 * magScale(4);
     return [
-      { key: "aum_m",     label: "Incremental AUM ($M)",       simShape: expo(a, 2.4 * tauScale(1)), drift: 0.05 * driftScale(1), driftSeed: 13 + seedOffset(1), simAtEnd: a },
-      { key: "newrel",    label: "New wealth relationships",   simShape: expo(b, 2.2 * tauScale(2)), drift: 0.04 * driftScale(2), driftSeed: 23 + seedOffset(2), simAtEnd: b, fmt: (v) => `+${Math.round(v).toLocaleString()}` },
-      { key: "flight_pp", label: "External flight (Δ pp)",     simShape: expo(c, 1.8 * tauScale(3)), drift: 0.05 * driftScale(3), driftSeed: 37 + seedOffset(3), simAtEnd: c },
-      { key: "fee_k",     label: "Fee revenue ($K)",           simShape: expo(d, 2.0 * tauScale(4)), drift: 0.04 * driftScale(4), driftSeed: 47 + seedOffset(4), simAtEnd: d, fmt: (v) => `+$${Math.round(v).toLocaleString()}K` },
+      { key: "aum_m",     label: "Incremental bundled premium ($M)",       simShape: expo(a, 2.4 * tauScale(1)), drift: 0.05 * driftScale(1), driftSeed: 13 + seedOffset(1), simAtEnd: a },
+      { key: "newrel",    label: "New bundled households",   simShape: expo(b, 2.2 * tauScale(2)), drift: 0.04 * driftScale(2), driftSeed: 23 + seedOffset(2), simAtEnd: b, fmt: (v) => `+${Math.round(v).toLocaleString()}` },
+      { key: "flight_pp", label: "Home-elsewhere churn (Δ pp)",     simShape: expo(c, 1.8 * tauScale(3)), drift: 0.05 * driftScale(3), driftSeed: 37 + seedOffset(3), simAtEnd: c },
+      { key: "fee_k",     label: "Bundled premium ($K)",           simShape: expo(d, 2.0 * tauScale(4)), drift: 0.04 * driftScale(4), driftSeed: 47 + seedOffset(4), simAtEnd: d, fmt: (v) => `+$${Math.round(v).toLocaleString()}K` },
     ];
   }
 
@@ -792,7 +792,7 @@ function buildRctKpis(row) {
     const engMag    = 1.6   * magScale(4);
     const engTau    = 1.9   * tauScale(4);
     return [
-      { key: "nii", label: "Net Interest Income",
+      { key: "nii", label: "Incremental NWP ($M)",
         simShape: (w) => niiMag * (1 - Math.exp(-w / niiTau)),
         drift: 0.05 * driftScale(1), driftSeed: 13 + seedOffset(1),
         simAtEnd: niiMag },
@@ -820,11 +820,11 @@ function buildRctKpis(row) {
   const compMag     = -840    * magScale(3);
   const compTau     = 2.0     * tauScale(3);
   return [
-    { key: "nii", label: "Net Interest Income",
+    { key: "nii", label: "Incremental NWP ($M)",
       simShape: (w) => niiMag * (1 - Math.exp(-w / niiTau)),
       drift: 0.04 * driftScale(1), driftSeed: 13 + seedOffset(1),
       simAtEnd: niiMag },
-    { key: "blocked", label: "Blocked payments",
+    { key: "blocked", label: "Endorsements added",
       simShape: (w) => blockedMag * (1 - Math.exp(-w / blockedTau)),
       drift: -0.08 * driftScale(2), driftSeed: 21 + seedOffset(2),
       simAtEnd: blockedMag },
@@ -1622,8 +1622,8 @@ function defaultLearnings(row) {
     return {
       headline: "Policy landed within CI on 3 of 4 primary KPIs · ready to promote.",
       actuals: [
-        { k: "NII",                 predicted: "+$11.9M / 8wk",   actual: "+$11.4M",       delta: "−4% vs prediction", tone: "ok" },
-        { k: "Blocked payments",    predicted: "−29,300 / qtr",   actual: "−27,900",       delta: "within CI",         tone: "ok" },
+        { k: "Incremental NWP",     predicted: "+$11.9M / 8wk",   actual: "+$11.4M",       delta: "−4% vs prediction", tone: "ok" },
+        { k: "At-risk renewals saved", predicted: "+29,300 / qtr", actual: "+27,900",      delta: "within CI",         tone: "ok" },
         { k: "Complaints",          predicted: "−840 / qtr",      actual: "−812",          delta: "within CI",         tone: "ok" },
         { k: "Fair-lending margin", predicted: "0.94",            actual: "0.93",          delta: "+0.08 above floor", tone: "ok" },
       ],
@@ -1656,20 +1656,20 @@ function defaultLearnings(row) {
 
   const NARRATIVE = {
     liquidity: {
-      surprises: ["Balances activated landed inside CI — idle cash moved into yield as modelled."],
-      didntWork: ["Activation lagged the offer by ~3 weeks — customers needed time to move idle cash."],
+      surprises: ["Telematics enrollment landed inside CI — low-mileage drivers enrolled as modelled."],
+      didntWork: ["Enrollment lagged the offer by ~3 weeks — drivers needed time to install the RightTrack device."],
     },
     retention: {
-      surprises: ["Retained deposits held inside CI — the rate match defended the relationship as modelled."],
-      didntWork: ["Direct-deposit returns lagged the rate offer by ~3 weeks before recovering."],
+      surprises: ["Retained policies held inside CI — the renewal offer defended the relationship as modelled."],
+      didntWork: ["Re-engagement lagged the renewal offer by ~3 weeks before recovering."],
     },
     smbrate: {
       surprises: ["Margin defended landed inside CI — rate-shopping deflection held across the cohort."],
       didntWork: ["Deflection took ~2 weeks to ramp as relationship managers worked the outreach list."],
     },
     smbgrowth: {
-      surprises: ["New deposit balances landed inside CI — relationship growth tracked the offer."],
-      didntWork: ["Cross-sell attach ramped slower than modelled — products attached after the deposit landed, not alongside it."],
+      surprises: ["Incremental NWP landed inside CI — account growth tracked the growth-capture quote."],
+      didntWork: ["Cross-line attach ramped slower than modelled — lines attached after the lead line bound, not alongside it."],
     },
   };
   const narr = NARRATIVE[theme];
