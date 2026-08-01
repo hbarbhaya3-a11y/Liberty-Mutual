@@ -22,6 +22,8 @@ import { ResultTileNII, ResultTileBars, ResultTileCohort } from "@/components/Si
 import SegmentedResults from "@/components/SegmentedResults";
 import { RETENTION_SEGMENTS, deriveSegments, PRODUCT_MARKET, RETENTION_PRODUCT_LABEL, RETENTION_CHANNEL_LABEL } from "@/data/segmentModels";
 import RangeWithBubble from "@/components/RangeWithBubble";
+import DualRange from "@/components/DualRange";
+import ConversationalCohortBuilder from "@/components/ConversationalCohortBuilder";
 import {
   RETENTION_HYPOTHESIS_ID,
   RETENTION_HYPOTHESIS_TITLE,
@@ -66,16 +68,16 @@ const OFFER_PRODUCT_OPTIONS = [
 ];
 
 const COVERAGE_OPTIONS = [
-  { id: "dd_switch", label: "Rebalance coverage" },
-  { id: "bill_pay",  label: "Premium-tier restructuring" },
-  { id: "auto_save", label: "Value add-ons" },
-  { id: "zelle",     label: "Telematics safety credit" },
+  { id: "dd_switch", label: "Rebalance coverage",            sub: "Right-size limits / deductibles to the risk without dropping core protection" },
+  { id: "bill_pay",  label: "Premium-tier restructuring",   sub: "Move to a matched tier with equivalent core coverage at a better price" },
+  { id: "auto_save", label: "Value add-ons",                sub: "Roadside, rental or accident-forgiveness at no / low cost" },
+  { id: "zelle",     label: "Telematics safety credit (RightTrack)", sub: "Usage-based safe-driver credit offered at renewal" },
 ];
 
 const BUNDLE_OPTIONS = [
-  { id: "auto_home",    label: "Auto → Home" },
-  { id: "auto_life",    label: "Auto → Life (Ethos)" },
-  { id: "renters_auto", label: "Renters → Auto" },
+  { id: "auto_home",    label: "Auto → Home",          sub: "Home quote pre-filled from household data · contingent bundle discount" },
+  { id: "auto_life",    label: "Auto → Life (Ethos)",  sub: "Life offer at a life-event moment via the Ethos partnership" },
+  { id: "renters_auto", label: "Renters → Auto",       sub: "Auto quote for renters with a vehicle in the household · contingent pricing" },
 ];
 
 const CHANNEL_OPTIONS = [
@@ -97,60 +99,7 @@ const DEFAULT_RANGES = {
   offerCeilingBps: { low: 25, high: 60, min: 0, max: 80,  step: 5, unit: "bps", label: "Retention-offer ceiling", caption: "Avg auto premium ~$1,650/yr · bps = increment over renewal"  },
 };
 
-/* ----------------------------------------------------------------------------
-   DualRange — two-thumb min/max slider. Mirrors gig's IfWhatConfig DualRange
-   1:1 so the .iw-dual* styles render identically.
----------------------------------------------------------------------------- */
-function DualRange({ min, max, step, low, high, onChange, unit = "", marker, markers }) {
-  /* Coerce to numbers — callers may pass formatted strings (e.g. "3.95"). */
-  low = Number(low); high = Number(high);
-  const setLow = (v) => onChange({ low: Math.min(Number(v), high - step), high });
-  const setHigh = (v) => onChange({ low, high: Math.max(Number(v), low + step) });
-  const range = max - min;
-  const fillLeft = ((low - min) / range) * 100;
-  const fillRight = ((high - min) / range) * 100;
-  /* Match Chrome's native thumb positioning (thumb-center clamped to
-     [thumbWidth/2, W - thumbWidth/2]) so the visible custom thumbs sit
-     exactly where the invisible native thumbs receive drag. */
-  const thumbCenter = (pct) => `calc(11px + ${pct}% - ${(pct * 0.22).toFixed(3)}px)`;
-  const lowAt  = thumbCenter(fillLeft);
-  const highAt = thumbCenter(fillRight);
-  /* Reference markers — `markers={[{value,label,strong}]}` or legacy `marker`.
-     `strong` (e.g. Market) renders boldly in the accent; others render faint. */
-  const markerList = (markers && markers.length ? markers : (marker ? [marker] : []))
-    .filter((m) => m && m.value != null);
-  return (
-    <div className="iw-dual">
-      <div className="iw-dual-track" />
-      <div className="iw-dual-fill" style={{ left: lowAt, right: `calc(100% - ${highAt})` }} />
-      {/* Reference markers (e.g. today's / competitor rate). */}
-      {markerList.map((m, i) => (
-        <div
-          key={i}
-          className={"iw-dual-marker" + (m.strong ? " strong" : "")}
-          style={{ left: thumbCenter(((Number(m.value) - min) / range) * 100) }}
-        >
-          <span className="iw-dual-marker-l" style={{ left: "50%" }}>{m.label}</span>
-        </div>
-      ))}
-      {/* Custom visible thumbs — opaque, sit on top of the fill so they cap it cleanly. */}
-      <div className="iw-dual-thumb iw-dual-thumb-low"  style={{ left: lowAt }} />
-      <div className="iw-dual-thumb iw-dual-thumb-high" style={{ left: highAt }} />
-      <div className="iw-dual-bubble iw-dual-bubble-low"  style={{ left: lowAt }}>{low}{unit}</div>
-      <div className="iw-dual-bubble iw-dual-bubble-high" style={{ left: highAt }}>{high}{unit}</div>
-      <input
-        type="range" min={min} max={max} step={step} value={low}
-        onChange={(e) => setLow(e.target.value)}
-        className="iw-dual-input iw-dual-input-low" aria-label="Minimum"
-      />
-      <input
-        type="range" min={min} max={max} step={step} value={high}
-        onChange={(e) => setHigh(e.target.value)}
-        className="iw-dual-input iw-dual-input-high" aria-label="Maximum"
-      />
-    </div>
-  );
-}
+
 
 /* RangeRow — gig's lever-row + iw-range-pill structure for numeric ranges. */
 function RangeRow({ label, caption, unit, min, max, step, low, high, onChange, ticks, marker, markers }) {
@@ -213,7 +162,12 @@ function MinRow({ label, caption, unit, min, max, step, value, onChange, ticks }
    ranges, honouring the products/channels they allow. Scaled against
    RETENTION_CALIBRATION so numbers stay plausible.
 ---------------------------------------------------------------------------- */
-function runOptimizer(objective, ranges, productOffers, allowedChannels, cohortPresets) {
+/* ----------------------------------------------------------------------------
+   Mock optimizer — returns top-3 retention policies inside the user's
+   ranges, honouring the products/channels they allow. Scaled against
+   RETENTION_CALIBRATION so numbers stay plausible.
+---------------------------------------------------------------------------- */
+function runOptimizer(objective, ranges, productOffers, bundleOffers, allowedCoverage, allowedChannels, noticeDays, cohortPresets) {
   const C = RETENTION_CALIBRATION;
   const COHORT_COUNTS = {
     "full":               C.cohortTotal,
@@ -228,88 +182,111 @@ function runOptimizer(objective, ranges, productOffers, allowedChannels, cohortP
     ? C.cohortTotal
     : list.reduce((s, id) => s + (COHORT_COUNTS[id] || 0), 0) || C.eligibleAfterGate;
   const selProd = Object.keys(productOffers);
-  const pickProduct = (preferred, fallback) =>
-    selProd.includes(preferred) ? preferred
-    : selProd.includes(fallback) ? fallback
-    : selProd[0] || "cd_12mo";
+  const selBundles = Object.keys(bundleOffers || {});
 
   const clamp = (range, val) => Math.max(range.low, Math.min(range.high, val));
-  // Resolve an offer target (bps, or "high") into a picked offer PER product,
-  // clamped inside each product's own [low,high] range.
   const offerMap = (target) => Object.fromEntries(selProd.map((id) => {
-    const [lo, hi] = productOffers[id];
-    return [id, target === "high" ? hi : Math.max(lo, Math.min(hi, target))];
+    const r = productOffers[id];
+    const [lo, hi] = Array.isArray(r) ? r : [20, 60];
+    const targetVal = target === "high" ? hi : typeof target === "number" ? target : Math.round((lo + hi) / 2);
+    return [id, Math.max(lo, Math.min(hi, targetVal))];
   }));
-  const blended = (m) => { const v = Object.values(m); return v.length ? Math.round(v.reduce((a, b) => a + b, 0) / v.length) : 0; };
 
-  /* Fairness margin is positioned to spread the anchors ALONG the
-     Pareto trade-off so the chart shows a real curve, not 3 clustered
-     points. Higher retained-$ → lower fairness (more aggressive eligibility);
-     lower retained-$ → higher fairness (more selective, anchored cohort). */
+  const bundleMap = (target) => Object.fromEntries(selBundles.map((id) => {
+    const r = bundleOffers ? bundleOffers[id] : null;
+    const [lo, hi] = Array.isArray(r) ? r : [10, 30];
+    const targetVal = target === "high" ? hi : typeof target === "number" ? target : Math.round((lo + hi) / 2);
+    return [id, Math.max(lo, Math.min(hi, targetVal))];
+  }));
+
+  const blended = (m) => {
+    if (!m || typeof m !== "object") return 25;
+    const v = Object.values(m).filter((x) => typeof x === "number" && !isNaN(x));
+    return v.length ? Math.round(v.reduce((a, b) => a + b, 0) / v.length) : 25;
+  };
+
   const fairnessFor = (retainedScale) => {
-    // Linear inverse mapping: retainedScale 0.7 → 0.97, 1.0 → 0.92, 1.3 → 0.87
     const f = 0.97 - (retainedScale - 0.7) * (0.10 / 0.6);
     return Math.max(0.86, Math.min(0.98, f));
   };
 
-  const mkRec = (id, rank, name, sub, picks, retainedScale, runoffScale) => ({
-    id, rank, name, sub,
-    picks: { ...picks, blendedBps: blended(picks.productOffers), channels: allowedChannels, cohortPresets: list },
-    outcomes: {
-      retainedM: C.retainedDepositsAnnualM * retainedScale * (cohortBase / C.eligibleAfterGate),
-      runoffReductionPp: (C.runoffReductionPp * 100) * runoffScale,
-      ddRecoveryPp: 6 + (rank === 1 ? 2 : 0),
-      netAnnualisedK: Math.round(C.netAnnualisedK * retainedScale - C.offerCostM * 1000 * (blended(picks.productOffers) / 40 - 1)),
-      fairnessMargin: fairnessFor(retainedScale),
-      treatmentN: Math.round((cohortBase * 0.8) * (picks.minBalanceK <= 30 ? 1.0 : 0.85)),
-    },
-  });
+  const mkRec = (id, rank, name, sub, picks, retainedScale, runoffScale) => {
+    const prodOffersMap = picks.productOffers || offerMap("mid");
+    const bundOffersMap = picks.bundleOffers || bundleMap("mid");
+    const bpsVal = blended(prodOffersMap);
+    const bundleBpsVal = blended(bundOffersMap);
+
+    const bundleLiftVal = selBundles.length * 0.04 + (bundleBpsVal / 100) * 0.08;
+    const coverageLiftVal = (allowedCoverage || []).length * 0.03;
+
+    let calcRetainedM = C.retainedDepositsAnnualM * (retainedScale + bundleLiftVal + coverageLiftVal) * (cohortBase / C.eligibleAfterGate);
+    if (isNaN(calcRetainedM) || calcRetainedM <= 0) calcRetainedM = 19.3 * retainedScale;
+
+    let calcRunoff = (C.runoffReductionPp * 100) * runoffScale;
+    if (isNaN(calcRunoff) || calcRunoff <= 0) calcRunoff = 2.3 * runoffScale;
+
+    let calcDD = 6 + Math.round(bundleBpsVal / 10) + (rank === 1 ? 2 : 0);
+    if (isNaN(calcDD) || calcDD <= 0) calcDD = 8;
+
+    return {
+      id, rank, name, sub,
+      picks: {
+        ...picks,
+        productOffers: prodOffersMap,
+        blendedBps: bpsVal,
+        bundleOffers: bundOffersMap,
+        allowedCoverage: allowedCoverage || [],
+        channels: allowedChannels,
+        noticeDays: Array.isArray(noticeDays) ? noticeDays : [noticeDays],
+        cohortPresets: list
+      },
+      outcomes: {
+        retainedM: +calcRetainedM.toFixed(1),
+        runoffReductionPp: +calcRunoff.toFixed(2),
+        ddRecoveryPp: calcDD,
+        netAnnualisedK: Math.round(C.netAnnualisedK * retainedScale - C.offerCostM * 1000 * (bpsVal / 40 - 1)),
+        fairnessMargin: fairnessFor(retainedScale),
+        treatmentN: Math.round((cohortBase * 0.8) * ((picks.minBalanceK || 25) <= 30 ? 1.0 : 0.85)),
+      },
+    };
+  };
 
   if (objective === "retained_deposits") {
     return [
       mkRec("balanced", 1, "Balanced defender",
-        "Mid-range rate cap + $100 offer · keeps net annualised firmly positive.",
-        { productOffers: offerMap(40), minBalanceK: clamp(ranges.minBalanceK, 25),
-          offerTerm: pickProduct("cd_12mo", "cd_6mo") }, 1.05, 1.00),
+        "Mid-range rate cap + $100 offer · contingent bundle discount · keeps net annualised firmly positive.",
+        { productOffers: offerMap(40), bundleOffers: bundleMap(25), minBalanceK: clamp(ranges.minBalanceK, 25) }, 1.05, 1.00),
       mkRec("aggressive", 2, "Aggressive defender",
-        "Pushes the offer ceiling to capture the rate-elastic tail — higher upside, thinner net margin.",
-        { productOffers: offerMap("high"), minBalanceK: ranges.minBalanceK.low,
-          offerTerm: pickProduct("cd_18mo", "cd_12mo") }, 1.18, 1.12),
+        "Pushes offer ceiling & bundle discount to capture rate-elastic tail — higher upside.",
+        { productOffers: offerMap("high"), bundleOffers: bundleMap("high"), minBalanceK: ranges.minBalanceK.low }, 1.18, 1.12),
       mkRec("selective", 3, "Selective defender",
         "Higher LTV floor + lower offer — narrower cohort, highest cost-efficiency.",
-        { productOffers: offerMap(30), minBalanceK: clamp(ranges.minBalanceK, 50),
-          offerTerm: pickProduct("cd_12mo", "cd_6mo") }, 0.78, 0.85),
+        { productOffers: offerMap(30), bundleOffers: bundleMap(15), minBalanceK: clamp(ranges.minBalanceK, 50) }, 0.78, 0.85),
     ];
   }
   if (objective === "runoff_reduction") {
     return [
       mkRec("steepest", 1, "Steepest runoff cut",
         "Highest offer + broadest eligibility — maximum reduction in renewals lapsing.",
-        { productOffers: offerMap("high"), minBalanceK: ranges.minBalanceK.low,
-          offerTerm: pickProduct("cd_18mo", "cd_12mo") }, 1.20, 1.25),
+        { productOffers: offerMap("high"), bundleOffers: bundleMap("high"), minBalanceK: ranges.minBalanceK.low }, 1.20, 1.25),
       mkRec("broad", 2, "Broad reach",
-        "Captures more pre-shopping customers with a 12-month commitment.",
-        { productOffers: offerMap(45), minBalanceK: ranges.minBalanceK.low,
-          offerTerm: pickProduct("cd_12mo", "cd_6mo") }, 1.10, 1.18),
+        "Captures more pre-shopping customers with 12-month commitment & bundle discount.",
+        { productOffers: offerMap(45), bundleOffers: bundleMap(25), minBalanceK: ranges.minBalanceK.low }, 1.10, 1.18),
       mkRec("conservative", 3, "Conservative",
         "Smaller move — still measurable, much cheaper to run.",
-        { productOffers: offerMap(35), minBalanceK: clamp(ranges.minBalanceK, 30),
-          offerTerm: pickProduct("cd_12mo", "cd_6mo") }, 0.88, 0.95),
+        { productOffers: offerMap(35), bundleOffers: bundleMap(15), minBalanceK: clamp(ranges.minBalanceK, 30) }, 0.88, 0.95),
     ];
   }
   return [
     mkRec("primacy", 1, "Bundle-leveraged",
-      "Bundle nudge prompts households to add a home/umbrella policy at the save moment — primary mechanism for bundle penetration.",
-      { productOffers: offerMap(50), minBalanceK: ranges.minBalanceK.low,
-        offerTerm: pickProduct("elite_mma", "smart_savings") }, 0.90, 0.95),
+      "Bundle nudge prompts households to add home/umbrella policy at save moment — primary mechanism for bundle penetration.",
+      { productOffers: offerMap(50), bundleOffers: bundleMap("high"), minBalanceK: ranges.minBalanceK.low }, 0.90, 0.95),
     mkRec("mixed", 2, "Mixed approach",
-      "Short CD bridges retention and re-engagement.",
-      { productOffers: offerMap(40), minBalanceK: ranges.minBalanceK.low,
-        offerTerm: pickProduct("cd_6mo", "cd_12mo") }, 0.95, 0.98),
+      "Balanced offer + bundle discount bridges retention and re-engagement.",
+      { productOffers: offerMap(40), bundleOffers: bundleMap(25), minBalanceK: ranges.minBalanceK.low }, 0.95, 0.98),
     mkRec("wide", 3, "Wide net",
-      "Smart Savings catches the broadest sub-segment of returners.",
-      { productOffers: offerMap(45), minBalanceK: ranges.minBalanceK.low,
-        offerTerm: pickProduct("smart_savings", "elite_mma") }, 0.98, 1.00),
+      "Loyalty discount tier catches broadest sub-segment of returners.",
+      { productOffers: offerMap(45), bundleOffers: bundleMap(20), minBalanceK: ranges.minBalanceK.low }, 0.98, 1.00),
   ];
 }
 
@@ -534,12 +511,41 @@ export default function RetentionIfWhatView() {
   const [productOffers, setProductOffers]     = useState({ cd_12mo: [30, 50], cd_18mo: [20, 40] });
   const allowedProducts = Object.keys(productOffers);
   const [allowedChannels, setAllowedChannels] = useState(["app", "email", "banker"]);
-  const [allowedCoverage, setAllowedCoverage] = useState([]);
-  const [allowedBundles,  setAllowedBundles]  = useState(["auto_home"]);
-  const [noticeDays,      setNoticeDays]      = useState(45);
+  const [allowedCoverage, setAllowedCoverage] = useState(["dd_switch"]);
+  const [bundleOffers,    setBundleOffers]    = useState({ auto_home: [15, 35] });
+  const [noticeDays,      setNoticeDays]      = useState([45]);
+  const [customNotice,    setCustomNotice]    = useState("");
   const [multiTouch,      setMultiTouch]      = useState(true);
+
   const toggleCoverage = (id) => setAllowedCoverage((cur) => cur.includes(id) ? cur.filter((c) => c !== id) : [...cur, id]);
-  const toggleBundle   = (id) => setAllowedBundles((cur) => cur.includes(id) ? cur.filter((c) => c !== id) : [...cur, id]);
+
+  const toggleBundle = (id) => setBundleOffers((cur) => {
+    if (cur[id] != null) {
+      const next = { ...cur };
+      delete next[id];
+      return Object.keys(next).length ? next : cur;
+    }
+    return { ...cur, [id]: [15, 35] };
+  });
+
+  const setBundleRange = (id, low, high) => setBundleOffers((cur) => ({ ...cur, [id]: [low, high] }));
+
+  const toggleNotice = (d) => setNoticeDays((cur) => {
+    const list = Array.isArray(cur) ? cur : [cur];
+    if (list.includes(d)) return list.length === 1 ? list : list.filter((x) => x !== d);
+    return [...list, d].sort((a, b) => a - b);
+  });
+
+  const addCustomNotice = () => {
+    const d = parseInt(customNotice, 10);
+    if (!Number.isFinite(d) || d < 7 || d > 120) return;
+    setNoticeDays((cur) => {
+      const list = Array.isArray(cur) ? cur : [cur];
+      if (list.includes(d)) return list;
+      return [...list, d].sort((a, b) => a - b);
+    });
+    setCustomNotice("");
+  };
   /* Campaign duration — single configurable value (not a range). Default
      8wk matches the calibration anchor every result tile is scored against. */
   const [simWeeks, setSimWeeks] = useState(8);
@@ -572,7 +578,7 @@ export default function RetentionIfWhatView() {
   }, [pushAgentEvent, objective]);
 
   const onLoaderComplete = useCallback(() => {
-    const recs = runOptimizer(objective, ranges, productOffers, allowedChannels, cohortPresets);
+    const recs = runOptimizer(objective, ranges, productOffers, bundleOffers, allowedCoverage, allowedChannels, noticeDays, cohortPresets);
     setRecs(recs);
     setSelectedRecId(recs[0]?.id || null);
     setMode("results");
@@ -580,7 +586,7 @@ export default function RetentionIfWhatView() {
       kind: "good", src: "Optimizer",
       text: `Found ${recs.length} retention policies · top pick: ${recs[0]?.name}`,
     });
-  }, [objective, ranges, productOffers, allowedChannels, cohortPresets, pushAgentEvent]);
+  }, [objective, ranges, productOffers, bundleOffers, allowedCoverage, allowedChannels, noticeDays, cohortPresets, pushAgentEvent]);
 
   const onLoaderCancel = useCallback(() => setMode("config"), []);
 
@@ -642,8 +648,11 @@ export default function RetentionIfWhatView() {
     const _seg = selected ? deriveSegments(RET_SEG_MODEL, {
       cohortPresets: selected.picks.cohortPresets,
       productOffers: selected.picks.productOffers,   // per-product picked offers → per-product effective rates
+      bundleOffers: selected.picks.bundleOffers,
+      bundles: Object.keys(selected.picks.bundleOffers || {}),
+      bankingServices: selected.picks.allowedCoverage,
       channels: (allowedChannels && allowedChannels.length ? allowedChannels : ["app", "email", "banker"]),
-      noticeDays: [noticeDays],   // per-segment reach-out lead in the deep-dive table
+      noticeDays: Array.isArray(noticeDays) ? noticeDays : [noticeDays],   // per-segment reach-out lead in the deep-dive table
     }, _o) : null;
     // runoffReductionPp from the optimizer is ALREADY in pp (= C.runoffBau*100*scale).
     const _baseRunoffPp = RETENTION_CALIBRATION.runoffBau * 100;
@@ -669,9 +678,11 @@ export default function RetentionIfWhatView() {
           .map(([id, bps]) => `${fmtProduct(id)} ${((PRODUCT_MARKET[id] ?? 0) + bps / 100).toFixed(2)}%`)
           .join(" · ") || "—" },
       { k: "Coverage", v: allowedCoverage.map((c) => COVERAGE_OPTIONS.find((o) => o.id === c)?.label).filter(Boolean).join(", ") || "—" },
-      { k: "Bundle", v: allowedBundles.map((c) => BUNDLE_OPTIONS.find((o) => o.id === c)?.label).filter(Boolean).join(", ") || "—" },
+      { k: "Bundle", v: Object.entries(selected.picks.bundleOffers || bundleOffers)
+          .map(([id, rng]) => `${BUNDLE_OPTIONS.find((o) => o.id === id)?.label || id} (-${Array.isArray(rng) ? Math.round((rng[0] + rng[1]) / 2) : rng} bps)`)
+          .join(" · ") || "—" },
       { k: "Channels", v: selected.picks.channels.map((c) => CHANNEL_OPTIONS.find((o) => o.id === c)?.label).filter(Boolean).join(", ") },
-      { k: "Timing", v: `${noticeDays}-day notice${multiTouch ? " · multi-touch" : ""}` },
+      { k: "Timing", v: `${(Array.isArray(noticeDays) ? noticeDays : [noticeDays]).join(" / ")}-day notice${multiTouch ? " · multi-touch" : ""}` },
       { k: "Treated", v: `${(_seg ? _seg.rollup.reach : 0).toLocaleString()} customers` },
     ] : [];
     const _chartsGrid = selected ? (
@@ -843,7 +854,8 @@ export default function RetentionIfWhatView() {
                   accent="#ffb15a"
                   objective={objLabel}
                   valueLabel="NWP protected / yr"
-                  offerLabel="Rate-cap move"
+                  productHeader="Offer"
+                  hideRateCap={true}
                   rateLabel="Renewal rate"
                   segments={_seg}
                   policy={_policy}
@@ -1021,6 +1033,14 @@ export default function RetentionIfWhatView() {
               </div>
             )}
           </div>
+
+          {/* Conversational AI Cohort Builder */}
+          <ConversationalCohortBuilder
+            onApplyCohort={(customCohort) => {
+              setClusterPicks([customCohort.id]);
+            }}
+            isAutopilot={isAutopilot}
+          />
         </div>
 
         {/* 3 · ELIGIBILITY — single minimum-balance threshold */}
@@ -1068,7 +1088,7 @@ export default function RetentionIfWhatView() {
                     <label className="px-offer-head">
                       <input type="checkbox" checked={sel} onChange={() => toggleProduct(p.id)} disabled={isAutopilot} />
                       <span className="px-offer-name"><span className="px-offer-l">{p.label}</span></span>
-                      {!sel && <span className="px-offer-mkt">market {mkt.toFixed(2)}%</span>}
+                      {!sel && <span className="px-offer-mkt">competitor quote {mkt.toFixed(2)}%</span>}
                     </label>
                     {sel && (
                       <div className="px-offer-body">
@@ -1076,9 +1096,9 @@ export default function RetentionIfWhatView() {
                           low={rng[0]} high={rng[1]}
                           onChange={({ low, high }) => setProductRange(p.id, low, high)} />
                         <div className="px-offer-eff">
-                          <span className="rate-ref-item is-market"><span className="rate-ref-l">market</span><span className="rate-ref-v">{mkt.toFixed(2)}%</span></span>
+                          <span className="rate-ref-item is-market"><span className="rate-ref-l">competitor quote</span><span className="rate-ref-v">{mkt.toFixed(2)}%</span></span>
                           <span className="px-offer-arrow">→</span>
-                          <span className="rate-ref-item"><span className="rate-ref-l">offer range</span><span className="rate-ref-v">{(mkt + rng[0] / 100).toFixed(2)}–{(mkt + rng[1] / 100).toFixed(2)}%</span></span>
+                          <span className="rate-ref-item"><span className="rate-ref-l">offer range</span><span className="rate-ref-v">{(mkt - rng[1] / 100).toFixed(2)}–{(mkt - rng[0] / 100).toFixed(2)}%</span></span>
                         </div>
                       </div>
                     )}
@@ -1089,7 +1109,7 @@ export default function RetentionIfWhatView() {
           </div>
         </div>
 
-        {/* 5 · COVERAGE — levers the optimizer may layer on */}
+        {/* 5 · COVERAGE — non-price value add-on levers */}
         <div className="sim-lever-section sim-lever-section-products">
           <div className="sim-lever-section-band">
             <span className="sim-lever-section-num">5</span>
@@ -1102,41 +1122,58 @@ export default function RetentionIfWhatView() {
               <span className="lever-value">{allowedCoverage.length} of {COVERAGE_OPTIONS.length}</span>
             </div>
             <div className="lever-caption">Non-price levers the optimizer may add to hold the policy on value.</div>
-            <div className="lever-checks">
+            <div className="px-offer-list" style={{ display: "grid", gap: 10, marginTop: 8 }}>
               {COVERAGE_OPTIONS.map((c) => {
                 const on = allowedCoverage.includes(c.id);
                 return (
-                  <label key={c.id} className={"lever-check" + (on ? " on" : "")}>
-                    <input type="checkbox" checked={on} onChange={() => toggleCoverage(c.id)} disabled={isAutopilot} />
-                    {c.label}
-                  </label>
+                  <div key={c.id} className={"px-offer-card" + (on ? " is-selected" : "")} style={{ border: "1px solid var(--hair)", borderRadius: 8, padding: "10px 12px", background: on ? "rgba(91, 157, 255, 0.08)" : "var(--bg-2)" }}>
+                    <label style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer" }}>
+                      <input type="checkbox" checked={on} onChange={() => toggleCoverage(c.id)} disabled={isAutopilot} />
+                      <span style={{ fontWeight: 600, fontSize: 13, color: "var(--ink)" }}>{c.label}</span>
+                    </label>
+                    <div style={{ fontSize: 11.5, color: "var(--ink-3)", marginTop: 2, marginLeft: 24 }}>{c.sub}</div>
+                  </div>
                 );
               })}
             </div>
           </div>
         </div>
 
-        {/* 6 · BUNDLE — cross-line contingent-pricing plays */}
+        {/* 6 · BUNDLE — cross-line contingent-pricing plays with discount bps ranges */}
         <div className="sim-lever-section sim-lever-section-products">
           <div className="sim-lever-section-band">
             <span className="sim-lever-section-num">6</span>
             <span className="sim-lever-section-name">BUNDLE</span>
-            <span className="sim-lever-section-meta">Auto → Home · Auto → Life (Ethos) · Renters → Auto — contingent pricing</span>
+            <span className="sim-lever-section-meta">Auto → Home · Auto → Life (Ethos) · Renters → Auto — contingent pricing &amp; discount ranges</span>
           </div>
           <div className="lever-row">
             <div className="lever-head">
-              <span className="lever-name">Bundle plays allowed</span>
-              <span className="lever-value">{allowedBundles.length} of {BUNDLE_OPTIONS.length}</span>
+              <span className="lever-name">Bundle plays &amp; discount ranges</span>
+              <span className="lever-value">{Object.keys(bundleOffers).length} of {BUNDLE_OPTIONS.length}</span>
             </div>
-            <div className="lever-caption">Cross-line offers the optimizer may attach; bundled households retain 7.0y vs 5.5y.</div>
-            <div className="lever-checks">
-              {BUNDLE_OPTIONS.map((c) => {
-                const on = allowedBundles.includes(c.id);
+            <div className="lever-caption">Cross-line offers the optimizer may attach; set the contingent discount range (bps) for each allowed bundle play.</div>
+            <div className="px-offer-list" style={{ display: "grid", gap: 10, marginTop: 8 }}>
+              {BUNDLE_OPTIONS.map((b) => {
+                const rng = bundleOffers[b.id];
+                const sel = rng != null;
                 return (
-                  <label key={c.id} className={"lever-check" + (on ? " on" : "")}>
-                    <input type="checkbox" checked={on} onChange={() => toggleBundle(c.id)} disabled={isAutopilot} />
-                    {c.label}
-                  </label>
+                  <div key={b.id} className={"px-offer-card" + (sel ? " is-selected" : "")} style={{ border: "1px solid var(--hair)", borderRadius: 8, padding: "10px 12px", background: sel ? "rgba(183, 148, 246, 0.08)" : "var(--bg-2)" }}>
+                    <label className="px-offer-head" style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer" }}>
+                      <input type="checkbox" checked={sel} onChange={() => toggleBundle(b.id)} disabled={isAutopilot} />
+                      <span className="px-offer-name" style={{ fontWeight: 600, fontSize: 13, color: "var(--ink)" }}>{b.label}</span>
+                    </label>
+                    <div style={{ fontSize: 11.5, color: "var(--ink-3)", marginTop: 2, marginLeft: 24 }}>{b.sub}</div>
+                    {sel && (
+                      <div className="px-offer-body" style={{ marginTop: 8, marginLeft: 24 }}>
+                        <DualRange min={0} max={80} step={5} unit=" bps"
+                          low={rng[0]} high={rng[1]}
+                          onChange={({ low, high }) => setBundleRange(b.id, low, high)} />
+                        <div className="px-offer-eff" style={{ fontSize: 11, color: "var(--ink-2)", marginTop: 4 }}>
+                          <span className="rate-ref-item"><span className="rate-ref-l">contingent discount range: </span><b>{rng[0]}–{rng[1]} bps</b></span>
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 );
               })}
             </div>
@@ -1179,17 +1216,45 @@ export default function RetentionIfWhatView() {
           </div>
           <div className="lever-row">
             <div className="lever-head">
-              <span className="lever-name">Renewal notice</span>
-              <span className="lever-value">{noticeDays}-day notice</span>
+              <span className="lever-name">Renewal notice lead</span>
+              <span className="lever-value">{(Array.isArray(noticeDays) ? noticeDays : [noticeDays]).map((d) => `${d}d`).join(" · ")} notice</span>
             </div>
-            <div className="lever-caption">How many days before renewal the optimizer may open outreach.</div>
-            <div className="lever-checks">
-              {[35, 45, 60].map((d) => (
-                <label key={d} className={"lever-check" + (noticeDays === d ? " on" : "")}>
-                  <input type="radio" name="iw-notice" checked={noticeDays === d} onChange={() => setNoticeDays(d)} disabled={isAutopilot} />
-                  {d}-day
+            <div className="lever-caption">How many days before renewal the optimizer may open outreach. Select preset lead horizons or enter custom lead.</div>
+            <div className="lever-checks" style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+              {(Array.isArray(noticeDays) ? noticeDays : [noticeDays]).map((d) => (
+                <label key={d} className="lever-check on" style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "6px 12px", background: "rgba(66, 224, 139, 0.12)", border: "1px solid var(--green)", borderRadius: 6, fontSize: 12, cursor: "pointer" }}>
+                  <input type="checkbox" checked={true} onChange={() => toggleNotice(d)} disabled={isAutopilot} />
+                  {d}-day lead
                 </label>
               ))}
+              {[35, 45, 60].filter((p) => !(Array.isArray(noticeDays) ? noticeDays : [noticeDays]).includes(p)).map((p) => (
+                <label key={p} className="lever-check" style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "6px 12px", background: "var(--bg-2)", border: "1px solid var(--hair)", borderRadius: 6, fontSize: 12, cursor: "pointer" }}>
+                  <input type="checkbox" checked={false} onChange={() => toggleNotice(p)} disabled={isAutopilot} />
+                  {p}-day lead
+                </label>
+              ))}
+            </div>
+            <div className="notice-custom" style={{ display: "flex", gap: 8, marginTop: 10 }}>
+              <input
+                type="number"
+                min={7}
+                max={120}
+                placeholder="custom (7–120)"
+                value={customNotice}
+                onChange={(e) => setCustomNotice(e.target.value)}
+                onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addCustomNotice(); } }}
+                disabled={isAutopilot}
+                style={{ width: 130, padding: "6px 10px", borderRadius: 6, border: "1px solid var(--hair)", background: "var(--bg-2)", color: "var(--ink)", fontSize: 12 }}
+              />
+              <button
+                type="button"
+                className="notice-custom-add"
+                onClick={addCustomNotice}
+                disabled={isAutopilot}
+                style={{ padding: "6px 14px", borderRadius: 6, border: "1px solid var(--green)", background: "rgba(66, 224, 139, 0.15)", color: "var(--ink)", cursor: "pointer", fontSize: 12, fontWeight: 700 }}
+              >
+                + Add lead
+              </button>
             </div>
           </div>
           <div className="lever-row">

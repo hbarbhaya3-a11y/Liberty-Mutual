@@ -37,6 +37,8 @@ const RET_SEG_MODEL = {
   channelLabels: RETENTION_CHANNEL_LABEL,
 };
 import RangeWithBubble from "@/components/RangeWithBubble";
+import DualRange from "@/components/DualRange";
+import ConversationalCohortBuilder from "@/components/ConversationalCohortBuilder";
 import { MOCK_EXPERIMENTS } from "@/workspaces/LearnWorkspace";
 import RetentionIfWhatView from "@/workspaces/RetentionIfWhatView";
 import {
@@ -434,10 +436,19 @@ export default function RetentionSimulateView() {
   const [channels,          setChannels]          = useState(RECOMMENDED.channels);
   const [cohortPresets,     setCohortPresets]     = useState(["rate-sensitive"]);
   const [bankingServices,   setBankingServices]   = useState(RECOMMENDED.bankingServices);
+  const [bundleOffers,      setBundleOffers]      = useState({ auto_home: [15, 35] });
   const [bundles,           setBundles]           = useState(RECOMMENDED.bundles);
   const [multiTouch,        setMultiTouch]        = useState(RECOMMENDED.multiTouch);
   const [noticeDays,        setNoticeDays]        = useState(RECOMMENDED.noticeDays);
   const [customNotice,      setCustomNotice]      = useState("");
+
+  const toggleBundleOffer = (id) => setBundleOffers((cur) => {
+    if (cur[id]) {
+      const next = { ...cur }; delete next[id]; return next;
+    }
+    return { ...cur, [id]: [10, 30] };
+  });
+  const setBundleRange = (id, low, high) => setBundleOffers((cur) => ({ ...cur, [id]: [low, high] }));
   // Representative scalar the outcome math scores against (single horizon).
   const triggerWindowDays = primaryNoticeDay(noticeDays);
   const toggleNotice = (d) => setNoticeDays((cur) =>
@@ -885,6 +896,14 @@ export default function RetentionSimulateView() {
               </div>
             )}
           </div>
+
+          {/* Conversational AI Cohort Builder */}
+          <ConversationalCohortBuilder
+            onApplyCohort={(customCohort) => {
+              setCohortPresets([customCohort.id]);
+            }}
+            isAutopilot={isAutopilot}
+          />
         </div>
 
         {/* Section 2 · ELIGIBILITY (violet accent) — Who in the cohort qualifies */}
@@ -941,7 +960,7 @@ export default function RetentionSimulateView() {
                         <span className="px-offer-l">{p.label}</span>
                         <span className="px-offer-sub">{p.sub}</span>
                       </span>
-                      {!sel && <span className="px-offer-mkt">market {mkt.toFixed(2)}%</span>}
+                      {!sel && <span className="px-offer-mkt">competitor quote {mkt.toFixed(2)}%</span>}
                     </label>
                     {sel && (
                       <div className="px-offer-body">
@@ -949,11 +968,12 @@ export default function RetentionSimulateView() {
                           value={bps}
                           onChange={(e) => setProductOffer(p.id, +e.target.value)}
                           disabled={isAutopilot}
-                          formatter={(v) => `+${v} bps`} />
+                          formatter={(v) => `−${v} bps discount`} />
                         <div className="px-offer-eff">
-                          <span className="rate-ref-item is-market"><span className="rate-ref-l">market</span><span className="rate-ref-v">{mkt.toFixed(2)}%</span></span>
+                          <span className="rate-ref-item is-market"><span className="rate-ref-l">competitor quote</span><span className="rate-ref-v">{mkt.toFixed(2)}%</span></span>
                           <span className="px-offer-arrow">→</span>
-                          <span className="rate-ref-item"><span className="rate-ref-l">your offer</span><span className="rate-ref-v">{(mkt + bps / 100).toFixed(2)}%</span></span>
+                          <span className="rate-ref-item"><span className="rate-ref-l">our renewal rate</span><span className="rate-ref-v">{(mkt - bps / 100).toFixed(2)}%</span></span>
+                          <span className="rate-ref-item" style={{ marginLeft: "auto", color: "var(--green)", fontWeight: 700 }}>−{bps} bps savings</span>
                         </div>
                       </div>
                     )}
@@ -1006,32 +1026,42 @@ export default function RetentionSimulateView() {
           </LeverRow>
         </div>
 
-        {/* Section 5 · BUNDLE — cross-line contingent-pricing plays */}
+        {/* Section 5 · BUNDLE — cross-line contingent-pricing plays with discount range sliders */}
         <div className="sim-lever-section sim-lever-section-products">
           <div className="sim-lever-section-band">
             <div className="sim-lever-section-num">5</div>
             <div className="sim-lever-section-name">BUNDLE</div>
-            <div className="sim-lever-section-meta">Auto → Home · Auto → Life (Ethos) · Renters → Auto — contingent pricing</div>
+            <div className="sim-lever-section-meta">Auto → Home · Auto → Life (Ethos) · Renters → Auto — contingent pricing &amp; discount ranges</div>
           </div>
 
           <LeverRow
-            label="Bundle plays"
-            caption="Cross-line offers that turn a single-line renewal into a multi-line household — bundled households retain 7.0 years vs 5.5. Each play is contingent-priced and pre-filled from household data."
-            value={bundles.length === 0 ? "none selected" : `${bundles.length} of ${BUNDLE_OPTIONS.length}`}
-            offDefault={bundles.length !== RECOMMENDED.bundles.length}
+            label="Bundle plays &amp; contingent discount ranges"
+            caption="Cross-line offers that turn a single-line renewal into a multi-line household. Set the contingent discount range (bps) for each allowed bundle play."
+            value={Object.keys(bundleOffers).length === 0 ? "none selected" : `${Object.keys(bundleOffers).length} of ${BUNDLE_OPTIONS.length}`}
+            offDefault={Object.keys(bundleOffers).length === 0}
           >
-            <div className="iw-objectives">
-              {BUNDLE_OPTIONS.map((s) => {
-                const checked = bundles.includes(s.id);
+            <div className="px-offer-list" style={{ display: "grid", gap: 10 }}>
+              {BUNDLE_OPTIONS.map((b) => {
+                const rng = bundleOffers[b.id];
+                const sel = rng != null;
                 return (
-                  <label key={s.id} className={"iw-objective" + (checked ? " is-selected" : "")}>
-                    <input type="checkbox" checked={checked}
-                      onChange={() => toggleBundle(s.id)} disabled={isAutopilot} />
-                    <span className="iw-objective-body">
-                      <span className="iw-objective-l">{s.label}</span>
-                      <span className="iw-objective-d">{s.sub}</span>
-                    </span>
-                  </label>
+                  <div key={b.id} className={"px-offer-card" + (sel ? " is-selected" : "")} style={{ border: "1px solid var(--hair)", borderRadius: 8, padding: "10px 12px", background: sel ? "rgba(183, 148, 246, 0.08)" : "var(--bg-2)" }}>
+                    <label className="px-offer-head" style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer" }}>
+                      <input type="checkbox" checked={sel} onChange={() => toggleBundleOffer(b.id)} disabled={isAutopilot} />
+                      <span className="px-offer-name" style={{ fontWeight: 600, fontSize: 13, color: "var(--ink)" }}>{b.label}</span>
+                    </label>
+                    <div style={{ fontSize: 11.5, color: "var(--ink-3)", marginTop: 2, marginLeft: 24 }}>{b.sub}</div>
+                    {sel && (
+                      <div className="px-offer-body" style={{ marginTop: 8, marginLeft: 24 }}>
+                        <DualRange min={0} max={80} step={5} unit=" bps"
+                          low={rng[0]} high={rng[1]}
+                          onChange={({ low, high }) => setBundleRange(b.id, low, high)} />
+                        <div className="px-offer-eff" style={{ fontSize: 11, color: "var(--ink-2)", marginTop: 4 }}>
+                          <span className="rate-ref-item"><span className="rate-ref-l">contingent discount range: </span><b>{rng[0]}–{rng[1]} bps</b></span>
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 );
               })}
             </div>

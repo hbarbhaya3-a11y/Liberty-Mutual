@@ -269,6 +269,12 @@ html.theme-light .iw-dual-bubble {
    Single-thumb range with hover bubble — used by <RangeWithBubble />.
    Bubble is hidden by default; appears on hover/focus of the wrapper.
    ========================================================================= */
+.range-single .iw-dual-input {
+  pointer-events: auto !important;
+  cursor: pointer;
+  z-index: 10;
+}
+
 .range-bubble-wrap {
   position: relative;
   --dual-color: var(--violet, #b794f6);

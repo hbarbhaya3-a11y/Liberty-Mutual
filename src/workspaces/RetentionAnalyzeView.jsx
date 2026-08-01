@@ -297,7 +297,7 @@ export default function RetentionAnalyzeView() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const [expandedGroups, setExpandedGroups] = useState({});
+  const [expandedGroups, setExpandedGroups] = useState({ data: true });
   const toggleGroup = (id) => setExpandedGroups((cur) => ({ ...cur, [id]: !cur[id] }));
 
   const [expandedAssetId, setExpandedAssetId] = useState(null);
@@ -314,39 +314,40 @@ export default function RetentionAnalyzeView() {
 
   return (
     <div className="aw theme-page" style={{ "--acc": "#ffb15a", "--acc-soft": "rgba(255,177,90,.13)" }}>
-      <div className="wrap">
+      <div className="wrap" style={{ padding: "12px 22px 30px" }}>
 
         {/* ============================ HERO ============================ */}
-        <header className="aw-hero">
-          <div className="aw-hero-tag">
-            <span className="aw-hero-star"><Icon name="star" size={12} /></span> Recommended hypothesis · {RETENTION_HYPOTHESIS_ID}
+        <header className="aw-hero" style={{ padding: "16px 20px 14px", marginBottom: 16 }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 16, marginBottom: 6 }}>
+            <div>
+              <div className="aw-hero-tag" style={{ marginBottom: 4 }}>
+                <span className="aw-hero-star"><Icon name="star" size={12} /></span> Recommended hypothesis · {RETENTION_HYPOTHESIS_ID}
+              </div>
+              <h1 className="aw-hero-title" style={{ fontSize: 24, margin: "0 0 4px", lineHeight: 1.2 }}>{RETENTION_HYPOTHESIS_TITLE}</h1>
+            </div>
+            <div className="aw-hero-cta-row" style={{ marginTop: 2 }}>
+              <button className="aw-btn ghost" onClick={goBackToTheme} style={{ padding: "6px 12px", fontSize: 12 }}>← Back to theme</button>
+              <button className="aw-btn primary" onClick={goTest} style={{ padding: "6px 14px", fontSize: 12 }}>Test this hypothesis →</button>
+            </div>
           </div>
-          <h1 className="aw-hero-title">{RETENTION_HYPOTHESIS_TITLE}</h1>
-          <p className="aw-hero-desc">
-            75,000 high-LTV auto customers are starting to shop their renewal with
-            carriers that quote lower — and about 22,000 of them are genuinely
-            about to lapse. The bet: the genuine leavers can be held with the
-            smallest targeted incentive that works — without discounting the
-            deeply-bundled ones who'd renew anyway.
+
+          <p className="aw-hero-desc" style={{ fontSize: 12.5, margin: "0 0 10px", lineHeight: 1.45, maxWidth: 960 }}>
+            <b>30,000 high-LTV auto customers · claims-free · competitor quote-shopping detected ~45 days before renewal.</b>{" "}
+            Hold genuinely price-elastic customers using the smallest targeted incentive that works (capped renewal rate + retention offer) — backed by an audit-defensible fair-lending elasticity gate (<b>≥0.70 stickiness threshold</b>) to protect margin and prevent unnecessary discounting of deeply-bundled households.
           </p>
-          {/* Pre-sim ranges — these are estimator output, not point
-              predictions. Running the What-If simulation tightens each
-              range into a CI. */}
-          <div className="aw-hero-kpis">
+
+          {/* Pre-sim ranges */}
+          <div className="aw-hero-kpis" style={{ padding: "8px 0", margin: "0 0 6px" }}>
             {RETENTION_PRESIM_RANGES.map((r, i) => (
-              <div className="aw-hero-kpi" key={i}>
-                <span className="aw-hero-kpi-v">{r.value}</span>
-                <span className="aw-hero-kpi-l">{r.label} {r.unit ? <em>{r.unit.includes("/") ? r.unit : `· ${r.unit}`}</em> : null}</span>
+              <div className="aw-hero-kpi" key={i} style={{ padding: "0 12px" }}>
+                <span className="aw-hero-kpi-v" style={{ fontSize: 18 }}>{r.value}</span>
+                <span className="aw-hero-kpi-l" style={{ fontSize: 9.5 }}>{r.label} {r.unit ? <em>{r.unit.includes("/") ? r.unit : `· ${r.unit}`}</em> : null}</span>
               </div>
             ))}
           </div>
-          <div className="aw-hero-rangenote">
-            Pre-simulation estimates from the optimizer. Running the What-If
-            simulation tightens each range into a point estimate with CI.
-          </div>
-          <div className="aw-hero-cta-row">
-            <button className="aw-btn ghost" onClick={goBackToTheme}>← Back to theme</button>
-            <button className="aw-btn primary" onClick={goTest}>Test this hypothesis →</button>
+
+          <div className="aw-hero-rangenote" style={{ marginTop: 2, paddingTop: 4, fontSize: 10.5 }}>
+            Pre-simulation estimates from the optimizer. Running What-If simulation tightens each range into a point estimate with CI.
           </div>
         </header>
 

@@ -113,13 +113,13 @@ export const RETENTION_CALIBRATION = {
   stickinessThreshold:     0.70,
 };
 
-/* Pre-simulation range strings for Analyze hero KPIs. */
+/* Pre-simulation range strings for Analyze hero KPIs (aligned with Signal Card 1). */
 export const RETENTION_PRESIM_RANGES = [
   { label: "NWP protected",                 value: "+$15–25M", unit: "/ yr · est. range",           tone: "g" },
-  { label: "Annualized relationship value", value: "+$45–65M", unit: "/ yr · est. range",           tone: "g" },
-  { label: "% renewals lapsing",            value: "4–6%",     unit: "vs 7.5% today · est. range",   tone: "g" },
-  { label: "Bundle-penetration lift",       value: "+5–10pp",  unit: "cross-sell · est. range",      tone: "g" },
-  { label: "Policies retained",             value: "+400–700", unit: "est. range",                  tone: "g" },
+  { label: "Eligible policies",             value: "30,000",   unit: "after fairness gate",         tone: "g" },
+  { label: "Lapse reduction",               value: "−2.3pp",   unit: "vs 7.5% today · est. range",   tone: "g" },
+  { label: "Stickiness gate",               value: "≥0.70",     unit: "fair-lending threshold",      tone: "g" },
+  { label: "Relationship value",            value: "+$45–65M", unit: "/ yr · est. range",           tone: "g" },
 ];
 
 
