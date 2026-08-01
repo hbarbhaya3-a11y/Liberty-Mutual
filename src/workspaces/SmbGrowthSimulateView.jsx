@@ -390,8 +390,15 @@ export default function SmbGrowthSimulateView() {
 
   // ---- Lever state ----
   const [minBalanceK,       setMinBalanceK]       = useState(RECOMMENDED.minBalanceK);
-  const [offerCeilingBps,   setOfferCeilingBps]   = useState(RECOMMENDED.offerCeilingBps);
   const [offerTerm,         setOfferTerm]         = useState(RECOMMENDED.offerTerm);
+  // Per-product rate-flexibility (bps) — each offer/packaging product carries
+  // its OWN slider, consistent with the If-What optimizer's OFFER section. The
+  // selected packaging's flexibility is what the simulation prices against.
+  const [productFlexMap,    setProductFlexMap]    = useState(() =>
+    Object.fromEntries(OFFER_PRODUCTS.map((p) => [p.id, RECOMMENDED.offerCeilingBps]))
+  );
+  const setProductFlex = (id, val) => setProductFlexMap((cur) => ({ ...cur, [id]: val }));
+  const offerCeilingBps = productFlexMap[offerTerm] ?? RECOMMENDED.offerCeilingBps;
   const [channels,          setChannels]          = useState(RECOMMENDED.channels);
   const [cohortPresets,     setCohortPresets]     = useState(["full"]);
   const [bankingServices,   setBankingServices]   = useState(RECOMMENDED.bankingServices);
@@ -558,7 +565,7 @@ export default function SmbGrowthSimulateView() {
   // ---- Reset to Twin's recommendations ----
   const resetToRecommended = useCallback(() => {
     setMinBalanceK(RECOMMENDED.minBalanceK);
-    setOfferCeilingBps(RECOMMENDED.offerCeilingBps);
+    setProductFlexMap(Object.fromEntries(OFFER_PRODUCTS.map((p) => [p.id, RECOMMENDED.offerCeilingBps])));
     setOfferTerm(RECOMMENDED.offerTerm);
     setChannels(RECOMMENDED.channels);
     setCohortPresets(["full"]);
@@ -755,45 +762,50 @@ export default function SmbGrowthSimulateView() {
           </div>
 
           <LeverRow
-            label="Rate flexibility (bps)"
-            caption="How far the quote may deviate from filed rate to win the bind — binds more as it deepens, but gives up more margin, held to adequacy."
-            value={`+${offerCeilingBps} bps`}
-            offDefault={off("offerCeilingBps", offerCeilingBps)}
-          >
-            <RangeWithBubble min={0} max={150} step={1} value={offerCeilingBps}
-              onChange={(e) => setOfferCeilingBps(+e.target.value)} disabled={isAutopilot}
-              formatter={(v) => `+${v} bps`} />
-            <RangeScale marks={["0", "+75", "+120", "+150"]} />
-          </LeverRow>
-
-          <LeverRow
-            label="Packaging"
-            caption="How the lead line is wrapped — single line, bundled, or rate-flexed. A richer bundle binds more and attaches more lines downstream; it also gives up more margin."
+            label="Packaging & rate flexibility"
+            caption="Pick how the lead line is wrapped — each packaging option carries its OWN rate-flexibility slider (how far its quote may deviate from filed rate to win the bind). A richer bundle binds and attaches more; more flexibility binds more but gives up margin, held to adequacy."
             value={(OFFER_PRODUCTS.find((p) => p.id === offerTerm) || OFFER_PRODUCTS[0]).label}
             offDefault={off("offerTerm", offerTerm)}
           >
             <div className="iw-objectives">
-              {OFFER_PRODUCTS.map((p) => (
-                <label
-                  key={p.id}
-                  className={"iw-objective" + (offerTerm === p.id ? " is-selected" : "")}
-                >
-                  <input
-                    type="radio"
-                    name="smbgrowth-offer-packaging"
-                    value={p.id}
-                    checked={offerTerm === p.id}
-                    onChange={() => setOfferTerm(p.id)}
-                    disabled={isAutopilot}
-                  />
-                  <span className="iw-objective-body">
-                    <span className="iw-objective-l">
-                      {p.label}
-                    </span>
-                    <span className="iw-objective-d">{p.sub}</span>
-                  </span>
-                </label>
-              ))}
+              {OFFER_PRODUCTS.map((p) => {
+                const selected = offerTerm === p.id;
+                const flex = productFlexMap[p.id] ?? RECOMMENDED.offerCeilingBps;
+                return (
+                  <div
+                    key={p.id}
+                    className={"iw-objective" + (selected ? " is-selected" : "")}
+                    style={{ flexDirection: "column", alignItems: "stretch", gap: 10, padding: 12 }}
+                  >
+                    <label style={{ display: "flex", alignItems: "center", gap: 10, cursor: "pointer", width: "100%" }}>
+                      <input
+                        type="radio"
+                        name="smbgrowth-offer-packaging"
+                        value={p.id}
+                        checked={selected}
+                        onChange={() => setOfferTerm(p.id)}
+                        disabled={isAutopilot}
+                      />
+                      <span className="iw-objective-body">
+                        <span className="iw-objective-l">{p.label}</span>
+                        <span className="iw-objective-d">{p.sub}</span>
+                      </span>
+                    </label>
+                    <div style={{ paddingLeft: 26, paddingTop: 6, borderTop: "1px solid var(--hair)" }}>
+                      <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11.5, fontFamily: "var(--ui)", color: "var(--ink-2)", marginBottom: 6 }}>
+                        <span>Rate flexibility</span>
+                        <span style={{ fontWeight: 700, color: selected ? "var(--acc, #10b981)" : "var(--ink-2)" }}>+{flex} bps</span>
+                      </div>
+                      <RangeWithBubble
+                        min={0} max={150} step={1} value={flex}
+                        onChange={(e) => setProductFlex(p.id, +e.target.value)}
+                        disabled={isAutopilot}
+                        formatter={(v) => `+${v} bps`}
+                      />
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           </LeverRow>
         </div>
