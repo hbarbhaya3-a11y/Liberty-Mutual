@@ -492,6 +492,9 @@ export default function SmbGrowthIfWhatView() {
   const [allowedProducts, setAllowedProducts] = useState(["card_winback", "bundle", "line_preapprove"]);
   const [productFlexMap, setProductFlexMap]   = useState({ card_winback: 60, line_preapprove: 45, equip_finance: 50, merchant: 40, bundle: 75, sweep: 30 });
   const [allowedChannels, setAllowedChannels] = useState(["banker", "rmcall", "portal"]);
+  /* Simulation duration — single configurable value (not a search dimension).
+     Default 8wk matches the calibration horizon every candidate is scored over. */
+  const [simWeeks, setSimWeeks] = useState(8);
 
   const [customOpen, setCustomOpen]   = useState(false);
   const [customRules, setCustomRules] = useState([]);
