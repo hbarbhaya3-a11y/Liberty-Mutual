@@ -51,10 +51,10 @@ export const B2B_DEPLOY_HISTORY = [
   },
   {
     id: "mock-smbrate-1",
-    name: "Minimum-effective-rate · v1",
+    name: "Price-to-win new-business lead · v1",
     hypothesis: "H-SMB-RATE-2026-01-20",
     cluster: "smb-deposit-rate-defense",
-    themeName: "Deposit Risk",
+    themeName: "Lead Opportunity",
     themeId: "smbrate",
     experimentType: "smbrate",
     stage: "completed",
@@ -70,22 +70,22 @@ export const B2B_DEPLOY_HISTORY = [
     pilotEndReason: "duration-complete",
     treatmentN: 37080,
     controlN: 4120,
-    blurb: "Per-segment minimum-effective reprice at +38 bps blended (vs +95 to match) · no-overpay + margin-floor enforced · 10% holdout. Promoted.",
+    blurb: "Per-lead price-to-win quote at +38 bps blended flexibility (vs +95 to match a competitor) · adequacy-floor + no-overpay enforced · 10% holdout. Promoted.",
     learnings: {
-      headline: "Retained $2.5B of $3.4B at +39 bps blended · $12.4M more NII than a blanket match · no-overpay segment held with zero spend",
+      headline: "Won $2.5B of $3.4B in-play new-business premium at +39 bps blended flexibility · $12.4M more NWP than a blanket price-match · no-overpay segment held with zero give-up",
       actuals: [
-        { k: "NII retained",          predicted: "+$41M",   actual: "+$39.6M", tone: "ok",   delta: "within CI" },
+        { k: "NWP won",          predicted: "+$41M",   actual: "+$39.6M", tone: "ok",   delta: "within CI" },
         { k: "Blended rate given",    predicted: "+38 bps", actual: "+39 bps", tone: "ok",   delta: "within CI" },
         { k: "vs competitor-match",   predicted: "+$13M",   actual: "+$12.4M", tone: "ok",   delta: "within CI" },
         { k: "Over-pay rate",         predicted: "0%",      actual: "0%",      tone: "ok",   delta: "no-overpay held" },
       ],
       surprises: [
-        "The relationship-rate segment re-bundled better than modeled — conditioning the rate on keeping payroll on-us pulled 6% of partial-outflow accounts back to full primacy.",
+        "The multi-line bundle segment bound better than modeled — conditioning the quote on placing WC + GL together pulled 6% of split-placement leads back to a full-account win.",
       ],
       didntWork: [
-        "A thin slice of the will-stay segment churned anyway on a competitor's branch-led pitch — elasticity model under-weighted relationship-manager poaching.",
+        "A thin slice of the win-anyway segment went to a competitor's broker-led pitch anyway — the bind model under-weighted broker relationship pull.",
       ],
-      nextMove: { verdict: "Promoted to full rollout", tone: "ok", rationale: "NII retained inside CI, margin floor + no-overpay held, +$12.4M over a blanket match. Reprice-vs-rebundle drafted to test treasury anchoring on the high-balance slice." },
+      nextMove: { verdict: "Promoted to full rollout", tone: "ok", rationale: "NWP won inside CI, adequacy floor + no-overpay held, +$12.4M over a blanket price-match. Price-vs-bundle drafted to test account anchoring on the high-premium slice." },
     },
   },
   {
@@ -129,10 +129,10 @@ export const B2B_DEPLOY_HISTORY = [
   },
   {
     id: "mock-smbrate-2",
-    name: "Relationship-rate for multi-product accounts · v2",
+    name: "Multi-line bundle-to-win lead · v2",
     hypothesis: "H-SMB-RATE-2025-11-18",
     cluster: "smb-deposit-rate-defense",
-    themeName: "Deposit Risk",
+    themeName: "Lead Opportunity",
     themeId: "smbrate",
     experimentType: "smbrate",
     stage: "completed",
@@ -148,22 +148,22 @@ export const B2B_DEPLOY_HISTORY = [
     pilotEndReason: "duration-complete",
     treatmentN: 33840,
     controlN: 3760,
-    blurb: "Relationship-rate conditioned on multi-product depth (payroll + card + line on-us) at +34 bps blended · no-overpay + margin-floor enforced · 10% holdout. Promoted.",
+    blurb: "Multi-line bundle quote conditioned on account depth (WC + GL + auto together) at +34 bps blended flexibility · no-overpay + adequacy-floor enforced · 10% holdout. Promoted.",
     learnings: {
-      headline: "Retained $2.1B of $2.9B at +35 bps blended · $10.8M more NII than a blanket match · relationship-rate held the multi-product base with no overpay",
+      headline: "Won $2.1B of $2.9B in-play new-business premium at +35 bps blended flexibility · $10.8M more NWP than a blanket price-match · the bundle quote held the multi-line base with no give-up",
       actuals: [
-        { k: "NII retained",          predicted: "+$36M",   actual: "+$34.7M", tone: "ok",   delta: "within CI" },
+        { k: "NWP won",          predicted: "+$36M",   actual: "+$34.7M", tone: "ok",   delta: "within CI" },
         { k: "Blended rate given",    predicted: "+34 bps", actual: "+35 bps", tone: "ok",   delta: "within CI" },
         { k: "vs competitor-match",   predicted: "+$11M",   actual: "+$10.8M", tone: "ok",   delta: "within CI" },
         { k: "Over-pay rate",         predicted: "0%",      actual: "0%",      tone: "ok",   delta: "no-overpay held" },
       ],
       surprises: [
-        "Conditioning the rate on three-product depth pulled 8% of the multi-product base off any shopping behavior entirely — the relationship discount read as a loyalty reward, not a defensive match, so they stopped comparing.",
+        "Conditioning the quote on three-line depth pulled 8% of the multi-line base off shopping entirely — the bundle credit read as a loyalty reward, not a defensive match, so they stopped comparing.",
       ],
       didntWork: [
-        "Single-product accounts in the segment under-responded — there is no relationship to anchor to, so the conditional rate has nothing to bind, and that slice still needs the flat minimum-effective reprice.",
+        "Single-line leads in the segment under-responded — there is no bundle to anchor to, so the conditional quote has nothing to bind, and that slice still needs the flat price-to-win quote.",
       ],
-      nextMove: { verdict: "Promoted to full rollout", tone: "ok", rationale: "NII retained inside CI, margin floor + no-overpay held, +$10.8M over a blanket match. Relationship-rate (v2) routes the multi-product base; minimum-effective (v1) handles the single-product tail." },
+      nextMove: { verdict: "Promoted to full rollout", tone: "ok", rationale: "NWP won inside CI, adequacy floor + no-overpay held, +$10.8M over a blanket price-match. Multi-line bundle (v2) routes the multi-line base; price-to-win (v1) handles the single-line tail." },
     },
   },
 ];
