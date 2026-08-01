@@ -37,7 +37,7 @@ const PAGE_SUBTITLE = SMBGROWTH_HYPOTHESIS_TITLE;
 const ACCENT = SMBGROWTH_CONFIG.accent;
 
 const OBJECTIVES = [
-  { id: "incremental_revenue", label: "Maximize incremental NWP",         sub: "Win the most incremental Yr-1 NWP per point of rate flexibility given · headline KPI" },
+  { id: "incremental_revenue", label: "Maximize incremental NWP",         sub: "Win the most incremental Yr-1 NWP per point of rate discount given · headline KPI" },
   { id: "conversion_lift",     label: "Maximize quote-to-bind conversion", sub: "Lift the rate at which growing accounts bind the lead line back on the book" },
   { id: "primacy_return",      label: "Maximize lines per account",       sub: "Bundle the most accounts across lines with the minimum-effective price move" },
 ];
@@ -80,7 +80,7 @@ const ALWAYS_ON_CONSTRAINTS = [
 
 const DEFAULT_RANGES = {
   minBalanceK:     { low: 25,  high: 250, min: 25,  max: 500, step: 25, unit: "K",   label: "Min premium to qualify", caption: "Accounts below this aren't worth the underwriting cost." },
-  offerCeilingBps: { low: 50, high: 90, min: 0, max: 120,  step: 1, unit: "bps", label: "Rate-flexibility ceiling",     caption: "Top rate deviation the optimizer may offer any single account, within adequacy." },
+  offerCeilingBps: { low: 50, high: 90, min: 0, max: 120,  step: 1, unit: " bps off", label: "Rate-discount ceiling",     caption: "Deepest discount off filed rate the optimizer may offer any single account, within adequacy." },
 };
 
 /* ----------------------------------------------------------------------------
@@ -231,7 +231,7 @@ function runOptimizer(objective, ranges, allowedProducts, allowedChannels, cohor
   if (objective === "incremental_revenue") {
     return [
       mkRec("balanced", 1, "Minimum-effective win-back",
-        "Mid-range rate flexibility · per-segment win-probability model · keeps net NWP firmly positive.",
+        "Mid-range rate discount · per-segment win-probability model · keeps net NWP firmly positive.",
         { offerCeilingBps: clamp(ranges.offerCeilingBps, 75), minBalanceK: clamp(ranges.minBalanceK, 100),
           offerTerm: pickProduct("card_winback", "bundle") }, 1.00, 1.00),
       mkRec("aggressive", 2, "Aggressive expander",
@@ -239,7 +239,7 @@ function runOptimizer(objective, ranges, allowedProducts, allowedChannels, cohor
         { offerCeilingBps: ranges.offerCeilingBps?.high || 90, minBalanceK: ranges.minBalanceK?.low || 25,
           offerTerm: pickProduct("line_preapprove", "card_winback") }, 1.18, 1.12),
       mkRec("selective", 3, "Selective expander",
-        "Higher premium floor + tighter rate flexibility — narrower cohort, highest cost-efficiency.",
+        "Higher premium floor + tighter rate discount — narrower cohort, highest cost-efficiency.",
         { offerCeilingBps: clamp(ranges.offerCeilingBps, 55), minBalanceK: clamp(ranges.minBalanceK, 200),
           offerTerm: pickProduct("card_winback", "bundle") }, 0.78, 0.85),
     ];
@@ -247,7 +247,7 @@ function runOptimizer(objective, ranges, allowedProducts, allowedChannels, cohor
   if (objective === "conversion_lift") {
     return [
       mkRec("steepest", 1, "Steepest bind lift",
-        "Highest rate flexibility + broadest appetite — maximum lift in off-us accounts binding back.",
+        "Deepest rate discount + broadest appetite — maximum lift in off-us accounts binding back.",
         { offerCeilingBps: ranges.offerCeilingBps?.high || 90, minBalanceK: ranges.minBalanceK?.low || 25,
           offerTerm: pickProduct("line_preapprove", "card_winback") }, 1.20, 1.25),
       mkRec("broad", 2, "Broad reach",
@@ -672,8 +672,8 @@ export default function SmbGrowthIfWhatView() {
                     </div>
                     <div className="iw-rank-summary">
                       <div className="iw-rank-summary-row">
-                        <span className="iw-rank-summary-k">Rate flexibility</span>
-                        <span className="iw-rank-summary-v">+{rec.picks.offerCeilingBps}bps · {fmtProduct(rec.picks.offerTerm)}</span>
+                        <span className="iw-rank-summary-k">Rate discount</span>
+                        <span className="iw-rank-summary-v">{rec.picks.offerCeilingBps}bps off · {fmtProduct(rec.picks.offerTerm)}</span>
                       </div>
                       <div className="iw-rank-summary-row">
                         <span className="iw-rank-summary-k">Min need</span>
@@ -803,7 +803,7 @@ export default function SmbGrowthIfWhatView() {
                   <tbody>
                     <tr><td className="iw-detail-k">Cohort</td><td className="iw-detail-v">{(selected.picks.cohortPresets || []).map((id) => COHORT_OPTIONS.find((c) => c.id === id)?.name).filter(Boolean).join(" · ")}</td></tr>
                     <tr><td className="iw-detail-k">Min financing need to qualify</td><td className="iw-detail-v">${selected.picks.minBalanceK}K</td></tr>
-                    <tr><td className="iw-detail-k">Rate-flexibility ceiling</td><td className="iw-detail-v">+{selected.picks.offerCeilingBps}bps</td></tr>
+                    <tr><td className="iw-detail-k">Rate-discount ceiling</td><td className="iw-detail-v">{selected.picks.offerCeilingBps}bps off</td></tr>
                     <tr><td className="iw-detail-k">Lead product</td><td className="iw-detail-v">{fmtProduct(selected.picks.offerTerm)}</td></tr>
                     <tr><td className="iw-detail-k">Delivery channels</td><td className="iw-detail-v">{selected.picks.channels.map((c) => CHANNEL_OPTIONS.find((o) => o.id === c)?.label).join(" · ")}</td></tr>
                     <tr><td className="iw-detail-k">Treated cohort size</td><td className="iw-detail-v">{selected.outcomes.treatmentN.toLocaleString()} accounts</td></tr>
@@ -1059,7 +1059,7 @@ export default function SmbGrowthIfWhatView() {
           <div className="sim-lever-section-band">
             <span className="sim-lever-section-num">4</span>
             <span className="sim-lever-section-name">OFFER</span>
-            <span className="sim-lever-section-meta">Rate-flexibility range + the lines the optimizer may offer</span>
+            <span className="sim-lever-section-meta">Rate-discount range + the lines the optimizer may offer</span>
           </div>
           <RangeRow
             label={ranges.offerCeilingBps.label}
@@ -1075,7 +1075,7 @@ export default function SmbGrowthIfWhatView() {
               <span className="lever-name">Products the optimizer may offer</span>
               <span className="lever-value">{allowedProducts.length} of {OFFER_PRODUCT_OPTIONS.length} allowed</span>
             </div>
-            <div className="lever-caption">Select allowed commercial products. Each selected product includes an individual Rate Flexibility / Discount BPS limit slider.</div>
+            <div className="lever-caption">Select allowed commercial products. Each selected product includes an individual rate-discount limit (bps off filed rate) slider.</div>
             <div className="iw-objectives">
               {OFFER_PRODUCT_OPTIONS.map((p) => {
                 const on = allowedProducts.includes(p.id);
@@ -1092,14 +1092,14 @@ export default function SmbGrowthIfWhatView() {
                     {on && (
                       <div style={{ paddingLeft: 26, paddingTop: 6, borderTop: "1px solid var(--hair)" }}>
                         <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11.5, fontFamily: "var(--ui)", color: "var(--ink-2)", marginBottom: 6 }}>
-                          <span>Flexibility / Discount Limit</span>
-                          <span style={{ fontWeight: 700, color: "var(--acc, #10b981)" }}>+{currentFlex} bps</span>
+                          <span>Rate discount (off filed)</span>
+                          <span style={{ fontWeight: 700, color: "var(--acc, #10b981)" }}>{currentFlex} bps off</span>
                         </div>
                         <RangeWithBubble
                           min={10} max={120} step={5} value={currentFlex}
                           onChange={(e) => setProductFlex(p.id, +e.target.value)}
                           disabled={isAutopilot}
-                          formatter={(v) => `+${v} bps`}
+                          formatter={(v) => `${v} bps off`}
                         />
                       </div>
                     )}

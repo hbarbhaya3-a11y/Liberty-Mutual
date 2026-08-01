@@ -510,7 +510,7 @@ export default function SmbGrowthSimulateView() {
         },
         reasoning: [
           "Off-us / insurtech placers + scaling multi-location — the expansion segments actively placing coverage elsewhere",
-          "+75 bps rate flexibility · bundled packaging — binds inside the rate-adequacy floor",
+          "75 bps rate discount · bundled packaging — binds inside the rate-adequacy floor",
           "Broker/Agent + direct digital instant-quote + referral UW — large expansions led by a broker, the rest scaled digitally",
         ],
         scenarios: 96400,
@@ -762,8 +762,8 @@ export default function SmbGrowthSimulateView() {
           </div>
 
           <LeverRow
-            label="Packaging & rate flexibility"
-            caption="Pick how the lead line is wrapped — each packaging option carries its OWN rate-flexibility slider (how far its quote may deviate from filed rate to win the bind). A richer bundle binds and attaches more; more flexibility binds more but gives up margin, held to adequacy."
+            label="Packaging & rate discount"
+            caption="Pick how the lead line is wrapped — each packaging option carries its OWN rate-discount slider (how deep a discount off filed rate its quote may give to win the bind). A richer bundle binds and attaches more; a deeper discount binds more but gives up margin, held to adequacy."
             value={(OFFER_PRODUCTS.find((p) => p.id === offerTerm) || OFFER_PRODUCTS[0]).label}
             offDefault={off("offerTerm", offerTerm)}
           >
@@ -793,14 +793,14 @@ export default function SmbGrowthSimulateView() {
                     </label>
                     <div style={{ paddingLeft: 26, paddingTop: 6, borderTop: "1px solid var(--hair)" }}>
                       <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11.5, fontFamily: "var(--ui)", color: "var(--ink-2)", marginBottom: 6 }}>
-                        <span>Rate flexibility</span>
-                        <span style={{ fontWeight: 700, color: selected ? "var(--acc, #10b981)" : "var(--ink-2)" }}>+{flex} bps</span>
+                        <span>Rate discount</span>
+                        <span style={{ fontWeight: 700, color: selected ? "var(--acc, #10b981)" : "var(--ink-2)" }}>{flex} bps off</span>
                       </div>
                       <RangeWithBubble
                         min={0} max={150} step={1} value={flex}
                         onChange={(e) => setProductFlex(p.id, +e.target.value)}
                         disabled={isAutopilot}
-                        formatter={(v) => `+${v} bps`}
+                        formatter={(v) => `${v} bps off`}
                       />
                     </div>
                   </div>
