@@ -11,7 +11,9 @@
    ========================================================================= */
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import RangeWithBubble from "@/components/RangeWithBubble";
 import "@/styles/commercial-intel.css";
+import "@/styles/ifwhat.css";
 
 const money = (n) => (n >= 1000 ? "$" + Math.round(n / 1000) + "K" : "$" + Math.round(n));
 
@@ -332,12 +334,16 @@ function LeadWizard({ onBack }) {
             <p className="ci-sub">Tune the offer — results compute after the simulation runs</p>
             <div className="sr-lever">
               <div className="sr-lever-h"><span>Quote price vs filed rate</span><b>{price > 0 ? "+" : ""}{price.toFixed(1)}%</b></div>
-              <input type="range" className="ci-slider" min={-5} max={12} step={0.5} value={price} onChange={(e) => setPrice(+e.target.value)} />
+              <RangeWithBubble min={-5} max={12} step={0.5} value={price}
+                onChange={(e) => setPrice(+e.target.value)}
+                formatter={(v) => `${v > 0 ? "+" : ""}${v}%`} />
               {!adequate && <div className="sr-warn">Below rate-adequacy floor (−3%) — guardrail breach</div>}
             </div>
             <div className="sr-lever">
               <div className="sr-lever-h"><span>Deductible</span><b>${ded}K</b></div>
-              <input type="range" className="ci-slider" min={1} max={25} step={1} value={ded} onChange={(e) => setDed(+e.target.value)} />
+              <RangeWithBubble min={1} max={25} step={1} value={ded}
+                onChange={(e) => setDed(+e.target.value)}
+                formatter={(v) => `$${v}K`} />
             </div>
             <div className="sr-lever">
               <div className="sr-lever-h"><span>Offer structure</span></div>

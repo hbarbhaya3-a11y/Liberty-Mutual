@@ -42,11 +42,13 @@ const OBJECTIVES = [
   { id: "primacy_return",      label: "Maximize lines per account",       sub: "Bundle the most accounts across lines with the minimum-effective price move" },
 ];
 
+/* Cohort options — kept consistent with the What-If simulation's CUSTOMER
+   filter (same shared cohorts, labels and counts) so the two flows read as one. */
 const COHORT_OPTIONS = [
-  { id: "full",            name: "Full expansion book",       count: 38400, share: 0.041, sig: "Every small business entering an expansion cycle with one or more growth signals." },
-  { id: "off-us",          name: "Off-us / insurtech placers", count: 23400, share: 0.025, sig: "Placing new / expanded coverage off-us · genuinely win-back-ready · rate-adequate." },
-  { id: "multisite",       name: "Scaling multi-location",    count:  9200, share: 0.010, sig: "New-location activity · rising payroll · responds to an auto-quoted BOP + WC." },
-  { id: "equipment",       name: "Fleet / equipment-heavy",   count:  7600, share: 0.008, sig: "Fleet increase · equipment purchase · Commercial Auto / inland-marine fits." },
+  { id: "full",            name: "Full cohort",               count: 38400, share: 0.041, sig: "Select-all · every account in the expansion cohort." },
+  { id: "off-us",          name: "Off-us / insurtech placers", count: 12000, share: 0.013, sig: "New off-us placement / prior-carrier switch · coverage leaving the account." },
+  { id: "multisite",       name: "Scaling multi-location",    count:  9000, share: 0.010, sig: "New location + rising payroll · BOP + WC need." },
+  { id: "equipment",       name: "Fleet / equipment-heavy",   count:  8000, share: 0.008, sig: "Fleet increase · Commercial Auto fit." },
   { id: "surplus",         name: "Revenue-surge, scaling",    count: 9600, share: 0.010, sig: "Revenue accelerating · surplus · cross-line bundle + umbrella attach." },
   { id: "multi-product",   name: "Account-anchorable",        count:  9100, share: 0.010, sig: "3+ lines held · WC/GL still on the book · partial off-us placement signals." },
 ];
@@ -60,11 +62,13 @@ const OFFER_PRODUCT_OPTIONS = [
   { id: "sweep",           label: "Add umbrella / cyber", sub: "High-limit liability attach" },
 ];
 
+/* Delivery channels — kept consistent with the What-If simulation's CHANNEL
+   filter (same ids and labels) so the two flows read as one. */
 const CHANNEL_OPTIONS = [
-  { id: "banker", label: "Primary Relationship Banker" },
-  { id: "rmcall", label: "RM Proactive Outreach / Call" },
-  { id: "portal", label: "Commercial Treasury Portal Nudge" },
-  { id: "broker", label: "Commercial Broker Brief (Lockton / USI)" },
+  { id: "banker",  label: "Broker / Agent" },
+  { id: "app",     label: "Direct digital instant-quote" },
+  { id: "rmcall",  label: "Referral underwriter" },
+  { id: "email",   label: "Broker outreach + digital" },
 ];
 
 const ALWAYS_ON_CONSTRAINTS = [
@@ -491,7 +495,7 @@ export default function SmbGrowthIfWhatView() {
   const [ranges, setRanges]                   = useState(DEFAULT_RANGES);
   const [allowedProducts, setAllowedProducts] = useState(["card_winback", "bundle", "line_preapprove"]);
   const [productFlexMap, setProductFlexMap]   = useState({ card_winback: 60, line_preapprove: 45, equip_finance: 50, merchant: 40, bundle: 75, sweep: 30 });
-  const [allowedChannels, setAllowedChannels] = useState(["banker", "rmcall", "portal"]);
+  const [allowedChannels, setAllowedChannels] = useState(["banker", "app", "rmcall"]);
   /* Simulation duration — single configurable value (not a search dimension).
      Default 8wk matches the calibration horizon every candidate is scored over. */
   const [simWeeks, setSimWeeks] = useState(8);
