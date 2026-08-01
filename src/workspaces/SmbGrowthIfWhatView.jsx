@@ -22,11 +22,14 @@ import SimulationLoader from "@/components/loaders/SimulationLoader";
 import Icon from "@/components/Icon";
 import { ResultTileNII, ResultTileBars, ResultTileCohort } from "@/components/SimResultTiles";
 import RangeWithBubble from "@/components/RangeWithBubble";
+import ConversationalCohortBuilder from "@/components/ConversationalCohortBuilder";
+import SegmentedResults from "@/components/SegmentedResults";
 import {
   SMBGROWTH_HYPOTHESIS_ID,
   SMBGROWTH_HYPOTHESIS_TITLE,
   SMBGROWTH_CALIBRATION,
   SMBGROWTH_CONFIG,
+  SMBGROWTH_MICROSEGMENTS,
 } from "@/data/smbGrowthConfig";
 import "@/styles/ifwhat.css";
 
@@ -49,19 +52,19 @@ const COHORT_OPTIONS = [
 ];
 
 const OFFER_PRODUCT_OPTIONS = [
-  { id: "card_winback",    label: "Win back the lead line" },
-  { id: "line_preapprove", label: "Auto-quoted BOP / property" },
-  { id: "equip_finance",   label: "Commercial Auto (fleet) / inland marine" },
-  { id: "merchant",        label: "Workers Comp for added payroll" },
-  { id: "bundle",          label: "Business Advantage bundle" },
-  { id: "sweep",           label: "Add umbrella / cyber" },
+  { id: "card_winback",    label: "Win back the lead line", sub: "Priced to bind lead line" },
+  { id: "line_preapprove", label: "Auto-quoted BOP / property", sub: "Pre-analyzed site coverage" },
+  { id: "equip_finance",   label: "Commercial Auto (fleet) / inland marine", sub: "Fleet safety credit" },
+  { id: "merchant",        label: "Workers Comp for added payroll", sub: "Payroll-linked WC" },
+  { id: "bundle",          label: "Business Advantage bundle", sub: "Multi-line discount package" },
+  { id: "sweep",           label: "Add umbrella / cyber", sub: "High-limit liability attach" },
 ];
 
 const CHANNEL_OPTIONS = [
-  { id: "app",    label: "Direct digital instant-quote" },
-  { id: "email",  label: "Broker outreach" },
-  { id: "mail",   label: "Referral underwriter" },
-  { id: "banker", label: "Broker / Agent" },
+  { id: "banker", label: "Primary Relationship Banker" },
+  { id: "rmcall", label: "RM Proactive Outreach / Call" },
+  { id: "portal", label: "Commercial Treasury Portal Nudge" },
+  { id: "broker", label: "Commercial Broker Brief (Lockton / USI)" },
 ];
 
 const ALWAYS_ON_CONSTRAINTS = [
@@ -195,7 +198,7 @@ function runOptimizer(objective, ranges, allowedProducts, allowedChannels, cohor
     : allowedProducts.includes(fallback) ? fallback
     : allowedProducts[0] || "card_winback";
 
-  const clamp = (range, val) => Math.max(range.low, Math.min(range.high, val));
+  const clamp = (range, val) => (range && range.low != null && range.high != null) ? Math.max(range.low, Math.min(range.high, val)) : (val || 75);
 
   /* Pricing-consistency margin is positioned to spread the anchors ALONG the
      Pareto trade-off so the chart shows a real curve, not 3 clustered
@@ -215,9 +218,9 @@ function runOptimizer(objective, ranges, allowedProducts, allowedChannels, cohor
       retainedM: C.retainedDepositsAnnualM * retainedScale * (cohortBase / C.eligibleAfterGate),
       runoffReductionPp: (C.runoffReductionPp * 100) * runoffScale,
       ddRecoveryPp: 6 + (rank === 1 ? 2 : 0),
-      netAnnualisedK: Math.round(C.netAnnualisedK * retainedScale - C.offerCostM * 1000 * (picks.offerCeilingBps / 40 - 1)),
+      netAnnualisedK: Math.round(C.netAnnualisedK * retainedScale - C.offerCostM * 1000 * ((picks.offerCeilingBps || 75) / 40 - 1)),
       fairnessMargin: fairnessFor(retainedScale),
-      treatmentN: Math.round((cohortBase * 0.8) * (picks.minBalanceK <= 150 ? 1.0 : 0.85)),
+      treatmentN: Math.round((cohortBase * 0.8) * ((picks.minBalanceK || 25) <= 150 ? 1.0 : 0.85)),
     },
   });
 
@@ -229,7 +232,7 @@ function runOptimizer(objective, ranges, allowedProducts, allowedChannels, cohor
           offerTerm: pickProduct("card_winback", "bundle") }, 1.00, 1.00),
       mkRec("aggressive", 2, "Aggressive expander",
         "Pushes the rate-flexibility ceiling to capture the price-elastic tail — higher upside, thinner net margin.",
-        { offerCeilingBps: ranges.offerCeilingBps.high, minBalanceK: ranges.minBalanceK.low,
+        { offerCeilingBps: ranges.offerCeilingBps?.high || 90, minBalanceK: ranges.minBalanceK?.low || 25,
           offerTerm: pickProduct("line_preapprove", "card_winback") }, 1.18, 1.12),
       mkRec("selective", 3, "Selective expander",
         "Higher premium floor + tighter rate flexibility — narrower cohort, highest cost-efficiency.",
@@ -241,11 +244,11 @@ function runOptimizer(objective, ranges, allowedProducts, allowedChannels, cohor
     return [
       mkRec("steepest", 1, "Steepest bind lift",
         "Highest rate flexibility + broadest appetite — maximum lift in off-us accounts binding back.",
-        { offerCeilingBps: ranges.offerCeilingBps.high, minBalanceK: ranges.minBalanceK.low,
+        { offerCeilingBps: ranges.offerCeilingBps?.high || 90, minBalanceK: ranges.minBalanceK?.low || 25,
           offerTerm: pickProduct("line_preapprove", "card_winback") }, 1.20, 1.25),
       mkRec("broad", 2, "Broad reach",
         "Captures more off-us accounts with a bundled-price lead-line win-back.",
-        { offerCeilingBps: clamp(ranges.offerCeilingBps, 80), minBalanceK: ranges.minBalanceK.low,
+        { offerCeilingBps: clamp(ranges.offerCeilingBps, 80), minBalanceK: ranges.minBalanceK?.low || 25,
           offerTerm: pickProduct("card_winback", "bundle") }, 1.10, 1.18),
       mkRec("conservative", 3, "Conservative",
         "Smaller move — still measurable, much cheaper to run.",
@@ -256,15 +259,15 @@ function runOptimizer(objective, ranges, allowedProducts, allowedChannels, cohor
   return [
     mkRec("primacy", 1, "Account-anchored",
       "A bundle conditional on keeping WC/GL on the book prompts accounts to consolidate lines back — primary mechanism for lines-per-account lift.",
-      { offerCeilingBps: clamp(ranges.offerCeilingBps, 85), minBalanceK: ranges.minBalanceK.low,
+      { offerCeilingBps: clamp(ranges.offerCeilingBps, 85), minBalanceK: ranges.minBalanceK?.low || 25,
         offerTerm: pickProduct("bundle", "sweep") }, 0.90, 0.95),
     mkRec("mixed", 2, "Mixed approach",
       "A bundled-price lead-line win-back bridges binding and cross-line deepening.",
-      { offerCeilingBps: clamp(ranges.offerCeilingBps, 70), minBalanceK: ranges.minBalanceK.low,
+      { offerCeilingBps: clamp(ranges.offerCeilingBps, 70), minBalanceK: ranges.minBalanceK?.low || 25,
         offerTerm: pickProduct("card_winback", "line_preapprove") }, 0.95, 0.98),
     mkRec("wide", 3, "Wide net",
       "Umbrella / cyber attach catches the broadest sub-segment of expanding accounts.",
-      { offerCeilingBps: clamp(ranges.offerCeilingBps, 80), minBalanceK: ranges.minBalanceK.low,
+      { offerCeilingBps: clamp(ranges.offerCeilingBps, 80), minBalanceK: ranges.minBalanceK?.low || 25,
         offerTerm: pickProduct("sweep", "bundle") }, 0.98, 1.00),
   ];
 }
@@ -470,7 +473,7 @@ function SmbGrowthPareto({ recs, selectedId, onSelect }) {
 export default function SmbGrowthIfWhatView() {
   const {
     selectedHypothesisId, navigate: navWorkspace, stagePolicy, pushAgentEvent,
-    tuneMode, setIntermezzo,
+    tuneMode, setExplorationMode, setIntermezzo,
   } = useAppShell();
 
   const isAutopilot = tuneMode === "autopilot";
@@ -479,28 +482,25 @@ export default function SmbGrowthIfWhatView() {
   const [mode, setMode]                       = useState("config");
   const [objective, setObjective]             = useState("incremental_revenue");
   const [cohortPresets, setCohortPresets]     = useState(["off-us"]);
+  const [recommendations, setRecs]            = useState([]);
+  const [selectedRecId, setSelectedRecId]     = useState(null);
 
   const toggleCohort = (id) => setCohortPresets((cur) =>
     cur.includes(id) ? (cur.length === 1 ? cur : cur.filter((p) => p !== id)) : [...cur, id]
   );
   const [ranges, setRanges]                   = useState(DEFAULT_RANGES);
-  const [allowedProducts, setAllowedProducts] = useState(["card_winback", "bundle", "merchant"]);
-  const [allowedChannels, setAllowedChannels] = useState(["app", "email", "banker"]);
-  /* Simulation duration — single configurable value (not a range). Default
-     8wk matches the calibration anchor every result tile is scored against. */
-  const [simWeeks, setSimWeeks] = useState(8);
-  const [recommendations, setRecs]            = useState([]);
-  const [selectedRecId, setSelectedRecId]     = useState(null);
+  const [allowedProducts, setAllowedProducts] = useState(["card_winback", "bundle", "line_preapprove"]);
+  const [productFlexMap, setProductFlexMap]   = useState({ card_winback: 60, line_preapprove: 45, equip_finance: 50, merchant: 40, bundle: 75, sweep: 30 });
+  const [allowedChannels, setAllowedChannels] = useState(["banker", "rmcall", "portal"]);
 
-  // Custom segment-builder state (gig's sim-cohort-custom pattern)
-  const [customOpen,  setCustomOpen]  = useState(false);
+  const [customOpen, setCustomOpen]   = useState(false);
   const [customRules, setCustomRules] = useState([]);
-  const addRule    = () => setCustomRules((cur) => [...cur, { feature: "financing_need_min", op: "gte", value: 25 }]);
-  const updateRule = (i, patch) => setCustomRules((cur) => cur.map((r, idx) => idx === i ? { ...r, ...patch } : r));
-  const removeRule = (i) => setCustomRules((cur) => cur.filter((_, idx) => idx !== i));
+  const addRule = () => setCustomRules((cur) => [...cur, { feature: "financing_need_min", op: ">=", value: 50 }]);
+  const removeRule = (idx) => setCustomRules((cur) => cur.filter((_, i) => i !== idx));
+  const updateRule = (idx, patch) => setCustomRules((cur) => cur.map((r, i) => (i === idx ? { ...r, ...patch } : r)));
 
-  const setRange = (key, value) => setRanges((cur) => ({ ...cur, [key]: { ...cur[key], ...value } }));
-  const toggleProduct = (id) => setAllowedProducts((cur) => cur.includes(id) ? cur.filter((p) => p !== id) : [...cur, id]);
+  const toggleProduct = (id) => setAllowedProducts((cur) => cur.includes(id) ? (cur.length === 1 ? cur : cur.filter((p) => p !== id)) : [...cur, id]);
+  const setProductFlex = (id, val) => setProductFlexMap((cur) => ({ ...cur, [id]: val }));
   const toggleChannel = (id) => setAllowedChannels((cur) => cur.includes(id) ? cur.filter((c) => c !== id) : [...cur, id]);
 
   const onRun = useCallback(() => {
@@ -570,12 +570,28 @@ export default function SmbGrowthIfWhatView() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mode, isAutopilot, recommendations]);
 
+  if (mode === "running") {
+    return (
+      <div className="sim-overlay" role="dialog" aria-modal="true" aria-label="Optimization running" style={{ position: "fixed", inset: 0, zIndex: 9999, background: "rgba(11,15,25,0.85)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+        <div className="sim-overlay-card">
+          <SimulationLoader
+            variant="ifwhat"
+            subtitle={`IF-WHAT OPTIMIZER · ${PAGE_SUBTITLE.toUpperCase()}`}
+            onComplete={onLoaderComplete}
+            onCancel={onLoaderCancel}
+          />
+        </div>
+      </div>
+    );
+  }
+
   /* ====================================================================
      RESULTS — 2 column: rec cards (left) + Pareto chart (right) + deep-dive below
      ==================================================================== */
   if (mode === "results") {
     const objLabel = OBJECTIVES.find((o) => o.id === objective)?.label || objective;
-    const selected = recommendations.find((r) => r.id === selectedRecId) || recommendations[0];
+    const recList = (recommendations && recommendations.length > 0) ? recommendations : runOptimizer(objective, ranges, allowedProducts, allowedChannels, cohortPresets);
+    const selected = recList.find((r) => r.id === selectedRecId) || recList[0];
 
     return (
       <div className="results-page" style={{ "--acc": ACCENT, "--acc-soft": "rgba(79,209,197,.13)" }}>
@@ -587,7 +603,24 @@ export default function SmbGrowthIfWhatView() {
             <div className="test-journey-eyebrow">RESULTS · IF-WHAT OPTIMIZER · {PAGE_SUBTITLE.toUpperCase()}</div>
             <h1 className="test-journey-title">Top 3 policies · {objLabel}</h1>
           </div>
-          <div className="results-page-spacer" />
+          <div style={{ display: "inline-flex", background: "var(--bg-2)", padding: "3px", borderRadius: "999px", border: "1px solid var(--hair)" }}>
+            <button
+              type="button"
+              className="tj-btn tj-btn-ghost"
+              style={{ borderRadius: "999px", padding: "4px 12px", fontSize: "11px", fontWeight: 700 }}
+              onClick={() => setExplorationMode("whatif")}
+            >
+              WHAT-IF
+            </button>
+            <button
+              type="button"
+              className="tj-btn tj-btn-primary"
+              style={{ borderRadius: "999px", padding: "4px 12px", fontSize: "11px", fontWeight: 700 }}
+              onClick={() => setExplorationMode("ifwhat")}
+            >
+              IF-WHAT
+            </button>
+          </div>
         </header>
 
         <div className="results-page-body">
@@ -600,7 +633,7 @@ export default function SmbGrowthIfWhatView() {
                 <span className="stt">Click the card to inspect</span>
               </div>
               <div className="panel-body iw-recs-grid">
-              {recommendations.map((rec) => {
+              {recList.map((rec) => {
                 const isSelected = rec.id === selectedRecId;
                 return (
                   <button
@@ -837,6 +870,11 @@ export default function SmbGrowthIfWhatView() {
                   />
                 </div>
               </div>
+
+              {/* RECOMMENDED MICRO-SEGMENTS & CONSUMER DETAILS TABLE */}
+              <div className="iw-dd-block" style={{ marginTop: 20 }}>
+                <SegmentedResults segments={SMBGROWTH_MICROSEGMENTS} accent="#10b981" />
+              </div>
             </div>
           </section>
         )}
@@ -856,10 +894,24 @@ export default function SmbGrowthIfWhatView() {
         <div className="test-journey-eyebrow">IF-WHAT · {PAGE_SUBTITLE.toUpperCase()}</div>
         <div className="sim-ws-header-row">
           <h1 className="sim-ws-title">Find the best Small Commercial growth-capture policy</h1>
-          <span className={"sim-mode-pill " + (isAutopilot ? "sim-mode-pill-auto" : "sim-mode-pill-guided")}>
-            <span className="sim-mode-pill-dot" />
-            {isAutopilot ? "AUTOPILOT" : "IF-WHAT"}
-          </span>
+          <div style={{ display: "inline-flex", background: "var(--bg-2)", padding: "3px", borderRadius: "999px", border: "1px solid var(--hair)" }}>
+            <button
+              type="button"
+              className="tj-btn tj-btn-ghost"
+              style={{ borderRadius: "999px", padding: "4px 12px", fontSize: "11px", fontWeight: 700 }}
+              onClick={() => setExplorationMode("whatif")}
+            >
+              WHAT-IF
+            </button>
+            <button
+              type="button"
+              className="tj-btn tj-btn-primary"
+              style={{ borderRadius: "999px", padding: "4px 12px", fontSize: "11px", fontWeight: 700 }}
+              onClick={() => setExplorationMode("ifwhat")}
+            >
+              IF-WHAT
+            </button>
+          </div>
         </div>
       </header>
 
@@ -911,6 +963,14 @@ export default function SmbGrowthIfWhatView() {
               );
             })}
           </div>
+          {/* Conversational AI Cohort Builder (Commercial) */}
+          <ConversationalCohortBuilder
+            isCommercial={true}
+            isAutopilot={isAutopilot}
+            onApplyCohort={(customCohort) => {
+              setCohortPresets(["off-us"]);
+            }}
+          />
 
           {/* Custom segment builder — collapsed by default. Same pattern as
               What-If: adds an additional rule-defined group on top of the
@@ -1008,15 +1068,35 @@ export default function SmbGrowthIfWhatView() {
               <span className="lever-name">Products the optimizer may offer</span>
               <span className="lever-value">{allowedProducts.length} of {OFFER_PRODUCT_OPTIONS.length} allowed</span>
             </div>
-            <div className="lever-caption">Each is a different product the bank can put in front of the business — the offer itself, not the message or its tone. The optimizer builds its re-bundle from only the ones you tick; untick one to take it off the table (e.g. don't give away merchant pricing).</div>
-            <div className="lever-checks">
+            <div className="lever-caption">Select allowed commercial products. Each selected product includes an individual Rate Flexibility / Discount BPS limit slider.</div>
+            <div className="iw-objectives">
               {OFFER_PRODUCT_OPTIONS.map((p) => {
                 const on = allowedProducts.includes(p.id);
+                const currentFlex = productFlexMap[p.id] ?? 50;
                 return (
-                  <label key={p.id} className={"lever-check" + (on ? " on" : "")}>
-                    <input type="checkbox" checked={on} onChange={() => toggleProduct(p.id)} disabled={isAutopilot} />
-                    {p.label}
-                  </label>
+                  <div key={p.id} className={"iw-objective" + (on ? " is-selected" : "")} style={{ flexDirection: "column", alignItems: "stretch", gap: 10, padding: 12 }}>
+                    <label style={{ display: "flex", alignItems: "center", gap: 10, cursor: "pointer", width: "100%" }}>
+                      <input type="checkbox" checked={on} onChange={() => toggleProduct(p.id)} disabled={isAutopilot} />
+                      <span className="iw-objective-body">
+                        <span className="iw-objective-l">{p.label}</span>
+                        <span className="iw-objective-d">{p.sub}</span>
+                      </span>
+                    </label>
+                    {on && (
+                      <div style={{ paddingLeft: 26, paddingTop: 6, borderTop: "1px solid var(--hair)" }}>
+                        <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11.5, fontFamily: "var(--ui)", color: "var(--ink-2)", marginBottom: 6 }}>
+                          <span>Flexibility / Discount Limit</span>
+                          <span style={{ fontWeight: 700, color: "var(--acc, #10b981)" }}>+{currentFlex} bps</span>
+                        </div>
+                        <RangeWithBubble
+                          min={10} max={120} step={5} value={currentFlex}
+                          onChange={(e) => setProductFlex(p.id, +e.target.value)}
+                          disabled={isAutopilot}
+                          formatter={(v) => `+${v} bps`}
+                        />
+                      </div>
+                    )}
+                  </div>
                 );
               })}
             </div>

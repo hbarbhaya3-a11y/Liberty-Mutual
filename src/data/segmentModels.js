@@ -69,19 +69,43 @@ export const WEALTH_SEGMENTS = [
    noticeDays = the segment's preferred renewal-notice lead(s); deriveSegments
    picks the first that the user actually allowed on the TIMING lever, so the
    reach-out day varies per segment the same way product/channel do. */
+/* Retention (retail / auto-renewal) micro-segments — insurance context.
+   noticeDays = the segment's preferred renewal-notice lead(s); deriveSegments
+   picks the first that the user actually allowed on the TIMING lever, so the
+   reach-out day varies per segment the same way product/channel do. */
 export const RETENTION_SEGMENTS = [
-  { parent: "rate-sensitive", name: "Shopping-elastic · high-premium", need: "Actively comparing quotes on a large auto + home premium — a capped renewal rate, agent-led.",
-    product: ["cd_18mo", "cd_12mo"], channel: ["banker", "app"], noticeDays: [60, 45], rateFactor: 1.4, weight: 0.40 },
-  { parent: "rate-sensitive", name: "Shopping-elastic · standard", need: "Price-comparing on a smaller premium — a scaled digital rate cap holds them cheaply.",
-    product: ["cd_12mo", "cd_6mo"], channel: ["app", "email"], noticeDays: [45, 35], rateFactor: 1.0, weight: 0.60 },
-  { parent: "operating-decliner", name: "Disengaging · pre-shopper", need: "Lapsing because engagement is thinning — re-engage on value early, don't cut price.",
-    product: ["reengage", "cd_6mo"], channel: ["app", "banker"], noticeDays: [60, 45], rateFactor: 0.0, weight: 1.0 },
-  { parent: "high-value", name: "High-value at risk", need: "Top attrition decile — an agent-negotiated capped rate before they bind elsewhere.",
-    product: ["cd_18mo", "cd_12mo"], channel: ["banker"], noticeDays: [60], rateFactor: 1.5, weight: 1.0 },
-  { parent: "long-tenured", name: "Long-tenured loyalists", need: "Loyal, eroding slowly — a loyalty discount tier rewards tenure without overpaying.",
-    product: ["smart_savings", "cd_12mo"], channel: ["email", "banker"], noticeDays: [45, 35], rateFactor: 0.8, weight: 1.0 },
-  { parent: "multi-product", name: "Bundle-anchorable", need: "Multi-policy household — a relationship rate contingent on keeping the bundle intact.",
-    product: ["cd_trade_up_24", "cd_12mo"], channel: ["banker", "app"], noticeDays: [45], rateFactor: 0.6, weight: 1.0 },
+  { parent: "rate-sensitive", name: "Shopping-elastic · Multi-vehicle Auto", need: "Actively comparing quotes on a multi-vehicle household auto policy — capped renewal rate + digital offer.",
+    product: ["cd_18mo", "cd_12mo"], bundles: ["auto_home"], channel: ["banker", "app"], noticeDays: [60, 45], rateFactor: 1.4, weight: 0.25 },
+  { parent: "rate-sensitive", name: "Shopping-elastic · Standard Auto", need: "Price-comparing single-vehicle auto policy — scaled rate cap holds them efficiently.",
+    product: ["cd_12mo", "cd_6mo"], bundles: [], channel: ["app", "email"], noticeDays: [45, 35], rateFactor: 1.0, weight: 0.35 },
+  { parent: "rate-sensitive", name: "Recent Claim · Rate-Sensitive Policy", need: "Received rate increase following a recent claim — requires dedicated agent consultation & deductible restructuring.",
+    product: ["elite_mma", "cd_12mo"], bundles: [], channel: ["banker"], noticeDays: [60], rateFactor: 1.3, weight: 0.20 },
+  { parent: "rate-sensitive", name: "Digital-First Renewal Shopper", need: "High portal activity and online quote checks — target with app notification and rate lock.",
+    product: ["cd_12mo", "cd_6mo"], bundles: ["auto_home"], channel: ["app", "email"], noticeDays: [35, 45], rateFactor: 1.1, weight: 0.20 },
+
+  { parent: "operating-decliner", name: "Disengaging · Pre-Shopper", need: "Lapsing because engagement is thinning — re-engage on value early, don't cut price.",
+    product: ["reengage", "cd_6mo"], bundles: [], channel: ["app", "banker"], noticeDays: [60, 45], rateFactor: 0.7, weight: 0.50 },
+  { parent: "operating-decliner", name: "Paperless Low-Touch Renewal", need: "Auto-pay enabled but zero brand touchpoints in 12 months — gentle renewal value summary.",
+    product: ["reengage", "smart_savings"], bundles: [], channel: ["email", "app"], noticeDays: [45, 35], rateFactor: 0.6, weight: 0.50 },
+
+  { parent: "high-value", name: "High-Value Household at Risk", need: "Top attrition decile with multi-policy exposure — agent-negotiated capped rate before competitor binding.",
+    product: ["cd_18mo", "cd_12mo"], bundles: ["auto_home"], channel: ["banker"], noticeDays: [60], rateFactor: 1.5, weight: 0.60 },
+  { parent: "high-value", name: "Senior Preferred · Low Mileage", need: "Long-term safe driver with low annual mileage — telematics safety credit + priority support.",
+    product: ["smart_savings", "cd_12mo"], bundles: ["auto_life"], channel: ["banker", "mail"], noticeDays: [60, 45], rateFactor: 1.2, weight: 0.40 },
+
+  { parent: "long-tenured", name: "Tenured Loyalist · Single Policy", need: "5+ years tenure on single Auto policy — loyalty discount tier rewards tenure without overpaying.",
+    product: ["smart_savings", "cd_12mo"], bundles: [], channel: ["email", "mail"], noticeDays: [45, 35], rateFactor: 0.8, weight: 0.50 },
+  { parent: "long-tenured", name: "Suburban Family Preferred", need: "Mid-tenure family with home & auto — premium tier restructuring to protect relationship.",
+    product: ["cd_12mo", "elite_mma"], bundles: ["auto_home"], channel: ["banker", "email"], noticeDays: [45], rateFactor: 0.9, weight: 0.50 },
+
+  { parent: "multi-product", name: "Bundle-Anchorable Auto & Home", need: "Multi-policy household — relationship discount contingent on keeping Auto + Home bundle intact.",
+    product: ["cd_trade_up_24", "cd_12mo"], bundles: ["auto_home"], channel: ["banker", "app"], noticeDays: [45], rateFactor: 0.8, weight: 0.35 },
+  { parent: "multi-product", name: "Renters-to-Auto Cross-Sell Target", need: "Renters policyholder with vehicle in household — contingent Auto quote discount.",
+    product: ["smart_savings", "cd_6mo"], bundles: ["renters_auto"], channel: ["app", "email"], noticeDays: [35, 45], rateFactor: 0.7, weight: 0.25 },
+  { parent: "multi-product", name: "Auto-to-Life Cross-Sell Candidate", need: "Life-stage event detected — contingent Ethos life insurance offer at renewal moment.",
+    product: ["cd_12mo", "smart_savings"], bundles: ["auto_life"], channel: ["email", "banker"], noticeDays: [45, 60], rateFactor: 0.6, weight: 0.20 },
+  { parent: "multi-product", name: "Umbrella & Preferred Risk Premier", need: "High net-worth multi-line policyholder — comprehensive coverage restructuring & agent touchpoint.",
+    product: ["cd_trade_up_24", "cd_18mo"], bundles: ["auto_home", "auto_life"], channel: ["banker"], noticeDays: [60], rateFactor: 1.1, weight: 0.20 },
 ];
 
 /* Friendly product labels (fallback to the id if not mapped). */
@@ -143,7 +167,8 @@ export function deriveSegments(model, lever, outcomes) {
   const allCohorts = Object.keys(cohortCounts).filter((c) => c !== "full" && c !== "all");
   // "full" (idle cash / deposits) and "all" (wealth) are both all-cohorts sentinels.
   const presets = lever.cohortPresets || [];
-  const sel = presets.includes("full") || presets.includes("all") || !presets.length
+  const isRetentionModel = segments === RETENTION_SEGMENTS;
+  const sel = presets.includes("full") || presets.includes("all") || !presets.length || isRetentionModel
     ? allCohorts
     : presets.filter((c) => c !== "full" && c !== "all");
   const active = segments.filter((s) => sel.includes(s.parent));
@@ -200,10 +225,32 @@ export function deriveSegments(model, lever, outcomes) {
       : Math.min(Math.round(ceiling * (s.rateFactor / maxFactor) / 5) * 5, ceiling);
     const marketRate = productOffers ? (PRODUCT_MARKET[productId] ?? null) : null;
     const valueW = size * (0.4 + s.rateFactor);   // bigger + higher-need = more value at stake
+
+    const BUNDLE_MAP = { auto_home: "Auto → Home", auto_life: "Auto → Life (Ethos)", renters_auto: "Renters → Auto" };
+    const bundleOffersMap = lever.bundleOffers || null;
+    const allowedBundleIds = bundleOffersMap ? Object.keys(bundleOffersMap) : (lever.bundles || []);
+
+    const segBundles = s.bundles;
+    let bundleText = "—";
+    if (Array.isArray(segBundles) && segBundles.length > 0) {
+      const matchId = segBundles.find((id) => allowedBundleIds.includes(id));
+      if (matchId) {
+        const bName = BUNDLE_MAP[matchId] || matchId;
+        const rng = bundleOffersMap ? bundleOffersMap[matchId] : null;
+        bundleText = Array.isArray(rng) ? `${bName} (-${Math.round((rng[0] + rng[1]) / 2)} bps)` : bName;
+      }
+    } else if (segBundles === undefined && allowedBundleIds.length > 0 && s.rateFactor > 1.2) {
+      const defaultId = allowedBundleIds[0];
+      const bName = BUNDLE_MAP[defaultId] || defaultId;
+      const rng = bundleOffersMap ? bundleOffersMap[defaultId] : null;
+      bundleText = Array.isArray(rng) ? `${bName} (-${Math.round((rng[0] + rng[1]) / 2)} bps)` : bName;
+    }
+
     return { name: s.name, need: s.need, parent: s.parent, size, rateBps, valueW, marketRate,
       convPct: s.convPct,   // wealth: display conversion rate, passed through to the table
       reachOutDays: noticeDayFor(s),   // retention: per-segment renewal-notice lead
       product: productLabelMap[productId] || productId,
+      bundle: bundleText,
       channel: channelLabelMap[channelId] || channelId, noRate: s.rateFactor === 0 };
   });
 
@@ -221,7 +268,12 @@ export function deriveSegments(model, lever, outcomes) {
 
   const sumValue = raw.reduce((a, r) => a + r.valueW, 0) || 1;
   const totalRetainedM = outcomes.retainedM || 0;
-  const rows = raw.map((r) => ({ ...r, niiM: +(totalRetainedM * (r.valueW / sumValue)).toFixed(1) }));
+  // NWP protected cannot be zero for active micro-segments (only heldBack "Will-stay & already-gone" shows $0)
+  const rows = raw.map((r) => {
+    const val = totalRetainedM * (r.valueW / sumValue);
+    const niiM = Math.max(0.1, +val.toFixed(1));
+    return { ...r, niiM };
+  });
 
   const reach = rows.reduce((a, r) => a + r.size, 0);
   const blendedBps = reach ? Math.round(rows.reduce((a, r) => a + r.rateBps * r.size, 0) / reach) : 0;

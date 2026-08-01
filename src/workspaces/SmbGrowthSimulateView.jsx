@@ -29,6 +29,8 @@ import Icon from "@/components/Icon";
 import { ResultTileNII, ResultTileBars, ResultTileCohort } from "@/components/SimResultTiles";
 import RangeWithBubble from "@/components/RangeWithBubble";
 import { MOCK_EXPERIMENTS } from "@/workspaces/LearnWorkspace";
+import ConversationalCohortBuilder from "@/components/ConversationalCohortBuilder";
+import SegmentedResults from "@/components/SegmentedResults";
 import SmbGrowthIfWhatView from "@/workspaces/SmbGrowthIfWhatView";
 import {
   SMBGROWTH_HYPOTHESIS_ID,
@@ -374,16 +376,9 @@ function ProofKpi({ label, value, valueCap, baseline, baselineCap, delta, deltaT
 export default function SmbGrowthSimulateView() {
   const {
     selectedHypothesisId, navigate: navWorkspace, stagePolicy, pushAgentEvent,
-    tuneMode, setTuneMode, explorationMode,
+    tuneMode, setTuneMode, explorationMode, setExplorationMode,
     recordDecisionTrace, setIntermezzo,
   } = useAppShell();
-
-  // If-What path: dispatch to the goal-driven optimizer view. The What-If
-  // lever workbench below is for free-form lever configuration; If-What
-  // asks "given this goal, what's the best policy in these ranges?"
-  if (explorationMode === "ifwhat") {
-    return <SmbGrowthIfWhatView />;
-  }
 
   // Mode state machine
   const [mode, setMode] = useState("config");          // 'config' | 'running' | 'results'
@@ -584,6 +579,10 @@ export default function SmbGrowthSimulateView() {
     ? COHORT_DISPLAY[cohortPresets[0]] || cohortPresets[0]
     : `${cohortPresets.length} cohorts`;
 
+  if (explorationMode === "ifwhat") {
+    return <SmbGrowthIfWhatView />;
+  }
+
   // ============================================================
   // RESULTS MODE — early return
   // ============================================================
@@ -607,11 +606,25 @@ export default function SmbGrowthSimulateView() {
         <div className="test-journey-eyebrow">TESTING · {PAGE_SUBTITLE.toUpperCase()}</div>
         <div className="sim-ws-header-row">
           <h1 className="sim-ws-title">{PAGE_SUBTITLE}</h1>
-          <div className="sim-ws-header-meta">
-            <span className={"sim-mode-pill " + (isAutopilot ? "sim-mode-pill-auto" : "sim-mode-pill-guided")}>
-              <span className="sim-mode-pill-dot" />
-              {isAutopilot ? "AUTOPILOT" : "WHAT-IF"}
-            </span>
+          <div className="sim-ws-header-meta" style={{ display: "flex", alignItems: "center", gap: 12 }}>
+            <div style={{ display: "inline-flex", background: "var(--bg-2)", padding: "3px", borderRadius: "999px", border: "1px solid var(--hair)" }}>
+              <button
+                type="button"
+                className={"tj-btn " + (explorationMode !== "ifwhat" ? "tj-btn-primary" : "tj-btn-ghost")}
+                style={{ borderRadius: "999px", padding: "4px 12px", fontSize: "11px", fontWeight: 700 }}
+                onClick={() => setExplorationMode("whatif")}
+              >
+                WHAT-IF
+              </button>
+              <button
+                type="button"
+                className={"tj-btn " + (explorationMode === "ifwhat" ? "tj-btn-primary" : "tj-btn-ghost")}
+                style={{ borderRadius: "999px", padding: "4px 12px", fontSize: "11px", fontWeight: 700 }}
+                onClick={() => setExplorationMode("ifwhat")}
+              >
+                IF-WHAT
+              </button>
+            </div>
             {isAutopilot ? (
               <button className="tj-btn tj-btn-ghost" onClick={() => setTuneMode("guided")}>
                 Take over <Icon name="arrowRight" size={12} />
@@ -701,6 +714,14 @@ export default function SmbGrowthSimulateView() {
               );
             })}
           </div>
+          {/* Conversational AI Cohort Builder (Commercial) */}
+          <ConversationalCohortBuilder
+            isCommercial={true}
+            isAutopilot={isAutopilot}
+            onApplyCohort={(customCohort) => {
+              setCohortPresets(["relationship"]);
+            }}
+          />
         </div>
 
         {/* Section 2 · ELIGIBILITY (violet accent) — Who in the cohort qualifies */}
@@ -932,6 +953,7 @@ export default function SmbGrowthSimulateView() {
    chart/tiles @600, micro-segments @900, actions @4400.
    ========================================================================= */
 function ResultsReveal({ results, onReRun, onStage }) {
+  const { explorationMode, setExplorationMode } = useAppShell();
   const { verdict, playKey, outcomes } = results;
   const o = outcomes;
   const [showVerdict, setShowVerdict] = useState(false);
@@ -998,6 +1020,29 @@ function ResultsReveal({ results, onReRun, onStage }) {
 
   return (
     <div className="results-content">
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+        <button className="tj-btn tj-btn-ghost" onClick={onReRun}>
+          <Icon name="arrowLeft" size={14} /> Tune levers and re-run
+        </button>
+        <div style={{ display: "inline-flex", background: "var(--bg-2)", padding: "3px", borderRadius: "999px", border: "1px solid var(--hair)" }}>
+          <button
+            type="button"
+            className={"tj-btn " + (explorationMode !== "ifwhat" ? "tj-btn-primary" : "tj-btn-ghost")}
+            style={{ borderRadius: "999px", padding: "4px 12px", fontSize: "11px", fontWeight: 700 }}
+            onClick={() => setExplorationMode("whatif")}
+          >
+            WHAT-IF
+          </button>
+          <button
+            type="button"
+            className={"tj-btn " + (explorationMode === "ifwhat" ? "tj-btn-primary" : "tj-btn-ghost")}
+            style={{ borderRadius: "999px", padding: "4px 12px", fontSize: "11px", fontWeight: 700 }}
+            onClick={() => setExplorationMode("ifwhat")}
+          >
+            IF-WHAT
+          </button>
+        </div>
+      </div>
       {/* HEADER — Verdict + Proof KPIs together = "the answer" */}
       <section className={`panel results-header reveal ${showVerdict ? "in" : ""}`}>
         <Verdict verdict={verdict} />
@@ -1150,12 +1195,6 @@ function ResultsReveal({ results, onReRun, onStage }) {
   );
 }
 
-/* ============================================================================
-   MicroSegmentTable — the table + per-segment card from MicroSegmentResults,
-   lifted verbatim (minus the headline section, which would require cfg.headline
-   the verdict/proof-KPIs above already provide). 5 segments incl. Watch / Hold
-   and Already-gone / Blocked, with the conv-vs-base handling preserved.
-   ========================================================================= */
 function MicroSegmentTable({ segmentColumns, microSegments }) {
   const firstGo = microSegments.find((s) => s.tone === "go") || microSegments[0];
   const [selId, setSelId] = useState(firstGo ? firstGo.id : null);
