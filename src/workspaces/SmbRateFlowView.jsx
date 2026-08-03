@@ -190,7 +190,8 @@ const LEAD_KEY = "twinx-smbrate-lead";
 /* trigger a browser download of a dummy text file with a proper name */
 const slug = (s) => (s || "lead").replace(/[^\w]+/g, "_").replace(/^_|_$/g, "");
 function downloadDummy(filename, body) {
-  const blob = new Blob([body], { type: "text/plain;charset=utf-8" });
+  const rows = String(body).split("\n");
+  const blob = makePdf(rows[0] || filename, rows.slice(1));
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url; a.download = filename;
@@ -222,26 +223,76 @@ function leadFromFile(file) {
   };
 }
 
-function LeadWizard({ onBack }) {
+/* derive a granular, multi-perspective B2B RFP detail set from a lead */
+function rfpDetail(L) {
+  const revNum = parseFloat(String(L.revenue).replace(/[^0-9.]/g, "")) || 5;
+  const m = (n) => (n >= 1 ? "$" + n.toFixed(1) + "M" : "$" + Math.round(n * 1000) + "K");
+  const lines = String(L.lines || "BOP + GL").split(/\s*\+\s*/);
+  return {
+    firmographics: [
+      ["Named insured", L.account],
+      ["Industry / class", `${L.industry} · ${L.classCode}`],
+      ["State · risk location", `${L.state} · ${L.segment} account`],
+      ["Annual revenue", L.revenue],
+      ["Est. payroll", m(revNum * 0.32)],
+      ["Total insured value (TIV)", m(revNum * 1.4)],
+      ["# locations · employees", "2 · ~" + Math.max(8, Math.round(revNum * 4))],
+    ],
+    coverage: lines.map((ln) => [ln.trim(), ln.match(/umbrella/i) ? "$5M limit · $10K SIR"
+      : ln.match(/gl/i) ? "$1M / $2M · occurrence"
+      : ln.match(/bop/i) ? "$1M / $2M · special form · $5K ded"
+      : "per submission · quote to filed"]),
+    exposure: [
+      ["Requested effective date", "30 days out"],
+      ["Prior carrier", "Incumbent · non-renewing on rate"],
+      ["Expiring premium", money(Math.round(L.estPremium * 0.94))],
+      ["3-yr loss runs", "Clean · below class benchmark (0.9× ISO)"],
+      ["Experience mod / grade", "0.92 · A-preferred"],
+    ],
+    distribution: [
+      ["Broker / source", L.source],
+      ["Broker tier · bind rate", "Elite · 31% on this class"],
+      ["Competing quotes", (L.pitches || []).length + " carriers shopping"],
+      ["Quote due", L.leadIn],
+      ["Appetite triage", L.leadScore >= 0.5 ? "In-appetite · auto-quote eligible" : "Appetite-boundary · refer"],
+    ],
+  };
+}
+
+/* build a minimal, valid single-page PDF from a title + text lines */
+function makePdf(title, textLines) {
+  const esc = (s) => String(s).replace(/([\\()])/g, "\\$1");
+  const body = ["BT", "/F1 16 Tf", "54 748 Td", `(${esc(title)}) Tj`, "/F1 10 Tf", "0 -24 TD", "13 TL"];
+  textLines.forEach((l, i) => body.push((i ? "T* " : "") + `(${esc(l)}) Tj`));
+  body.push("ET");
+  const stream = body.join("\n");
+  const objs = [
+    "<</Type/Catalog/Pages 2 0 R>>",
+    "<</Type/Pages/Kids[3 0 R]/Count 1>>",
+    "<</Type/Page/Parent 2 0 R/MediaBox[0 0 612 792]/Resources<</Font<</F1 5 0 R>>>>/Contents 4 0 R>>",
+    `<</Length ${stream.length}>>\nstream\n${stream}\nendstream`,
+    "<</Type/Font/Subtype/Type1/BaseFont/Helvetica>>",
+  ];
+  let pdf = "%PDF-1.4\n"; const off = [];
+  objs.forEach((o, i) => { off.push(pdf.length); pdf += `${i + 1} 0 obj\n${o}\nendobj\n`; });
+  const xref = pdf.length;
+  pdf += `xref\n0 ${objs.length + 1}\n0000000000 65535 f \n`;
+  off.forEach((o) => { pdf += String(o).padStart(10, "0") + " 00000 n \n"; });
+  pdf += `trailer\n<</Size ${objs.length + 1}/Root 1 0 R>>\nstartxref\n${xref}\n%%EOF`;
+  return new Blob([pdf], { type: "application/pdf" });
+}
+
+function LeadWizard({ onBack, uploaded = [] }) {
   const nav = useNavigate();
   const [step, setStep] = useState(1);
   const [running, setRunning] = useState(false);
-  const [uploaded, setUploaded] = useState([]);
   const [leadId, setLeadId] = useState(() => {
     try { return localStorage.getItem(LEAD_KEY) || LEADS[0].id; } catch { return LEADS[0].id; }
   });
   const allLeads = [...uploaded, ...LEADS];
   const LEAD = allLeads.find((r) => r.id === leadId) || allLeads[0];
   const pickLead = (v) => { setLeadId(v); setStep(1); try { localStorage.setItem(LEAD_KEY, v); } catch { /* ignore */ } };
-  const onUpload = (e) => {
-    const f = e.target.files && e.target.files[0];
-    if (!f) return;
-    const lead = leadFromFile(f);
-    setUploaded((u) => [lead, ...u]);
-    setLeadId(lead.id);
-    setStep(1);
-    e.target.value = "";
-  };
+  const rfp = rfpDetail(LEAD);
   // goal + levers
   const [goal, setGoal] = useState("win");
   const [price, setPrice] = useState(0);
@@ -290,10 +341,6 @@ function LeadWizard({ onBack }) {
           <select value={leadId} onChange={(e) => pickLead(e.target.value)}>
             {allLeads.map((r) => <option key={r.id} value={r.id}>{r.account}</option>)}
           </select>
-          <label className="ci-btn ghost ci-upload">
-            ⬆ Upload lead / RFP
-            <input type="file" accept=".pdf,.doc,.docx,.csv,.xlsx,.acord,.json,.txt" onChange={onUpload} hidden />
-          </label>
         </div>
         <div className="ci-accbar-meta">
           <span>{LEAD.industry}</span><i />
@@ -321,6 +368,21 @@ function LeadWizard({ onBack }) {
               <li><b>Lead score</b><span>{Math.round(LEAD.leadScore * 100)}% win-likelihood (pre-sim)</span></li>
               <li><b>Indicated rate</b><span>+{LEAD.indicated}% vs filed (actuarial)</span></li>
             </ul>
+          </section>
+
+          <section className="ci-panel">
+            <h3>RFP details · granular underwriting view</h3>
+            <p className="ci-sub">Full submission picture across firmographics, coverage, exposure &amp; distribution</p>
+            <div className="sr-rfp-grid">
+              {[["Firmographics", rfp.firmographics], ["Coverage requested", rfp.coverage], ["Exposure &amp; loss history", rfp.exposure], ["Distribution &amp; triage", rfp.distribution]].map(([t, rws]) => (
+                <div key={t} className="sr-rfp-col">
+                  <div className="sr-rfp-h">{t}</div>
+                  <ul className="ci-kv">
+                    {rws.map(([k, v], i) => <li key={i}><b>{k}</b><span>{v}</span></li>)}
+                  </ul>
+                </div>
+              ))}
+            </div>
           </section>
 
           <div className="ci-grid2">
@@ -478,13 +540,13 @@ function LeadWizard({ onBack }) {
             </table>
             <div className="ci-cta" style={{ justifyContent: "flex-start", marginTop: 14 }}>
               <button className="ci-btn" onClick={() => downloadDummy(
-                slug(LEAD.account) + "_Price_Sheet.txt",
+                slug(LEAD.account) + "_Price_Sheet.pdf",
                 `PRICE SHEET — ${LEAD.account}\nClass ${LEAD.classCode} · ${LEAD.state}\n\nQuote: ${price >= 0 ? "+" : ""}${price.toFixed(1)}% vs filed\nEst. premium: ${money(LEAD.estPremium)}\nBind probability: ${bind.toFixed(0)}%\nNWP won: ${money(nwpWon)}\nMargin: ${margin.toFixed(1)}%\nRate adequacy: ${adequate ? "adequate" : "under floor"}\n\n(Illustrative dummy document.)`
-              )}>⬇ Price sheet</button>
+              )}>⬇ Price sheet (PDF)</button>
               <button className="ci-btn" onClick={() => downloadDummy(
-                slug(LEAD.account) + "_Term_Sheet.txt",
+                slug(LEAD.account) + "_Term_Sheet.pdf",
                 `TERM SHEET — ${LEAD.account}\n${LEAD.industry}\nLines: ${LEAD.lines}\n\nStructure: Quote ${price >= 0 ? "+" : ""}${price.toFixed(1)}% vs filed · ${OFFERS.find((o) => o.id === offer)?.label} · ${PACKAGING.find((p) => p.id === pkg)?.label}\nDeductible: $${ded}K\nBind: ${bind.toFixed(0)}% · NWP won: ${money(nwpWon)} · Margin: ${margin.toFixed(1)}%\nGuardrails: rate-adequacy floor · loss-ratio limit · NAIC 24-08\n\n(Illustrative dummy document.)`
-              )}>⬇ Term sheet</button>
+              )}>⬇ Term sheet (PDF)</button>
             </div>
           </section>
 
@@ -523,7 +585,7 @@ function LeadWizard({ onBack }) {
 const STATUS_LABEL = { ready: "Ready", negotiating: "Negotiating", "at-risk": "At risk" };
 function statusCls(s) { return "sr-status sr-status-" + s; }
 
-function BookCockpit({ onOpen }) {
+function BookCockpit({ onOpen, onUpload }) {
   const [q, setQ] = useState("");
   const [seg, setSeg] = useState("All");
   const segs = ["All", ...Array.from(new Set(LEADS.map((l) => l.segment)))];
@@ -538,7 +600,13 @@ function BookCockpit({ onOpen }) {
           <h1>Renewal Strategy Cockpit</h1>
           <p>Small Commercial · book-level view of renewal & new-business cases and negotiation readiness</p>
         </div>
-        <button className="ci-btn">⚡ Run prediction model</button>
+        <div style={{ display: "flex", gap: 8 }}>
+          <label className="ci-btn ghost ci-upload">
+            ⬆ Upload lead / RFP
+            <input type="file" accept=".pdf,.doc,.docx,.csv,.xlsx,.acord,.json,.txt" onChange={onUpload} hidden />
+          </label>
+          <button className="ci-btn">⚡ Run prediction model</button>
+        </div>
       </header>
 
       <div className="ci-kpis ci-kpis-4">
@@ -610,7 +678,16 @@ function BookCockpit({ onOpen }) {
 
 export default function SmbRateFlowView() {
   const [opened, setOpened] = useState(false);
+  const [uploaded, setUploaded] = useState([]);
   const open = (id) => { try { localStorage.setItem(LEAD_KEY, id); } catch { /* ignore */ } setOpened(true); };
-  if (!opened) return <BookCockpit onOpen={open} />;
-  return <LeadWizard key="lead" onBack={() => setOpened(false)} />;
+  const onUpload = (e) => {
+    const f = e.target.files && e.target.files[0];
+    if (!f) return;
+    const lead = leadFromFile(f);
+    setUploaded((u) => [lead, ...u]);
+    open(lead.id);
+    e.target.value = "";
+  };
+  if (!opened) return <BookCockpit onOpen={open} onUpload={onUpload} />;
+  return <LeadWizard key="lead" uploaded={uploaded} onBack={() => setOpened(false)} />;
 }

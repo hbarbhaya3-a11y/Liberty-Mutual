@@ -260,3 +260,10 @@
 .ci-ws { box-sizing: border-box; }
 .ci-upload { cursor: pointer; display: inline-flex; align-items: center; }
 .ci-upload input { display: none; }
+
+/* Card-2 granular RFP details grid (step 1) */
+.sr-rfp-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 28px; }
+@media (max-width: 820px) { .sr-rfp-grid { grid-template-columns: 1fr; } }
+.sr-rfp-col { min-width: 0; }
+.sr-rfp-h { font-size: 11px; text-transform: uppercase; letter-spacing: .05em; color: var(--ink-3);
+  font-weight: 700; margin: 6px 0 6px; border-bottom: 1px solid var(--hair); padding-bottom: 5px; }
