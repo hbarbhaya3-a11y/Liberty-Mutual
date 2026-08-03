@@ -8,6 +8,7 @@
      - "View Content" button for channel-tailored, production-grade communications.
    ========================================================================= */
 import { useState } from "react";
+import { createPortal } from "react-dom";
 import Icon from "@/components/Icon";
 import { getChannelContentForSegment } from "@/data/retailConsumerContent";
 import { querySyntheticCustomers } from "@/data/syntheticCustomers";
@@ -377,7 +378,7 @@ export default function SegmentedResults({
       {/* Production Content Recommendation Modal Overlay (Retail Only) */}
       {retailActive && contentModalSegment && (() => {
         const content = getChannelContentForSegment(contentModalSegment);
-        return (
+        return createPortal((
           <div className="sim-overlay" role="dialog" aria-modal="true" style={{ display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1100 }}>
             <div className="sim-overlay-backdrop" onClick={() => setContentModalSegment(null)} />
             <div className="sim-overlay-card seg-modal-card">
@@ -487,13 +488,13 @@ export default function SegmentedResults({
               </div>
             </div>
           </div>
-        );
+        ), document.body);
       })()}
 
       {/* Full 30,000 Retail Customer Directory Global Modal */}
       {showAll30KModal && (() => {
         const fullQueryResult = querySyntheticCustomers({ segment: "All", search: custSearch, filterChannel: custChannelFilter, page: custPage, pageSize: 8 });
-        return (
+        return createPortal((
           <div className="sim-overlay" role="dialog" aria-modal="true" style={{ display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1200 }}>
             <div className="sim-overlay-backdrop" onClick={() => setShowAll30KModal(false)} />
             <div className="sim-overlay-card seg-modal-card" style={{ maxWidth: 820, width: "95%" }}>
@@ -582,7 +583,7 @@ export default function SegmentedResults({
               </div>
             </div>
           </div>
-        );
+        ), document.body);
       })()}
     </div>
   );
