@@ -227,34 +227,65 @@ function leadFromFile(file) {
 function rfpDetail(L) {
   const revNum = parseFloat(String(L.revenue).replace(/[^0-9.]/g, "")) || 5;
   const m = (n) => (n >= 1 ? "$" + n.toFixed(1) + "M" : "$" + Math.round(n * 1000) + "K");
-  const lines = String(L.lines || "BOP + GL").split(/\s*\+\s*/);
+  const emp = Math.max(8, Math.round(revNum * 4));
+  const lines = String(L.lines || "BOP + GL").split(/\s*\+\s*/).map((s) => s.trim());
+  const limitFor = (ln) => ln.match(/umbrella/i) ? "$5M each occ / aggregate · $10K SIR"
+    : ln.match(/gl/i) ? "$1M each occ / $2M aggregate · $2M prod-comp/ops · occurrence"
+    : ln.match(/bop/i) ? "$1M / $2M liability · property special form · $5K deductible"
+    : ln.match(/liquor/i) ? "$1M / $2M liquor liability · assault & battery incl."
+    : ln.match(/work|wc/i) ? "WC statutory · Employers Liability $1M/$1M/$1M"
+    : "per submission · quote to filed rate";
   return {
-    firmographics: [
-      ["Named insured", L.account],
-      ["Industry / class", `${L.industry} · ${L.classCode}`],
-      ["State · risk location", `${L.state} · ${L.segment} account`],
-      ["Annual revenue", L.revenue],
-      ["Est. payroll", m(revNum * 0.32)],
-      ["Total insured value (TIV)", m(revNum * 1.4)],
-      ["# locations · employees", "2 · ~" + Math.max(8, Math.round(revNum * 4))],
-    ],
-    coverage: lines.map((ln) => [ln.trim(), ln.match(/umbrella/i) ? "$5M limit · $10K SIR"
-      : ln.match(/gl/i) ? "$1M / $2M · occurrence"
-      : ln.match(/bop/i) ? "$1M / $2M · special form · $5K ded"
-      : "per submission · quote to filed"]),
-    exposure: [
-      ["Requested effective date", "30 days out"],
-      ["Prior carrier", "Incumbent · non-renewing on rate"],
-      ["Expiring premium", money(Math.round(L.estPremium * 0.94))],
-      ["3-yr loss runs", "Clean · below class benchmark (0.9× ISO)"],
-      ["Experience mod / grade", "0.92 · A-preferred"],
-    ],
-    distribution: [
-      ["Broker / source", L.source],
-      ["Broker tier · bind rate", "Elite · 31% on this class"],
-      ["Competing quotes", (L.pitches || []).length + " carriers shopping"],
-      ["Quote due", L.leadIn],
-      ["Appetite triage", L.leadScore >= 0.5 ? "In-appetite · auto-quote eligible" : "Appetite-boundary · refer"],
+    tabs: [
+      { id: "firmo", label: "Firmographics", rows: [
+        ["Named insured", L.account],
+        ["DBA / trade name", L.account.replace(/\s+(LLC|Group|Inc|Mgmt)$/i, "")],
+        ["Entity type", "LLC · single parent · owner-operated"],
+        ["FEIN (masked)", "**-***" + String(1000 + emp).slice(-4)],
+        ["Industry · NAICS", `${L.industry} · ${531311 + (emp % 900)}`],
+        ["Governing class code", L.classCode],
+        ["Years in business", (6 + (emp % 9)) + " yrs · established"],
+        ["HQ · risk state", `${L.state} · ${L.segment} account`],
+        ["# locations · employees", `2 · ~${emp}`],
+      ] },
+      { id: "exposure", label: "Exposure & Risk", rows: [
+        ["Annual revenue / receipts", L.revenue],
+        ["Estimated payroll", m(revNum * 0.32)],
+        ["Total insured value (TIV)", m(revNum * 1.4)],
+        ["Building value · BPP", `${m(revNum * 0.9)} · ${m(revNum * 0.5)}`],
+        ["Occupancy · sq ft", "Owner-occupied · ~" + (8 + emp * 2) + "K sq ft"],
+        ["Construction · protection class", "Masonry non-comb · PC 3 · sprinklered"],
+        ["CAT / territory exposure", L.state === "FL" ? "Wind/named-storm zone · flood X" : "Standard territory"],
+        ["Fleet / auto units", lines.some((x) => /auto|fleet/i.test(x)) ? "6 units · hired & non-owned" : "None on this submission"],
+      ] },
+      { id: "coverage", label: "Coverage & Limits", rows: [
+        ...lines.map((ln) => [ln, limitFor(ln)]),
+        ["Requested effective date", "30 days out · new business"],
+        ["Deductible / SIR", "$5K property · $2.5K liability"],
+        ["Key endorsements", "Additional insured (blanket) · waiver of subro · primary & non-contributory"],
+        ["Retro / prior acts", "Full prior acts requested"],
+      ] },
+      { id: "loss", label: "Loss History & UW", rows: [
+        ["3-yr loss runs", "Clean · below class benchmark (0.9× ISO)"],
+        ["5-yr incurred · paid", `${money(Math.round(L.estPremium * 0.18))} incurred · ${money(Math.round(L.estPremium * 0.14))} paid`],
+        ["Largest single claim", money(Math.round(L.estPremium * 0.09)) + " · closed"],
+        ["Open claims · reserves", L.lossRatio > 70 ? "1 open · reserves under review" : "0 open"],
+        ["Loss ratio (submitted)", (L.lossRatio || 61) + "% · " + ((L.lossRatio || 61) < 70 ? "within appetite" : "appetite-boundary")],
+        ["Experience mod · grade", "0.92 · A-preferred"],
+        ["Prior cancellations / non-renewals", "None · left prior carrier on rate"],
+        ["Inspections / loss control", "Recommended · pre-bind survey scheduled"],
+      ] },
+      { id: "financial", label: "Financials & Distribution", rows: [
+        ["Revenue trend", "+" + (8 + (emp % 12)) + "% YoY · expanding"],
+        ["Financial / credit grade", "B+ · stable · no liens"],
+        ["Expiring premium", money(Math.round(L.estPremium * 0.94))],
+        ["Target premium · indicated", `${money(L.estPremium)} · +${L.indicated}% vs filed`],
+        ["Broker / source", L.source],
+        ["Broker tier · bind rate", "Elite · 31% on this class"],
+        ["Competing carriers", (L.pitches || []).map((p) => p.n).join(" · ") || "n/a"],
+        ["Quote due · completeness", `${L.leadIn} · ACORD complete`],
+        ["Appetite triage", L.leadScore >= 0.5 ? "In-appetite · auto-quote eligible" : "Appetite-boundary · refer to UW"],
+      ] },
     ],
   };
 }
@@ -293,6 +324,7 @@ function LeadWizard({ onBack, uploaded = [] }) {
   const LEAD = allLeads.find((r) => r.id === leadId) || allLeads[0];
   const pickLead = (v) => { setLeadId(v); setStep(1); try { localStorage.setItem(LEAD_KEY, v); } catch { /* ignore */ } };
   const rfp = rfpDetail(LEAD);
+  const [rfpTab, setRfpTab] = useState(0);
   // goal + levers
   const [goal, setGoal] = useState("win");
   const [price, setPrice] = useState(0);
@@ -371,18 +403,19 @@ function LeadWizard({ onBack, uploaded = [] }) {
           </section>
 
           <section className="ci-panel">
-            <h3>RFP details · granular underwriting view</h3>
-            <p className="ci-sub">Full submission picture across firmographics, coverage, exposure &amp; distribution</p>
-            <div className="sr-rfp-grid">
-              {[["Firmographics", rfp.firmographics], ["Coverage requested", rfp.coverage], ["Exposure &amp; loss history", rfp.exposure], ["Distribution &amp; triage", rfp.distribution]].map(([t, rws]) => (
-                <div key={t} className="sr-rfp-col">
-                  <div className="sr-rfp-h">{t}</div>
-                  <ul className="ci-kv">
-                    {rws.map(([k, v], i) => <li key={i}><b>{k}</b><span>{v}</span></li>)}
-                  </ul>
-                </div>
+            <h3>RFP analysis · granular underwriting view</h3>
+            <p className="ci-sub">Full submission across five underwriting perspectives — select a tab</p>
+            <div className="sr-rfp-tabs" role="tablist">
+              {rfp.tabs.map((t, i) => (
+                <button key={t.id} type="button" role="tab" aria-selected={rfpTab === i}
+                  className={"sr-rfp-tab" + (rfpTab === i ? " on" : "")} onClick={() => setRfpTab(i)}>
+                  {t.label}
+                </button>
               ))}
             </div>
+            <ul className="ci-kv sr-rfp-kv">
+              {rfp.tabs[rfpTab].rows.map(([k, v], i) => <li key={i}><b>{k}</b><span>{v}</span></li>)}
+            </ul>
           </section>
 
           <div className="ci-grid2">

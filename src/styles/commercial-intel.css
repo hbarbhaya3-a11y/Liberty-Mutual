@@ -267,3 +267,12 @@
 .sr-rfp-col { min-width: 0; }
 .sr-rfp-h { font-size: 11px; text-transform: uppercase; letter-spacing: .05em; color: var(--ink-3);
   font-weight: 700; margin: 6px 0 6px; border-bottom: 1px solid var(--hair); padding-bottom: 5px; }
+
+/* Card-2 RFP analysis tabs (step 1) */
+.sr-rfp-tabs { display: flex; gap: 6px; flex-wrap: wrap; margin: 4px 0 12px; border-bottom: 1px solid var(--hair); }
+.sr-rfp-tab { padding: 7px 13px; border: 1px solid var(--hair); border-bottom: none; border-radius: 8px 8px 0 0;
+  background: var(--bg-2); color: var(--ink-2); font-family: var(--ui); font-size: 12.5px; cursor: pointer; margin-bottom: -1px; }
+.sr-rfp-tab:hover { color: var(--ink); }
+.sr-rfp-tab.on { background: var(--panel); color: var(--ink); border-color: var(--acc, #5b9dff); border-bottom-color: var(--panel); font-weight: 600; }
+.sr-rfp-kv { display: grid; grid-template-columns: 1fr 1fr; gap: 2px 28px; }
+@media (max-width: 820px) { .sr-rfp-kv { grid-template-columns: 1fr; } }
