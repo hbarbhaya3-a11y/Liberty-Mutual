@@ -224,7 +224,172 @@ function leadFromFile(file) {
 }
 
 /* derive a granular, multi-perspective B2B RFP detail set from a lead */
+/* Deep, analysis-rich RFP breakdown across five underwriting perspectives.
+   Each tab carries: metric tiles, granular key/value rows (with optional tone),
+   an underwriting-analysis narrative, and color-coded risk flags. */
 function rfpDetail(L) {
+  const rev = parseFloat(String(L.revenue).replace(/[^0-9.]/g, "")) || 5;
+  const m = (n) => (n >= 1 ? "$" + n.toFixed(1) + "M" : "$" + Math.round(n * 1000) + "K");
+  const emp = Math.max(8, Math.round(rev * 4));
+  const lr = L.lossRatio || 61;
+  const isFL = L.state === "FL";
+  const hasAuto = /auto|fleet/i.test(L.lines || "");
+  const hasLiquor = /liquor/i.test(L.lines || "");
+  const inApp = L.leadScore >= 0.5;
+  const lines = String(L.lines || "BOP + GL").split(/\s*\+\s*/).map((s) => s.trim());
+  const tiv = rev * 1.4, payroll = rev * 0.32;
+  const limitFor = (ln) => /umbrella/i.test(ln) ? "$5M each-occ / aggregate · $10K SIR · follow-form"
+    : /gl/i.test(ln) ? "$1M each-occ / $2M aggregate · $2M prod-comp-ops · occurrence"
+    : /bop/i.test(ln) ? "$1M / $2M liability · building & BPP special form · $5K ded · RC valuation"
+    : /liquor/i.test(ln) ? "$1M / $2M liquor liability · assault & battery included"
+    : /work|wc/i.test(ln) ? "WC statutory · Employers Liability $1M / $1M / $1M"
+    : "per submission · quote to filed rate";
+  return {
+    tabs: [
+      {
+        id: "firmo", label: "Firmographics",
+        metrics: [
+          { k: "Years in business", v: (6 + (emp % 9)) + " yrs" },
+          { k: "Employees", v: "~" + emp },
+          { k: "Locations", v: "2" },
+        ],
+        rows: [
+          ["Named insured", L.account],
+          ["DBA / trade name", L.account.replace(/\s+(LLC|Group|Inc|Mgmt)$/i, "")],
+          ["Entity type · ownership", "LLC · single parent · owner-operated"],
+          ["FEIN (masked)", "**-***" + String(1000 + emp).slice(-4)],
+          ["Industry · NAICS", `${L.industry} · ${531311 + (emp % 900)}`],
+          ["Governing class code", L.classCode, inApp ? "good" : "warn"],
+          ["Secondary class exposure", hasAuto ? "Hired & non-owned auto" : "Blanket premises/ops"],
+          ["Years in business · tenure grade", (6 + (emp % 9)) + " yrs · established (A)"],
+          ["HQ · risk state", `${L.state} · ${L.segment} account`],
+          ["Additional locations", "1 new (expansion) · same state"],
+          ["Operations description", `${L.industry} — owner-managed, ${emp} staff`],
+          ["Website · digital footprint", L.account.toLowerCase().replace(/[^a-z]/g, "") + ".com · active"],
+        ],
+        analysis: `Established owner-operated ${L.industry.toLowerCase()} in ${L.state}, ${6 + (emp % 9)} years in business across two locations. Governing class ${L.classCode} is ${inApp ? "squarely in appetite" : "on the appetite boundary and warrants UW review"}; ownership structure is clean and owner-aligned, supporting a stable submission.`,
+        flags: [
+          { tone: "good", text: "Established > 5 yrs" },
+          { tone: "good", text: "Owner-operated · aligned" },
+          { tone: inApp ? "good" : "risk", text: inApp ? "In-appetite class" : "Appetite-boundary class" },
+        ],
+      },
+      {
+        id: "exposure", label: "Exposure & Risk",
+        metrics: [
+          { k: "TIV", v: m(tiv) },
+          { k: "Payroll", v: m(payroll) },
+          { k: "Revenue", v: L.revenue },
+        ],
+        rows: [
+          ["Annual revenue / receipts", L.revenue],
+          ["Estimated payroll", m(payroll)],
+          ["Total insured value (TIV)", m(tiv)],
+          ["Building value · BPP", `${m(rev * 0.9)} · ${m(rev * 0.5)}`],
+          ["Occupancy · square footage", "Owner-occupied · ~" + (8 + emp * 2) + "K sq ft"],
+          ["Construction · protection class", "Masonry non-combustible · PC 3", "good"],
+          ["Sprinklered · alarm", "Yes · central-station fire + burglar", "good"],
+          ["Roof age · updates", "8 yrs · electrical/plumbing updated", "good"],
+          ["CAT / territory exposure", isFL ? "Named-storm / wind zone · flood zone X" : "Standard territory · low CAT", isFL ? "warn" : "good"],
+          ["Fleet / auto units", hasAuto ? "6 units · hired & non-owned exposure" : "None on this submission", hasAuto ? "warn" : "good"],
+          ["Radius of operations", hasAuto ? "Regional · < 300 mi" : "Local · < 50 mi"],
+          ["Subcontractor / delegated use", "Minimal · certificates on file"],
+        ],
+        analysis: `TIV of ${m(tiv)} is concentrated in owner-occupied masonry non-combustible construction (PC 3, fully sprinklered), which holds property severity moderate. ${isFL ? "Florida named-storm and wind exposure is the primary CAT driver — confirm wind deductible and secondary-water-resistance credits." : "CAT exposure is low for the territory."} ${hasAuto ? "Hired & non-owned auto adds a liability tail that should be priced explicitly." : "No owned-auto exposure on this submission."}`,
+        flags: [
+          { tone: "good", text: "Sprinklered · PC 3" },
+          ...(isFL ? [{ tone: "warn", text: "FL named-storm exposure" }] : [{ tone: "good", text: "Low CAT territory" }]),
+          ...(hasAuto ? [{ tone: "warn", text: "HNOA liability tail" }] : []),
+        ],
+      },
+      {
+        id: "coverage", label: "Coverage & Limits",
+        metrics: [
+          { k: "Lines requested", v: String(lines.length) },
+          { k: "Umbrella", v: /umbrella/i.test(L.lines || "") ? "$5M" : "—" },
+          { k: "Deductible", v: "$5K" },
+        ],
+        rows: [
+          ...lines.map((ln) => [ln, limitFor(ln)]),
+          ["Aggregate basis", "Per location · not shared"],
+          ["Additional coverages", "Equipment breakdown · $50K cyber endorsement (optional)"],
+          ["Deductible / SIR", "$5K property · $2.5K liability"],
+          ["Valuation basis", "Replacement cost · agreed value on building", "good"],
+          ["Key endorsements", "Blanket additional insured · waiver of subrogation · primary & non-contributory", "good"],
+          ["Effective / expiry", "30 days out · 12-month term"],
+          ["Retro date / prior acts", "Full prior acts requested"],
+          ["Coinsurance", "90% · agreed value waives coinsurance"],
+          ...(hasLiquor ? [["Liquor liability", "$1M / $2M · required for appetite", "warn"]] : []),
+        ],
+        analysis: `Requested tower (${lines.join(" + ")}) with blanket AI, waiver of subrogation and primary/non-contributory matches broker and contractual expectations. ${/umbrella/i.test(L.lines || "") ? "Umbrella attaches over the $1M/$2M GL and follows form." : "No umbrella on this submission — cross-sell opportunity."} Replacement-cost/agreed-value settlement keeps the property structure clean.${hasLiquor ? " Liquor liability is mandatory for this class and is the coverage differentiator vs. BOP-only competitors." : ""}`,
+        flags: [
+          { tone: "good", text: "ACORD 125/126/140 complete" },
+          { tone: "good", text: "Prior acts · full" },
+          ...(hasLiquor ? [{ tone: "warn", text: "Liquor liability required" }] : []),
+          ...(!/umbrella/i.test(L.lines || "") ? [{ tone: "good", text: "Umbrella cross-sell open" }] : []),
+        ],
+      },
+      {
+        id: "loss", label: "Loss History & UW",
+        metrics: [
+          { k: "Loss ratio", v: lr + "%" },
+          { k: "Exp. mod", v: "0.92" },
+          { k: "Open claims", v: lr > 70 ? "1" : "0" },
+        ],
+        rows: [
+          ["3-yr loss runs", lr < 70 ? "Clean · below class benchmark (0.9× ISO)" : "2 reported claims · at/above benchmark", lr < 70 ? "good" : "risk"],
+          ["5-yr incurred · paid", `${money(Math.round(L.estPremium * 0.18))} incurred · ${money(Math.round(L.estPremium * 0.14))} paid`],
+          ["Claim frequency (5-yr)", lr < 70 ? "0.4 / yr · low" : "1.2 / yr · watch", lr < 70 ? "good" : "warn"],
+          ["Largest single claim", money(Math.round(L.estPremium * 0.09)) + " · closed"],
+          ["Open claims · reserves", lr > 70 ? "1 open · reserves under review" : "0 open", lr > 70 ? "warn" : "good"],
+          ["Severity trend", "Flat · no shock losses"],
+          ["Loss ratio (submitted) vs class", `${lr}% vs ${lr < 70 ? "68% class avg — favorable" : "68% class avg — adverse"}`, lr < 70 ? "good" : "risk"],
+          ["Experience modification", "0.92 · credit mod · A-preferred", "good"],
+          ["Prior cancellations / non-renewals", "None · left prior carrier on rate", "good"],
+          ["Inspection / loss control", "Pre-bind survey scheduled · loss-control eligible"],
+          ["MVR / CAB / verification", hasAuto ? "MVRs ordered · CAB pulled" : "N/A — no auto"],
+          ["Appetite score · referral", inApp ? "Auto-quote eligible · no referral" : "Refer to UW · appetite boundary", inApp ? "good" : "risk"],
+        ],
+        analysis: `Submitted loss ratio of ${lr}% is ${lr < 70 ? "below the ~68% class benchmark with a favorable 0.92 experience mod and no shock losses — a clean, price-to-win risk." : "at/above the ~68% class benchmark; frequency and the open claim push this to the appetite boundary and a UW referral."} No prior cancellations or non-renewals; a pre-bind survey is recommended to confirm the ${isFL ? "wind/property" : "premises"} exposure before binding.`,
+        flags: [
+          { tone: lr < 70 ? "good" : "risk", text: lr < 70 ? "Clean 3-yr loss runs" : "Adverse loss history" },
+          { tone: "good", text: "Mod 0.92 · credit" },
+          ...(inApp ? [] : [{ tone: "risk", text: "Appetite-boundary · refer" }]),
+        ],
+      },
+      {
+        id: "financial", label: "Financials & Distribution",
+        metrics: [
+          { k: "Expiring", v: money(Math.round(L.estPremium * 0.94)) },
+          { k: "Target", v: money(L.estPremium) },
+          { k: "Rate need", v: "+" + L.indicated + "%" },
+        ],
+        rows: [
+          ["Revenue trend", "+" + (8 + (emp % 12)) + "% YoY · expanding", "good"],
+          ["Financial / credit grade", "B+ · stable · no liens or judgments", "good"],
+          ["Expiring premium", money(Math.round(L.estPremium * 0.94))],
+          ["Target premium · indicated", `${money(L.estPremium)} · +${L.indicated}% vs filed`],
+          ["Price sensitivity", L.leadScore >= 0.65 ? "Moderate — values service + certainty" : "High — actively rate-shopping", L.leadScore >= 0.65 ? "good" : "warn"],
+          ["Producing broker / agency", L.source],
+          ["Broker tier · bind rate", "Elite · 31% bind on this class", "good"],
+          ["Commission", "15% new business · standard schedule"],
+          ["Competing carriers", (L.pitches || []).map((p) => p.n).join(" · ") || "n/a"],
+          ["Lowest competitor quote", L.competitor && L.competitor.offer ? money(L.competitor.offer) + " · " + L.competitor.n : "—", "warn"],
+          ["Submission completeness", "ACORD 125/126/140 complete · loss runs attached", "good"],
+          ["Quote due · win probability", `${L.leadIn} · ${Math.round(L.leadScore * 100)}% pre-sim`, inApp ? "good" : "warn"],
+        ],
+        analysis: `Expanding ${L.industry.toLowerCase()} (+${8 + (emp % 12)}% YoY) with a stable B+ financial profile and no liens. ${(L.pitches || []).length} carriers are shopping, low at ${L.competitor && L.competitor.n ? `${L.competitor.n} (${money(L.competitor.offer)})` : "a digital insurtech"}. The ${"Elite"}-tier broker values speed and certainty over last-dollar price; pricing to win within the rate-adequacy floor captures ${money(L.estPremium)} of target premium while holding margin.`,
+        flags: [
+          { tone: "good", text: "ACORD complete" },
+          { tone: "good", text: "Elite broker" },
+          { tone: "warn", text: (L.pitches || []).length + " competing quotes" },
+        ],
+      },
+    ],
+  };
+}
+
+function rfpDetailLegacy(L) {
   const revNum = parseFloat(String(L.revenue).replace(/[^0-9.]/g, "")) || 5;
   const m = (n) => (n >= 1 ? "$" + n.toFixed(1) + "M" : "$" + Math.round(n * 1000) + "K");
   const emp = Math.max(8, Math.round(revNum * 4));
@@ -413,9 +578,68 @@ function LeadWizard({ onBack, uploaded = [] }) {
                 </button>
               ))}
             </div>
-            <ul className="ci-kv sr-rfp-kv">
-              {rfp.tabs[rfpTab].rows.map(([k, v], i) => <li key={i}><b>{k}</b><span>{v}</span></li>)}
-            </ul>
+            {(() => {
+              const t = rfp.tabs[rfpTab];
+              const lr = LEAD.lossRatio || 61, isFL = LEAD.state === "FL", hasAuto = /auto|fleet/i.test(LEAD.lines || "");
+              const inApp = LEAD.leadScore >= 0.5, wp = Math.round(LEAD.leadScore * 100);
+              const bars = ({
+                firmo: [
+                  { k: "Tenure vs class norm", pct: 75, tone: "good", note: "above avg" },
+                  { k: "Ownership stability", pct: 90, tone: "good", note: "owner-operated" },
+                  { k: "Class appetite fit", pct: inApp ? 85 : 45, tone: inApp ? "good" : "risk", note: inApp ? "in-appetite" : "boundary" },
+                ],
+                exposure: [
+                  { k: "Property severity control", pct: 82, tone: "good", note: "PC 3 · sprinklered" },
+                  { k: "CAT exposure", pct: isFL ? 70 : 25, tone: isFL ? "warn" : "good", note: isFL ? "named-storm" : "low" },
+                  { k: "Liability tail", pct: hasAuto ? 60 : 30, tone: hasAuto ? "warn" : "good", note: hasAuto ? "HNOA" : "contained" },
+                ],
+                coverage: [
+                  { k: "Coverage completeness", pct: 88, tone: "good", note: "ACORD complete" },
+                  { k: "Limit adequacy vs exposure", pct: 80, tone: "good", note: "matched" },
+                  { k: "Endorsement match", pct: 90, tone: "good", note: "AI · WOS · P&NC" },
+                ],
+                loss: [
+                  { k: "Loss ratio vs 68% benchmark", pct: Math.min(100, Math.round((lr / 68) * 100)), tone: lr < 70 ? "good" : "risk", note: lr + "% vs 68%" },
+                  { k: "Claim frequency", pct: lr < 70 ? 25 : 70, tone: lr < 70 ? "good" : "warn", note: lr < 70 ? "low" : "watch" },
+                  { k: "Experience-mod credit", pct: 80, tone: "good", note: "0.92" },
+                ],
+                financial: [
+                  { k: "Price position vs market", pct: 60, tone: "good", note: "at / below market" },
+                  { k: "Broker strength", pct: 85, tone: "good", note: "Elite · 31% bind" },
+                  { k: "Win probability", pct: wp, tone: LEAD.leadScore >= 0.65 ? "good" : "warn", note: wp + "%" },
+                ],
+              })[t.id] || [];
+              return (
+                <div className="sr-rfp-panel">
+                  <div className="sr-rfp-metrics">
+                    {t.metrics.map((mtr, i) => (
+                      <div key={i} className="sr-rfp-metric"><span>{mtr.k}</span><b>{mtr.v}</b></div>
+                    ))}
+                  </div>
+                  <div className="sr-rfp-bars">
+                    {bars.map((bar, i) => (
+                      <div key={i} className="sr-bar-row">
+                        <span className="sr-bar-k">{bar.k}</span>
+                        <div className="sr-bar-track"><i className={"sr-bar-fill sr-bar-" + bar.tone} style={{ width: bar.pct + "%" }} /></div>
+                        <span className={"sr-bar-note sr-tone-" + bar.tone}>{bar.note}</span>
+                      </div>
+                    ))}
+                  </div>
+                  <ul className="ci-kv sr-rfp-kv">
+                    {t.rows.map(([k, v, tone], i) => (
+                      <li key={i}><b>{k}</b><span className={tone ? "sr-tone-" + tone : ""}>{v}</span></li>
+                    ))}
+                  </ul>
+                  <div className="sr-rfp-analysis">
+                    <div className="sr-rfp-h">Underwriting analysis</div>
+                    <p>{t.analysis}</p>
+                    <div className="sr-rfp-flags">
+                      {t.flags.map((f, i) => <span key={i} className={"sr-flag sr-flag-" + f.tone}>{f.text}</span>)}
+                    </div>
+                  </div>
+                </div>
+              );
+            })()}
           </section>
 
           <div className="ci-grid2">
