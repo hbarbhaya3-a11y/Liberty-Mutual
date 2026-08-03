@@ -294,3 +294,13 @@
 .sr-flag-good { color: #15803d; background: rgba(22,163,74,.12); border-color: rgba(22,163,74,.3); }
 .sr-flag-warn { color: #b45309; background: rgba(217,119,6,.12); border-color: rgba(217,119,6,.3); }
 .sr-flag-risk { color: #b91c1c; background: rgba(220,38,38,.12); border-color: rgba(220,38,38,.3); }
+
+/* Card-2 RFP analysis — benchmark bars */
+.sr-rfp-bars { display: grid; gap: 8px; margin: 2px 0 14px; padding: 10px 12px; border: 1px solid var(--hair); border-radius: 9px; background: var(--bg-2); }
+.sr-bar-row { display: grid; grid-template-columns: 190px 1fr 96px; align-items: center; gap: 12px; font-size: 12px; }
+@media (max-width: 640px) { .sr-bar-row { grid-template-columns: 1fr; gap: 3px; } }
+.sr-bar-k { color: var(--ink-2); }
+.sr-bar-track { height: 7px; border-radius: 5px; background: var(--hair); overflow: hidden; }
+.sr-bar-fill { display: block; height: 100%; border-radius: 5px; }
+.sr-bar-good { background: #16a34a; } .sr-bar-warn { background: #d97706; } .sr-bar-risk { background: #dc2626; }
+.sr-bar-note { font-size: 11px; text-align: right; }

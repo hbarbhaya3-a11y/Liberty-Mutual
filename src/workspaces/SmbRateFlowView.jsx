@@ -580,11 +580,49 @@ function LeadWizard({ onBack, uploaded = [] }) {
             </div>
             {(() => {
               const t = rfp.tabs[rfpTab];
+              const lr = LEAD.lossRatio || 61, isFL = LEAD.state === "FL", hasAuto = /auto|fleet/i.test(LEAD.lines || "");
+              const inApp = LEAD.leadScore >= 0.5, wp = Math.round(LEAD.leadScore * 100);
+              const bars = ({
+                firmo: [
+                  { k: "Tenure vs class norm", pct: 75, tone: "good", note: "above avg" },
+                  { k: "Ownership stability", pct: 90, tone: "good", note: "owner-operated" },
+                  { k: "Class appetite fit", pct: inApp ? 85 : 45, tone: inApp ? "good" : "risk", note: inApp ? "in-appetite" : "boundary" },
+                ],
+                exposure: [
+                  { k: "Property severity control", pct: 82, tone: "good", note: "PC 3 · sprinklered" },
+                  { k: "CAT exposure", pct: isFL ? 70 : 25, tone: isFL ? "warn" : "good", note: isFL ? "named-storm" : "low" },
+                  { k: "Liability tail", pct: hasAuto ? 60 : 30, tone: hasAuto ? "warn" : "good", note: hasAuto ? "HNOA" : "contained" },
+                ],
+                coverage: [
+                  { k: "Coverage completeness", pct: 88, tone: "good", note: "ACORD complete" },
+                  { k: "Limit adequacy vs exposure", pct: 80, tone: "good", note: "matched" },
+                  { k: "Endorsement match", pct: 90, tone: "good", note: "AI · WOS · P&NC" },
+                ],
+                loss: [
+                  { k: "Loss ratio vs 68% benchmark", pct: Math.min(100, Math.round((lr / 68) * 100)), tone: lr < 70 ? "good" : "risk", note: lr + "% vs 68%" },
+                  { k: "Claim frequency", pct: lr < 70 ? 25 : 70, tone: lr < 70 ? "good" : "warn", note: lr < 70 ? "low" : "watch" },
+                  { k: "Experience-mod credit", pct: 80, tone: "good", note: "0.92" },
+                ],
+                financial: [
+                  { k: "Price position vs market", pct: 60, tone: "good", note: "at / below market" },
+                  { k: "Broker strength", pct: 85, tone: "good", note: "Elite · 31% bind" },
+                  { k: "Win probability", pct: wp, tone: LEAD.leadScore >= 0.65 ? "good" : "warn", note: wp + "%" },
+                ],
+              })[t.id] || [];
               return (
                 <div className="sr-rfp-panel">
                   <div className="sr-rfp-metrics">
                     {t.metrics.map((mtr, i) => (
                       <div key={i} className="sr-rfp-metric"><span>{mtr.k}</span><b>{mtr.v}</b></div>
+                    ))}
+                  </div>
+                  <div className="sr-rfp-bars">
+                    {bars.map((bar, i) => (
+                      <div key={i} className="sr-bar-row">
+                        <span className="sr-bar-k">{bar.k}</span>
+                        <div className="sr-bar-track"><i className={"sr-bar-fill sr-bar-" + bar.tone} style={{ width: bar.pct + "%" }} /></div>
+                        <span className={"sr-bar-note sr-tone-" + bar.tone}>{bar.note}</span>
+                      </div>
                     ))}
                   </div>
                   <ul className="ci-kv sr-rfp-kv">
