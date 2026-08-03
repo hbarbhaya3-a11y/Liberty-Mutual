@@ -187,15 +187,61 @@ function BindCurve({ price, boost }) {
 
 const LEAD_KEY = "twinx-smbrate-lead";
 
+/* trigger a browser download of a dummy text file with a proper name */
+const slug = (s) => (s || "lead").replace(/[^\w]+/g, "_").replace(/^_|_$/g, "");
+function downloadDummy(filename, body) {
+  const blob = new Blob([body], { type: "text/plain;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url; a.download = filename;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 0);
+}
+
+/* build a lead record from an uploaded RFP/lead file (name derived from file) */
+function leadFromFile(file) {
+  const nm = file.name.replace(/\.[^.]+$/, "").replace(/[_\-]+/g, " ").replace(/\s+/g, " ").trim()
+    .replace(/\b\w/g, (c) => c.toUpperCase());
+  return {
+    id: "up-" + Date.now(), account: nm || "Uploaded Lead",
+    industry: "Uploaded RFP · pending triage", classCode: "—", state: "—", revenue: "—",
+    estPremium: 120000, source: "Uploaded · " + file.name, lines: "BOP + GL",
+    leadIn: "quote due in 5 days",
+    signal: "Uploaded lead / RFP · parsed from " + file.name + " · shopping · awaiting appetite triage",
+    competitor: { n: "—", offer: 0 }, indicated: 6.0, leadScore: 0.6,
+    segment: "Uploaded", lossRatio: 65, status: "ready",
+    pitches: [
+      { n: "Incumbent carrier", price: 125000, angle: "Renewal quote on file · standard terms" },
+      { n: "Insurtech", price: 118000, angle: "Fast digital price · thin service model" },
+    ],
+    insights: [
+      "Parsed from the uploaded submission — verify class code & exposures",
+      "Price to win within the rate-adequacy floor",
+      "Cross-line white space likely — confirm on the ACORD",
+    ],
+  };
+}
+
 function LeadWizard({ onBack }) {
   const nav = useNavigate();
   const [step, setStep] = useState(1);
   const [running, setRunning] = useState(false);
+  const [uploaded, setUploaded] = useState([]);
   const [leadId, setLeadId] = useState(() => {
     try { return localStorage.getItem(LEAD_KEY) || LEADS[0].id; } catch { return LEADS[0].id; }
   });
-  const LEAD = LEADS.find((r) => r.id === leadId) || LEADS[0];
+  const allLeads = [...uploaded, ...LEADS];
+  const LEAD = allLeads.find((r) => r.id === leadId) || allLeads[0];
   const pickLead = (v) => { setLeadId(v); setStep(1); try { localStorage.setItem(LEAD_KEY, v); } catch { /* ignore */ } };
+  const onUpload = (e) => {
+    const f = e.target.files && e.target.files[0];
+    if (!f) return;
+    const lead = leadFromFile(f);
+    setUploaded((u) => [lead, ...u]);
+    setLeadId(lead.id);
+    setStep(1);
+    e.target.value = "";
+  };
   // goal + levers
   const [goal, setGoal] = useState("win");
   const [price, setPrice] = useState(0);
@@ -242,8 +288,12 @@ function LeadWizard({ onBack }) {
         <div className="ci-accbar-l">
           <span className="ci-accbar-lab">Lead</span>
           <select value={leadId} onChange={(e) => pickLead(e.target.value)}>
-            {LEADS.map((r) => <option key={r.id} value={r.id}>{r.account}</option>)}
+            {allLeads.map((r) => <option key={r.id} value={r.id}>{r.account}</option>)}
           </select>
+          <label className="ci-btn ghost ci-upload">
+            ⬆ Upload lead / RFP
+            <input type="file" accept=".pdf,.doc,.docx,.csv,.xlsx,.acord,.json,.txt" onChange={onUpload} hidden />
+          </label>
         </div>
         <div className="ci-accbar-meta">
           <span>{LEAD.industry}</span><i />
@@ -426,6 +476,16 @@ function LeadWizard({ onBack }) {
                 <tr><td>+5% · standard</td><td>60%</td><td>{money(LEAD.estPremium * 1.05 * 0.60)}</td><td>15.0%</td></tr>
               </tbody>
             </table>
+            <div className="ci-cta" style={{ justifyContent: "flex-start", marginTop: 14 }}>
+              <button className="ci-btn" onClick={() => downloadDummy(
+                slug(LEAD.account) + "_Price_Sheet.txt",
+                `PRICE SHEET — ${LEAD.account}\nClass ${LEAD.classCode} · ${LEAD.state}\n\nQuote: ${price >= 0 ? "+" : ""}${price.toFixed(1)}% vs filed\nEst. premium: ${money(LEAD.estPremium)}\nBind probability: ${bind.toFixed(0)}%\nNWP won: ${money(nwpWon)}\nMargin: ${margin.toFixed(1)}%\nRate adequacy: ${adequate ? "adequate" : "under floor"}\n\n(Illustrative dummy document.)`
+              )}>⬇ Price sheet</button>
+              <button className="ci-btn" onClick={() => downloadDummy(
+                slug(LEAD.account) + "_Term_Sheet.txt",
+                `TERM SHEET — ${LEAD.account}\n${LEAD.industry}\nLines: ${LEAD.lines}\n\nStructure: Quote ${price >= 0 ? "+" : ""}${price.toFixed(1)}% vs filed · ${OFFERS.find((o) => o.id === offer)?.label} · ${PACKAGING.find((p) => p.id === pkg)?.label}\nDeductible: $${ded}K\nBind: ${bind.toFixed(0)}% · NWP won: ${money(nwpWon)} · Margin: ${margin.toFixed(1)}%\nGuardrails: rate-adequacy floor · loss-ratio limit · NAIC 24-08\n\n(Illustrative dummy document.)`
+              )}>⬇ Term sheet</button>
+            </div>
           </section>
 
           <section className="ci-panel">
@@ -490,7 +550,7 @@ function BookCockpit({ onOpen }) {
         ))}
       </div>
 
-      <div className="ci-grid2" style={{ gridTemplateColumns: "0.9fr 2fr" }}>
+      <div className="ci-grid2 sr-cockpit-grid">
         <section className="ci-panel sr-alert">
           <div className="sr-alert-h">⚠ Predictive risk alert</div>
           <p>TwinX flags <b>3 cases</b> with rising loss ratios (&gt; 75%) and heavy competitor pressure.</p>
@@ -505,6 +565,7 @@ function BookCockpit({ onOpen }) {
               {segs.map((s) => <option key={s} value={s}>{s === "All" ? "Segment: All" : s}</option>)}
             </select>
           </div>
+          <div className="sr-book-scroll">
           <table className="sr-book">
             <thead><tr><th>Case</th><th>Est. premium</th><th>Rate ask</th><th>Loss ratio</th><th>Win prob.</th><th>Status</th></tr></thead>
             <tbody>
@@ -524,6 +585,7 @@ function BookCockpit({ onOpen }) {
               ))}
             </tbody>
           </table>
+          </div>
         </section>
       </div>
 
