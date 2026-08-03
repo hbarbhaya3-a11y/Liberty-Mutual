@@ -3669,3 +3669,10 @@ html.theme-light .sim-prior-anchor-pill { color: #1d4ed8; border-color: rgba(37,
   font-size: 10.5px;
   color: var(--ink-3);
 }
+
+/* Guard: keep If-What results from overflowing the page horizontally — any
+   wide child (dense micro-segment table, KPI strip) scrolls within the body
+   and the centered content column never exceeds its cap. */
+.results-page-body { overflow-x: auto; }
+.results-content { width: 100%; min-width: 0; box-sizing: border-box; }
+.results-content > * { min-width: 0; }
