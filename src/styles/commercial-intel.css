@@ -250,3 +250,13 @@
 .sr-lrlegend { display: flex; gap: 16px; margin-top: 10px; font-size: 11.5px; color: var(--ink-2); }
 .sr-lrlegend i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 5px; vertical-align: middle; }
 .sr-lrlegend i.lr { background: var(--red); } .sr-lrlegend i.win { background: var(--green); }
+
+/* Card-2 lead flow — overflow-safe cockpit + upload/download affordances */
+.sr-cockpit-grid { grid-template-columns: 0.9fr 2fr; }
+@media (max-width: 960px) { .sr-cockpit-grid { grid-template-columns: 1fr; } }
+.sr-book-scroll { width: 100%; overflow-x: auto; }
+.ci-kpis-4 { grid-template-columns: repeat(4, 1fr); }
+@media (max-width: 960px) { .ci-kpis-4 { grid-template-columns: 1fr 1fr; } }
+.ci-ws { box-sizing: border-box; }
+.ci-upload { cursor: pointer; display: inline-flex; align-items: center; }
+.ci-upload input { display: none; }
