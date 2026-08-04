@@ -175,6 +175,28 @@ export const SMBGROWTH_CALIBRATION = {
   stickinessThreshold:     0.55,
 };
 
+/* Offer/packaging products the OFFER lever exposes. Shared by BOTH the
+   What-If Simulate and If-What optimizer so their OFFER sections are identical.
+   `factor` is the packaging-tier conversion multiplier the What-If sim prices
+   against (the If-What optimizer ignores it and sweeps the ceiling range). */
+export const SMBGROWTH_OFFER_PRODUCTS = [
+  { id: "card_winback",    label: "Win back the lead line",                  sub: "Priced to bind lead line",       factor: 0.95 },
+  { id: "line_preapprove", label: "Auto-quoted BOP / property",             sub: "Pre-analyzed site coverage",     factor: 1.00 },
+  { id: "equip_finance",   label: "Commercial Auto (fleet) / inland marine", sub: "Fleet safety credit",           factor: 1.05 },
+  { id: "merchant",        label: "Workers Comp for added payroll",         sub: "Payroll-linked WC",              factor: 0.97 },
+  { id: "bundle",          label: "Business Advantage bundle",              sub: "Multi-line discount package",    factor: 1.00 },
+  { id: "sweep",           label: "Add umbrella / cyber",                   sub: "High-limit liability attach",    factor: 1.03 },
+];
+
+/* Default per-product rate-discount BANDS [low, high] (bps off filed) and the
+   default Rate-discount ceiling band — shared so both OFFER sections start the
+   same. */
+export const SMBGROWTH_DEFAULT_FLEX = {
+  card_winback: [50, 70], line_preapprove: [35, 55], equip_finance: [40, 60],
+  merchant: [30, 50], bundle: [65, 85], sweep: [20, 40],
+};
+export const SMBGROWTH_DEFAULT_CEILING = [50, 90];
+
 /* ---- emergent micro-segments (the B2B addition to the results) ---- */
 export const SMBGROWTH_SEGMENT_COLUMNS = [
   { id: "product", label: "Recommended lead line" },
