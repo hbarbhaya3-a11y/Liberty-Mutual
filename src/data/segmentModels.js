@@ -76,7 +76,7 @@ export const WEALTH_SEGMENTS = [
 export const RETENTION_SEGMENTS = [
   { parent: "rate-sensitive", name: "Shopping-elastic · Multi-vehicle Auto", need: "Actively comparing quotes on a multi-vehicle household auto policy — capped renewal rate + digital offer.",
     product: ["cd_18mo", "cd_12mo"], bundles: ["auto_home"], channel: ["banker", "app"], noticeDays: [60, 45], rateFactor: 1.4, weight: 0.25 },
-  { parent: "rate-sensitive", name: "Shopping-elastic · Standard Auto", need: "Price-comparing single-vehicle auto policy — scaled rate cap holds them efficiently.",
+  { parent: "rate-sensitive", name: "Shopping-elastic · Standard Auto", need: "Price-comparing single-vehicle auto policy — a scaled capped renewal increase holds them efficiently.",
     product: ["cd_12mo", "cd_6mo"], bundles: [], channel: ["app", "email"], noticeDays: [45, 35], rateFactor: 1.0, weight: 0.35 },
   { parent: "rate-sensitive", name: "Recent Claim · Rate-Sensitive Policy", need: "Received rate increase following a recent claim — requires dedicated agent consultation & deductible restructuring.",
     product: ["elite_mma", "cd_12mo"], bundles: [], channel: ["banker"], noticeDays: [60], rateFactor: 1.3, weight: 0.20 },
@@ -124,8 +124,8 @@ const CHANNEL_LABEL = { app: "In-app", email: "Email", banker: "Banker", mail: "
    our language (rate caps, Comparion agents) instead of the banking defaults
    (CDs, bankers). Passed in via model.productLabels / model.channelLabels. */
 export const RETENTION_PRODUCT_LABEL = {
-  cd_6mo: "Rate cap", cd_12mo: "Discount", cd_18mo: "Combined — rate cap + discount",
-  cd_trade_up_24: "Multi-year rate lock", elite_mma: "Deductible-adjusted", smart_savings: "Loyalty discount tier",
+  cd_6mo: "Capped renewal increase", cd_12mo: "Premium discount", cd_18mo: "Capped increase + discount",
+  cd_trade_up_24: "Multi-year rate lock", elite_mma: "Deductible-adjusted rate", smart_savings: "Loyalty / tenure discount",
   reengage: "Re-engage on value (no rate)",
 };
 export const RETENTION_CHANNEL_LABEL = {

@@ -59,12 +59,12 @@ const COHORT_OPTIONS = [
 ];
 
 const OFFER_PRODUCT_OPTIONS = [
-  { id: "cd_6mo",          label: "Rate cap" },
-  { id: "cd_12mo",         label: "Discount" },
-  { id: "cd_18mo",         label: "Combined — rate cap + discount" },
+  { id: "cd_6mo",          label: "Capped renewal increase" },
+  { id: "cd_12mo",         label: "Premium discount" },
+  { id: "cd_18mo",         label: "Capped increase + discount" },
   { id: "cd_trade_up_24",  label: "Multi-year rate lock" },
-  { id: "elite_mma",       label: "Deductible-adjusted" },
-  { id: "smart_savings",   label: "Loyalty discount tier" },
+  { id: "elite_mma",       label: "Deductible-adjusted rate" },
+  { id: "smart_savings",   label: "Loyalty / tenure discount" },
 ];
 
 const COVERAGE_OPTIONS = [
@@ -254,7 +254,7 @@ function runOptimizer(objective, ranges, productOffers, bundleOffers, allowedCov
   if (objective === "retained_deposits") {
     return [
       mkRec("balanced", 1, "Balanced defender",
-        "Mid-range rate cap + $100 offer · contingent bundle discount · keeps net annualised firmly positive.",
+        "Mid-range capped increase + $100 offer · contingent bundle discount · keeps net annualised firmly positive.",
         { productOffers: offerMap(40), bundleOffers: bundleMap(25), minBalanceK: clamp(ranges.minBalanceK, 25) }, 1.05, 1.00),
       mkRec("aggressive", 2, "Aggressive defender",
         "Pushes offer ceiling & bundle discount to capture rate-elastic tail — higher upside.",
@@ -1118,13 +1118,13 @@ export default function RetentionIfWhatView() {
                         {p.id === "cd_18mo" && (
                           <div className="px-offer-qual" style={{ marginTop: 10, paddingTop: 10, borderTop: "1px dashed var(--hair)" }}>
                             <div style={{ fontSize: 11.5, color: "var(--ink-2)", marginBottom: 4, fontWeight: 600 }}>
-                              Dollar-discount range — statement credit layered on top of the rate cap (the bps range above is the rate)
+                              Dollar-discount range — premium credit layered on top of the capped increase (the bps range above is the rate)
                             </div>
                             <DualRange min={0} max={300} step={25} unit=" USD"
                               low={combinedDollar[0]} high={combinedDollar[1]}
                               onChange={({ low, high }) => setCombinedDollar([low, high])} />
                             <div style={{ fontSize: 11, color: "var(--ink-3)", marginTop: 4 }}>
-                              Combined offer: <b>{rng[0]}–{rng[1]} bps</b> rate cap <b>+ ${combinedDollar[0]}–${combinedDollar[1]}</b> statement credit.
+                              Combined offer: <b>{rng[0]}–{rng[1]} bps</b> capped increase <b>+ ${combinedDollar[0]}–${combinedDollar[1]}</b> premium credit.
                             </div>
                           </div>
                         )}

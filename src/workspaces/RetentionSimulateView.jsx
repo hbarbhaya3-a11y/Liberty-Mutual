@@ -119,12 +119,12 @@ const BUNDLE_OPTIONS = [
    Offer options · radio cards, single-select. (ids retained for sim math.)
 ---------------------------------------------------------------------------- */
 const OFFER_PRODUCTS = [
-  { id: "cd_6mo",         label: "Rate cap",               sub: "Cap the renewal increase · no cash discount · set the cap range",  factor: 0.92 },
-  { id: "cd_12mo",        label: "Discount",               sub: "Statement-credit / premium discount · set the discount range",      factor: 1.00 },
-  { id: "cd_18mo",        label: "Combined — rate cap + discount", sub: "Cap the increase and layer a discount · strongest hold",    factor: 1.06 },
-  { id: "cd_trade_up_24", label: "Multi-year rate lock",   sub: "Locks rate · customer keeps it if market rises · set the lock term",  factor: 1.04 },
-  { id: "elite_mma",      label: "Deductible-adjusted",    sub: "Higher deductible offsets rate · set the deductible %", factor: 0.87 },
-  { id: "smart_savings",  label: "Loyalty discount tier",  sub: "Tenure-based discount · set the relationship range",   factor: 0.94 },
+  { id: "cd_6mo",         label: "Capped renewal increase", sub: "Cap how much the renewal rises · no cash discount · set the cap range", factor: 0.92 },
+  { id: "cd_12mo",        label: "Premium discount",        sub: "Premium credit / discount off the renewal · set the discount range",   factor: 1.00 },
+  { id: "cd_18mo",        label: "Capped increase + discount", sub: "Cap the increase and layer a discount · strongest hold",             factor: 1.06 },
+  { id: "cd_trade_up_24", label: "Multi-year rate lock",    sub: "Locks rate · customer keeps it if market rises · set the lock term",   factor: 1.04 },
+  { id: "elite_mma",      label: "Deductible-adjusted rate", sub: "Higher deductible offsets premium · set the deductible %",            factor: 0.87 },
+  { id: "smart_savings",  label: "Loyalty / tenure discount", sub: "Tenure-based discount · set the relationship range",                 factor: 0.94 },
 ];
 
 /* ----------------------------------------------------------------------------
@@ -610,7 +610,7 @@ export default function RetentionSimulateView() {
         },
         reasoning: [
           "Sticky-bundled filter at 0.70 — fair-lending-defensible cohort",
-          "Rate cap + $100 retention offer — holds the renewal within combined-ratio floor",
+          "Capped increase + $100 retention offer — holds the renewal within combined-ratio floor",
           "45-day notice · multi-touch (email → app → Comparion agent) — right channel × time",
         ],
         scenarios: 96400,
@@ -974,7 +974,7 @@ export default function RetentionSimulateView() {
                           value={bps}
                           onChange={(e) => setProductOffer(p.id, +e.target.value)}
                           disabled={isAutopilot}
-                          formatter={(v) => p.id === "cd_18mo" ? `−${v} bps rate cap` : `−${v} bps discount`} />
+                          formatter={(v) => p.id === "cd_18mo" ? `−${v} bps capped increase` : `−${v} bps discount`} />
                         <div className="px-offer-eff">
                           <span className="rate-ref-item is-market"><span className="rate-ref-l">competitor quote</span><span className="rate-ref-v">{mkt.toFixed(2)}%</span></span>
                           <span className="px-offer-arrow">→</span>
@@ -984,7 +984,7 @@ export default function RetentionSimulateView() {
                         {p.id === "cd_18mo" && (
                           <div className="px-offer-qual" style={{ marginTop: 10, paddingTop: 10, borderTop: "1px dashed var(--hair)" }}>
                             <div style={{ fontSize: 11.5, color: "var(--ink-2)", marginBottom: 4, fontWeight: 600 }}>
-                              Dollar discount — one-time statement credit layered on top of the rate cap
+                              Dollar discount — one-time premium credit layered on top of the capped increase
                             </div>
                             <RangeWithBubble min={0} max={300} step={25}
                               value={combinedDollar}
@@ -992,7 +992,7 @@ export default function RetentionSimulateView() {
                               disabled={isAutopilot}
                               formatter={(v) => `$${v} credit`} />
                             <div style={{ fontSize: 11, color: "var(--ink-3)", marginTop: 4 }}>
-                              Combined offer: <b>−{bps} bps</b> rate cap <b>+ ${combinedDollar}</b> statement credit.
+                              Combined offer: <b>−{bps} bps</b> capped increase <b>+ ${combinedDollar}</b> premium credit.
                             </div>
                           </div>
                         )}
@@ -1456,7 +1456,7 @@ function ResultsReveal({ results, onReRun, onStage }) {
           kpis={kpis}
           accent="#ffb15a"
           valueLabel="NWP protected / yr"
-          offerLabel="Rate-cap move"
+          offerLabel="Capped-increase move"
           rateLabel="Renewal rate"
           segments={seg}
           policy={policy}
