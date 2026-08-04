@@ -122,7 +122,7 @@ const OFFER_PRODUCTS = [
   { id: "cd_6mo",         label: "Rate cap",               sub: "Cap the renewal increase · no cash discount · set the cap range",  factor: 0.92 },
   { id: "cd_12mo",        label: "Discount",               sub: "Statement-credit / premium discount · set the discount range",      factor: 1.00 },
   { id: "cd_18mo",        label: "Combined — rate cap + discount", sub: "Cap the increase and layer a discount · strongest hold",    factor: 1.06 },
-  { id: "cd_trade_up_24", label: "Multi-year rate lock",   sub: "Locks rate · customer keeps it if market rises",      factor: 1.04 },
+  { id: "cd_trade_up_24", label: "Multi-year rate lock",   sub: "Locks rate · customer keeps it if market rises · set the lock term",  factor: 1.04 },
   { id: "elite_mma",      label: "Deductible-adjusted",    sub: "Higher deductible offsets rate · set the deductible %", factor: 0.87 },
   { id: "smart_savings",  label: "Loyalty discount tier",  sub: "Tenure-based discount · set the relationship range",   factor: 0.94 },
 ];
@@ -445,6 +445,7 @@ export default function RetentionSimulateView() {
   // the deductible-adjusted offer's deductible % against coverage.
   const [loyaltyTenure,     setLoyaltyTenure]     = useState([3, 10]);   // years of relationship
   const [deductiblePct,     setDeductiblePct]     = useState(10);        // % of coverage set as deductible
+  const [lockYears,         setLockYears]         = useState(2);         // multi-year rate-lock term (years)
 
   const toggleBundleOffer = (id) => setBundleOffers((cur) => {
     if (cur[id]) {
@@ -560,7 +561,7 @@ export default function RetentionSimulateView() {
       verdict,
       playKey: Date.now(),
       outcomes: o,
-      lever: { cohortPresets, offerCeilingBps, channels, minBalanceK, offerTerm, productOffers, bankingServices, bundles, multiTouch, triggerWindowDays, noticeDays, loyaltyTenure, deductiblePct },
+      lever: { cohortPresets, offerCeilingBps, channels, minBalanceK, offerTerm, productOffers, bankingServices, bundles, multiTouch, triggerWindowDays, noticeDays, loyaltyTenure, deductiblePct, lockYears },
     });
     setMode("results");
     pushAgentEvent({
@@ -568,7 +569,7 @@ export default function RetentionSimulateView() {
       src: "Simulation",
       text: `What-If converged · +$${o.retainedM.toFixed(1)}M retained · −${(o.runoffReductionPp * 100).toFixed(1)}pp renewals lapsing`,
     });
-  }, [outcomes, pushAgentEvent, cohortPresets, offerCeilingBps, channels, minBalanceK, offerTerm, productOffers, bankingServices, bundles, multiTouch, triggerWindowDays, noticeDays, loyaltyTenure, deductiblePct]);
+  }, [outcomes, pushAgentEvent, cohortPresets, offerCeilingBps, channels, minBalanceK, offerTerm, productOffers, bankingServices, bundles, multiTouch, triggerWindowDays, noticeDays, loyaltyTenure, deductiblePct, lockYears]);
 
   const onLoaderCancel = useCallback(() => setMode("config"), []);
   const onBackToConfig = useCallback(() => { setResults(null); setMode("config"); }, []);
@@ -584,7 +585,7 @@ export default function RetentionSimulateView() {
       experimentType: "retention",
       minBalanceK, offerCeilingBps, offerTerm, productOffers, channels,
       cohortPresets,
-      bankingServices, triggerWindowDays, noticeDays, loyaltyTenure, deductiblePct,
+      bankingServices, triggerWindowDays, noticeDays, loyaltyTenure, deductiblePct, lockYears,
       // Pilot defaults — Deploy will own these when the user actually
       // configures the RCT. Carried along so the staged-policy record
       // is complete for downstream consumers.
@@ -1007,6 +1008,21 @@ export default function RetentionSimulateView() {
                             </div>
                           </div>
                         )}
+                        {p.id === "cd_trade_up_24" && (
+                          <div className="px-offer-qual" style={{ marginTop: 10, paddingTop: 10, borderTop: "1px dashed var(--hair)" }}>
+                            <div style={{ fontSize: 11.5, color: "var(--ink-2)", marginBottom: 4, fontWeight: 600 }}>
+                              Lock term — years the rate is locked for
+                            </div>
+                            <RangeWithBubble min={1} max={5} step={1}
+                              value={lockYears}
+                              onChange={(e) => setLockYears(+e.target.value)}
+                              disabled={isAutopilot}
+                              formatter={(v) => `${v}-year lock`} />
+                            <div style={{ fontSize: 11, color: "var(--ink-3)", marginTop: 4 }}>
+                              Rate locked for <b>{lockYears} year{lockYears === 1 ? "" : "s"}</b> — the customer keeps it even if the market rises.
+                            </div>
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>
@@ -1348,6 +1364,7 @@ function ResultsReveal({ results, onReRun, onStage }) {
           let s = `${(OFFER_PRODUCTS.find((p) => p.id === id) || {}).label || id} ${((PRODUCT_MARKET[id] ?? 0) + bps / 100).toFixed(2)}%`;
           if (id === "smart_savings" && lever.loyaltyTenure) s += ` (${lever.loyaltyTenure[0]}–${lever.loyaltyTenure[1]}y)`;
           if (id === "elite_mma" && lever.deductiblePct != null) s += ` (${lever.deductiblePct}% deductible)`;
+          if (id === "cd_trade_up_24" && lever.lockYears != null) s += ` (${lever.lockYears}y lock)`;
           return s;
         })
         .join(" · ") || "—" },

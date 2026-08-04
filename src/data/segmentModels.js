@@ -259,6 +259,10 @@ export function deriveSegments(model, lever, outcomes) {
       const dp = lever.deductiblePct;
       productDisplay += Array.isArray(dp) ? ` · ${dp[0]}–${dp[1]}% deductible` : ` · ${dp}% deductible`;
     }
+    if (productId === "cd_trade_up_24" && lever.lockYears != null) {
+      const ly = lever.lockYears;
+      productDisplay += Array.isArray(ly) ? ` · ${ly[0]}–${ly[1]}y lock` : ` · ${ly}y lock`;
+    }
 
     return { name: s.name, need: s.need, parent: s.parent, size, rateBps, valueW, marketRate,
       convPct: s.convPct,   // wealth: display conversion rate, passed through to the table
