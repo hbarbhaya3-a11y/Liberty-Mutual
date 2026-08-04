@@ -501,7 +501,13 @@ export default function SmbGrowthIfWhatView() {
   // "setRange is not defined" on every change and never moved.
   const setRange = (key, value) => setRanges((cur) => ({ ...cur, [key]: { ...cur[key], ...value } }));
   const [allowedProducts, setAllowedProducts] = useState(["card_winback", "bundle", "line_preapprove"]);
-  const [productFlexMap, setProductFlexMap]   = useState({ card_winback: 60, line_preapprove: 45, equip_finance: 50, merchant: 40, bundle: 75, sweep: 30 });
+  // Per-product rate-discount BAND [low, high] (lower + upper bound), matching
+  // the What-If offer sliders. Display-only — the optimizer sweeps within the
+  // global "Rate-discount ceiling" range.
+  const [productFlexMap, setProductFlexMap]   = useState({
+    card_winback: [50, 70], line_preapprove: [35, 55], equip_finance: [40, 60],
+    merchant: [30, 50], bundle: [65, 85], sweep: [20, 40],
+  });
   const [allowedChannels, setAllowedChannels] = useState(["banker", "app", "rmcall"]);
   /* Simulation duration — single configurable value (not a search dimension).
      Default 8wk matches the calibration horizon every candidate is scored over. */
@@ -514,7 +520,7 @@ export default function SmbGrowthIfWhatView() {
   const updateRule = (idx, patch) => setCustomRules((cur) => cur.map((r, i) => (i === idx ? { ...r, ...patch } : r)));
 
   const toggleProduct = (id) => setAllowedProducts((cur) => cur.includes(id) ? (cur.length === 1 ? cur : cur.filter((p) => p !== id)) : [...cur, id]);
-  const setProductFlex = (id, val) => setProductFlexMap((cur) => ({ ...cur, [id]: val }));
+  const setProductRange = (id, low, high) => setProductFlexMap((cur) => ({ ...cur, [id]: [low, high] }));
   const toggleChannel = (id) => setAllowedChannels((cur) => cur.includes(id) ? cur.filter((c) => c !== id) : [...cur, id]);
 
   const onRun = useCallback(() => {
@@ -1092,7 +1098,7 @@ export default function SmbGrowthIfWhatView() {
             <div className="iw-objectives">
               {OFFER_PRODUCT_OPTIONS.map((p) => {
                 const on = allowedProducts.includes(p.id);
-                const currentFlex = productFlexMap[p.id] ?? 50;
+                const rng = Array.isArray(productFlexMap[p.id]) ? productFlexMap[p.id] : [40, 60];
                 return (
                   <div key={p.id} className={"iw-objective" + (on ? " is-selected" : "")} style={{ flexDirection: "column", alignItems: "stretch", gap: 10, padding: 12 }}>
                     <label style={{ display: "flex", alignItems: "center", gap: 10, cursor: "pointer", width: "100%" }}>
@@ -1105,14 +1111,13 @@ export default function SmbGrowthIfWhatView() {
                     {on && (
                       <div style={{ paddingLeft: 26, paddingTop: 6, borderTop: "1px solid var(--hair)" }}>
                         <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11.5, fontFamily: "var(--ui)", color: "var(--ink-2)", marginBottom: 6 }}>
-                          <span>Rate discount (off filed)</span>
-                          <span style={{ fontWeight: 700, color: "var(--acc, #10b981)" }}>{currentFlex} bps off</span>
+                          <span>Rate discount range (off filed)</span>
+                          <span style={{ fontWeight: 700, color: "var(--acc, #10b981)" }}>{rng[0]}–{rng[1]} bps off</span>
                         </div>
-                        <RangeWithBubble
-                          min={10} max={120} step={5} value={currentFlex}
-                          onChange={(e) => setProductFlex(p.id, +e.target.value)}
-                          disabled={isAutopilot}
-                          formatter={(v) => `${v} bps off`}
+                        <DualRange
+                          min={10} max={120} step={5} unit=" bps"
+                          low={rng[0]} high={rng[1]}
+                          onChange={({ low, high }) => setProductRange(p.id, low, high)}
                         />
                       </div>
                     )}
