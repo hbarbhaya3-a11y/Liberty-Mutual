@@ -75,7 +75,7 @@ export const WEALTH_SEGMENTS = [
    reach-out day varies per segment the same way product/channel do. */
 export const RETENTION_SEGMENTS = [
   { parent: "rate-sensitive", name: "Shopping-elastic · Multi-vehicle Auto", need: "Actively comparing quotes on a multi-vehicle household auto policy — capped renewal rate + digital offer.",
-    product: ["cd_18mo", "cd_12mo"], bundles: ["auto_home"], channel: ["banker", "app"], noticeDays: [60, 45], rateFactor: 1.4, weight: 0.25 },
+    product: ["cd_6mo", "cd_12mo"], bundles: ["auto_home"], channel: ["banker", "app"], noticeDays: [60, 45], rateFactor: 1.4, weight: 0.25 },
   { parent: "rate-sensitive", name: "Shopping-elastic · Standard Auto", need: "Price-comparing single-vehicle auto policy — a scaled capped renewal increase holds them efficiently.",
     product: ["cd_12mo", "cd_6mo"], bundles: [], channel: ["app", "email"], noticeDays: [45, 35], rateFactor: 1.0, weight: 0.35 },
   { parent: "rate-sensitive", name: "Recent Claim · Rate-Sensitive Policy", need: "Received rate increase following a recent claim — requires dedicated agent consultation & deductible restructuring.",
@@ -89,7 +89,7 @@ export const RETENTION_SEGMENTS = [
     product: ["reengage", "smart_savings"], bundles: [], channel: ["email", "app"], noticeDays: [45, 35], rateFactor: 0.6, weight: 0.50 },
 
   { parent: "high-value", name: "High-Value Household at Risk", need: "Top attrition decile with multi-policy exposure — agent-negotiated capped rate before competitor binding.",
-    product: ["cd_18mo", "cd_12mo"], bundles: ["auto_home"], channel: ["banker"], noticeDays: [60], rateFactor: 1.5, weight: 0.60 },
+    product: ["cd_6mo", "cd_12mo"], bundles: ["auto_home"], channel: ["banker"], noticeDays: [60], rateFactor: 1.5, weight: 0.60 },
   { parent: "high-value", name: "Senior Preferred · Low Mileage", need: "Long-term safe driver with low annual mileage — telematics safety credit + priority support.",
     product: ["smart_savings", "cd_12mo"], bundles: ["auto_life"], channel: ["banker", "mail"], noticeDays: [60, 45], rateFactor: 1.2, weight: 0.40 },
 
@@ -105,7 +105,7 @@ export const RETENTION_SEGMENTS = [
   { parent: "multi-product", name: "Auto-to-Life Cross-Sell Candidate", need: "Life-stage event detected — contingent Ethos life insurance offer at renewal moment.",
     product: ["cd_12mo", "smart_savings"], bundles: ["auto_life"], channel: ["email", "banker"], noticeDays: [45, 60], rateFactor: 0.6, weight: 0.20 },
   { parent: "multi-product", name: "Umbrella & Preferred Risk Premier", need: "High net-worth multi-line policyholder — comprehensive coverage restructuring & agent touchpoint.",
-    product: ["cd_trade_up_24", "cd_18mo"], bundles: ["auto_home", "auto_life"], channel: ["banker"], noticeDays: [60], rateFactor: 1.1, weight: 0.20 },
+    product: ["cd_trade_up_24", "cd_12mo"], bundles: ["auto_home", "auto_life"], channel: ["banker"], noticeDays: [60], rateFactor: 1.1, weight: 0.20 },
 ];
 
 /* Friendly product labels (fallback to the id if not mapped). */
@@ -124,7 +124,7 @@ const CHANNEL_LABEL = { app: "In-app", email: "Email", banker: "Banker", mail: "
    our language (rate caps, Comparion agents) instead of the banking defaults
    (CDs, bankers). Passed in via model.productLabels / model.channelLabels. */
 export const RETENTION_PRODUCT_LABEL = {
-  cd_6mo: "Capped renewal increase", cd_12mo: "Premium discount", cd_18mo: "Capped increase + discount",
+  cd_6mo: "Capped renewal increase", cd_12mo: "Premium discount",
   cd_trade_up_24: "Multi-year rate lock", elite_mma: "Deductible-adjusted rate", smart_savings: "Loyalty / tenure discount",
   reengage: "Re-engage on value (no rate)",
 };

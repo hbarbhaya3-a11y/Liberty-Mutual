@@ -89,7 +89,7 @@ function primaryNoticeDay(days) {
 
 /* Default per-product offers (bps over each product's OWN market). Blended uplift
    equals RECOMMENDED.offerCeilingBps so the retention outcome math stays anchored. */
-const RECOMMENDED_OFFERS = { cd_12mo: 45, cd_18mo: 35 };
+const RECOMMENDED_OFFERS = { cd_12mo: 45, cd_6mo: 35 };
 
 /* ----------------------------------------------------------------------------
    Value-added retention services Liberty can add in lieu of (or alongside) a
@@ -121,7 +121,6 @@ const BUNDLE_OPTIONS = [
 const OFFER_PRODUCTS = [
   { id: "cd_6mo",         label: "Capped renewal increase", sub: "Cap how much the renewal rises · no cash discount · set the cap range", factor: 0.92 },
   { id: "cd_12mo",        label: "Premium discount",        sub: "Premium credit / discount off the renewal · set the discount range",   factor: 1.00 },
-  { id: "cd_18mo",        label: "Capped increase + discount", sub: "Cap the increase and layer a discount · strongest hold",             factor: 1.06 },
   { id: "cd_trade_up_24", label: "Multi-year rate lock",    sub: "Locks rate · customer keeps it if market rises · set the lock term",   factor: 1.04 },
   { id: "elite_mma",      label: "Deductible-adjusted rate", sub: "Higher deductible offsets premium · set the deductible %",            factor: 0.87 },
   { id: "smart_savings",  label: "Loyalty / tenure discount", sub: "Tenure-based discount · set the relationship range",                 factor: 0.94 },
@@ -446,7 +445,6 @@ export default function RetentionSimulateView() {
   const [loyaltyTenure,     setLoyaltyTenure]     = useState([3, 10]);   // years of relationship
   const [deductiblePct,     setDeductiblePct]     = useState(10);        // % of coverage set as deductible
   const [lockYears,         setLockYears]         = useState(2);         // multi-year rate-lock term (years)
-  const [combinedDollar,    setCombinedDollar]    = useState(100);       // combined offer's $ statement credit (rate cap is the bps slider)
 
   const toggleBundleOffer = (id) => setBundleOffers((cur) => {
     if (cur[id]) {
@@ -562,7 +560,7 @@ export default function RetentionSimulateView() {
       verdict,
       playKey: Date.now(),
       outcomes: o,
-      lever: { cohortPresets, offerCeilingBps, channels, minBalanceK, offerTerm, productOffers, bankingServices, bundles, multiTouch, triggerWindowDays, noticeDays, loyaltyTenure, deductiblePct, lockYears, combinedDollar },
+      lever: { cohortPresets, offerCeilingBps, channels, minBalanceK, offerTerm, productOffers, bankingServices, bundles, multiTouch, triggerWindowDays, noticeDays, loyaltyTenure, deductiblePct, lockYears },
     });
     setMode("results");
     pushAgentEvent({
@@ -570,7 +568,7 @@ export default function RetentionSimulateView() {
       src: "Simulation",
       text: `What-If converged · +$${o.retainedM.toFixed(1)}M retained · −${(o.runoffReductionPp * 100).toFixed(1)}pp renewals lapsing`,
     });
-  }, [outcomes, pushAgentEvent, cohortPresets, offerCeilingBps, channels, minBalanceK, offerTerm, productOffers, bankingServices, bundles, multiTouch, triggerWindowDays, noticeDays, loyaltyTenure, deductiblePct, lockYears, combinedDollar]);
+  }, [outcomes, pushAgentEvent, cohortPresets, offerCeilingBps, channels, minBalanceK, offerTerm, productOffers, bankingServices, bundles, multiTouch, triggerWindowDays, noticeDays, loyaltyTenure, deductiblePct, lockYears]);
 
   const onLoaderCancel = useCallback(() => setMode("config"), []);
   const onBackToConfig = useCallback(() => { setResults(null); setMode("config"); }, []);
@@ -586,7 +584,7 @@ export default function RetentionSimulateView() {
       experimentType: "retention",
       minBalanceK, offerCeilingBps, offerTerm, productOffers, channels,
       cohortPresets,
-      bankingServices, triggerWindowDays, noticeDays, loyaltyTenure, deductiblePct, lockYears, combinedDollar,
+      bankingServices, triggerWindowDays, noticeDays, loyaltyTenure, deductiblePct, lockYears,
       // Pilot defaults — Deploy will own these when the user actually
       // configures the RCT. Carried along so the staged-policy record
       // is complete for downstream consumers.
@@ -610,7 +608,7 @@ export default function RetentionSimulateView() {
         },
         reasoning: [
           "Sticky-bundled filter at 0.70 — fair-lending-defensible cohort",
-          "Capped increase + $100 retention offer — holds the renewal within combined-ratio floor",
+          "Capped renewal increase + premium discount — holds the renewal within combined-ratio floor",
           "45-day notice · multi-touch (email → app → Comparion agent) — right channel × time",
         ],
         scenarios: 96400,
@@ -974,28 +972,13 @@ export default function RetentionSimulateView() {
                           value={bps}
                           onChange={(e) => setProductOffer(p.id, +e.target.value)}
                           disabled={isAutopilot}
-                          formatter={(v) => p.id === "cd_18mo" ? `−${v} bps capped increase` : `−${v} bps discount`} />
+                          formatter={(v) => p.id === "cd_6mo" ? `−${v} bps capped increase` : `−${v} bps discount`} />
                         <div className="px-offer-eff">
                           <span className="rate-ref-item is-market"><span className="rate-ref-l">competitor quote</span><span className="rate-ref-v">{mkt.toFixed(2)}%</span></span>
                           <span className="px-offer-arrow">→</span>
                           <span className="rate-ref-item"><span className="rate-ref-l">our renewal rate</span><span className="rate-ref-v">{(mkt - bps / 100).toFixed(2)}%</span></span>
                           <span className="rate-ref-item" style={{ marginLeft: "auto", color: "var(--green)", fontWeight: 700 }}>−{bps} bps savings</span>
                         </div>
-                        {p.id === "cd_18mo" && (
-                          <div className="px-offer-qual" style={{ marginTop: 10, paddingTop: 10, borderTop: "1px dashed var(--hair)" }}>
-                            <div style={{ fontSize: 11.5, color: "var(--ink-2)", marginBottom: 4, fontWeight: 600 }}>
-                              Dollar discount — one-time premium credit layered on top of the capped increase
-                            </div>
-                            <RangeWithBubble min={0} max={300} step={25}
-                              value={combinedDollar}
-                              onChange={(e) => setCombinedDollar(+e.target.value)}
-                              disabled={isAutopilot}
-                              formatter={(v) => `$${v} credit`} />
-                            <div style={{ fontSize: 11, color: "var(--ink-3)", marginTop: 4 }}>
-                              Combined offer: <b>−{bps} bps</b> capped increase <b>+ ${combinedDollar}</b> premium credit.
-                            </div>
-                          </div>
-                        )}
                         {p.id === "smart_savings" && (
                           <div className="px-offer-qual" style={{ marginTop: 10, paddingTop: 10, borderTop: "1px dashed var(--hair)" }}>
                             <div style={{ fontSize: 11.5, color: "var(--ink-2)", marginBottom: 4, fontWeight: 600 }}>
@@ -1381,7 +1364,6 @@ function ResultsReveal({ results, onReRun, onStage }) {
           if (id === "smart_savings" && lever.loyaltyTenure) s += ` (${lever.loyaltyTenure[0]}–${lever.loyaltyTenure[1]}y)`;
           if (id === "elite_mma" && lever.deductiblePct != null) s += ` (${lever.deductiblePct}% deductible)`;
           if (id === "cd_trade_up_24" && lever.lockYears != null) s += ` (${lever.lockYears}y lock)`;
-          if (id === "cd_18mo" && lever.combinedDollar != null) s += ` + $${lever.combinedDollar} credit`;
           return s;
         })
         .join(" · ") || "—" },

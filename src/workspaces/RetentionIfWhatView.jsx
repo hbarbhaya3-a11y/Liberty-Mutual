@@ -61,7 +61,6 @@ const COHORT_OPTIONS = [
 const OFFER_PRODUCT_OPTIONS = [
   { id: "cd_6mo",          label: "Capped renewal increase" },
   { id: "cd_12mo",         label: "Premium discount" },
-  { id: "cd_18mo",         label: "Capped increase + discount" },
   { id: "cd_trade_up_24",  label: "Multi-year rate lock" },
   { id: "elite_mma",       label: "Deductible-adjusted rate" },
   { id: "smart_savings",   label: "Loyalty / tenure discount" },
@@ -254,7 +253,7 @@ function runOptimizer(objective, ranges, productOffers, bundleOffers, allowedCov
   if (objective === "retained_deposits") {
     return [
       mkRec("balanced", 1, "Balanced defender",
-        "Mid-range capped increase + $100 offer · contingent bundle discount · keeps net annualised firmly positive.",
+        "Mid-range capped increase + premium discount · contingent bundle discount · keeps net annualised firmly positive.",
         { productOffers: offerMap(40), bundleOffers: bundleMap(25), minBalanceK: clamp(ranges.minBalanceK, 25) }, 1.05, 1.00),
       mkRec("aggressive", 2, "Aggressive defender",
         "Pushes offer ceiling & bundle discount to capture rate-elastic tail — higher upside.",
@@ -508,7 +507,7 @@ export default function RetentionIfWhatView() {
   });
   const [ranges, setRanges]                   = useState(DEFAULT_RANGES);
   // Product × Offer — per-product uplift RANGE { productId: [lowBps, highBps] }; presence = allowed.
-  const [productOffers, setProductOffers]     = useState({ cd_12mo: [30, 50], cd_18mo: [20, 40] });
+  const [productOffers, setProductOffers]     = useState({ cd_12mo: [30, 50], cd_6mo: [20, 40] });
   const allowedProducts = Object.keys(productOffers);
   const [allowedChannels, setAllowedChannels] = useState(["app", "email", "banker"]);
   const [allowedCoverage, setAllowedCoverage] = useState(["dd_switch"]);
@@ -520,7 +519,6 @@ export default function RetentionIfWhatView() {
   const [loyaltyTenure,   setLoyaltyTenure]   = useState([3, 10]);
   const [deductiblePct,   setDeductiblePct]   = useState([10, 20]);
   const [lockYears,       setLockYears]       = useState([2, 4]);   // multi-year rate-lock term range
-  const [combinedDollar,  setCombinedDollar]  = useState([50, 150]); // combined offer's $ statement-credit range
   const [multiTouch,      setMultiTouch]      = useState(true);
 
   const toggleCoverage = (id) => setAllowedCoverage((cur) => cur.includes(id) ? cur.filter((c) => c !== id) : [...cur, id]);
@@ -659,7 +657,7 @@ export default function RetentionIfWhatView() {
       bankingServices: selected.picks.allowedCoverage,
       channels: (allowedChannels && allowedChannels.length ? allowedChannels : ["app", "email", "banker"]),
       noticeDays: Array.isArray(noticeDays) ? noticeDays : [noticeDays],   // per-segment reach-out lead in the deep-dive table
-      loyaltyTenure, deductiblePct, lockYears, combinedDollar,   // pricing-lever qualifiers surfaced per segment
+      loyaltyTenure, deductiblePct, lockYears,   // pricing-lever qualifiers surfaced per segment
     }, _o) : null;
     // runoffReductionPp from the optimizer is ALREADY in pp (= C.runoffBau*100*scale).
     const _baseRunoffPp = RETENTION_CALIBRATION.runoffBau * 100;
@@ -687,7 +685,6 @@ export default function RetentionIfWhatView() {
             if (id === "smart_savings") s += ` (${loyaltyTenure[0]}–${loyaltyTenure[1]}y)`;
             if (id === "elite_mma") s += ` (${deductiblePct[0]}–${deductiblePct[1]}% deductible)`;
             if (id === "cd_trade_up_24") s += ` (${lockYears[0]}–${lockYears[1]}y lock)`;
-            if (id === "cd_18mo") s += ` + $${combinedDollar[0]}–$${combinedDollar[1]} credit`;
             return s;
           })
           .join(" · ") || "—" },
@@ -778,7 +775,7 @@ export default function RetentionIfWhatView() {
                   cohortPresets: rec.picks.cohortPresets,
                   productOffers: rec.picks.productOffers,
                   channels: rec.picks.channels,
-                  loyaltyTenure, deductiblePct, lockYears, combinedDollar,
+                  loyaltyTenure, deductiblePct, lockYears,
                 }, rec.outcomes);
                 const _recVehicles = [...new Set((_recSeg.rows || []).map((r) => r.product))].filter(Boolean);
                 return (
@@ -1115,19 +1112,6 @@ export default function RetentionIfWhatView() {
                           <span className="px-offer-arrow">→</span>
                           <span className="rate-ref-item"><span className="rate-ref-l">offer range</span><span className="rate-ref-v">{(mkt - rng[1] / 100).toFixed(2)}–{(mkt - rng[0] / 100).toFixed(2)}%</span></span>
                         </div>
-                        {p.id === "cd_18mo" && (
-                          <div className="px-offer-qual" style={{ marginTop: 10, paddingTop: 10, borderTop: "1px dashed var(--hair)" }}>
-                            <div style={{ fontSize: 11.5, color: "var(--ink-2)", marginBottom: 4, fontWeight: 600 }}>
-                              Dollar-discount range — premium credit layered on top of the capped increase (the bps range above is the rate)
-                            </div>
-                            <DualRange min={0} max={300} step={25} unit=" USD"
-                              low={combinedDollar[0]} high={combinedDollar[1]}
-                              onChange={({ low, high }) => setCombinedDollar([low, high])} />
-                            <div style={{ fontSize: 11, color: "var(--ink-3)", marginTop: 4 }}>
-                              Combined offer: <b>{rng[0]}–{rng[1]} bps</b> capped increase <b>+ ${combinedDollar[0]}–${combinedDollar[1]}</b> premium credit.
-                            </div>
-                          </div>
-                        )}
                         {p.id === "smart_savings" && (
                           <div className="px-offer-qual" style={{ marginTop: 10, paddingTop: 10, borderTop: "1px dashed var(--hair)" }}>
                             <div style={{ fontSize: 11.5, color: "var(--ink-2)", marginBottom: 4, fontWeight: 600 }}>
