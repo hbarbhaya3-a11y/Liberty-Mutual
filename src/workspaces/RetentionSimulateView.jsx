@@ -119,12 +119,12 @@ const BUNDLE_OPTIONS = [
    Offer options · radio cards, single-select. (ids retained for sim math.)
 ---------------------------------------------------------------------------- */
 const OFFER_PRODUCTS = [
-  { id: "cd_6mo",         label: "Rate cap · light",       sub: "Small cap · modest defense",                          factor: 0.92 },
-  { id: "cd_12mo",        label: "Rate cap + $100 offer",  sub: "Best balance of retention and cost",                  factor: 1.00 },
-  { id: "cd_18mo",        label: "Rate cap + $150 offer",  sub: "Strongest hold · highest-conviction shoppers",        factor: 1.06 },
+  { id: "cd_6mo",         label: "Rate cap",               sub: "Cap the renewal increase · no cash discount · set the cap range",  factor: 0.92 },
+  { id: "cd_12mo",        label: "Discount",               sub: "Statement-credit / premium discount · set the discount range",      factor: 1.00 },
+  { id: "cd_18mo",        label: "Combined — rate cap + discount", sub: "Cap the increase and layer a discount · strongest hold",    factor: 1.06 },
   { id: "cd_trade_up_24", label: "Multi-year rate lock",   sub: "Locks rate · customer keeps it if market rises",      factor: 1.04 },
-  { id: "elite_mma",      label: "Deductible-adjusted",    sub: "Higher deductible offsets rate · most flexible",      factor: 0.87 },
-  { id: "smart_savings",  label: "Loyalty discount tier",  sub: "Tenure-based discount on the renewal premium",        factor: 0.94 },
+  { id: "elite_mma",      label: "Deductible-adjusted",    sub: "Higher deductible offsets rate · set the deductible %", factor: 0.87 },
+  { id: "smart_savings",  label: "Loyalty discount tier",  sub: "Tenure-based discount · set the relationship range",   factor: 0.94 },
 ];
 
 /* ----------------------------------------------------------------------------
@@ -441,6 +441,10 @@ export default function RetentionSimulateView() {
   const [multiTouch,        setMultiTouch]        = useState(RECOMMENDED.multiTouch);
   const [noticeDays,        setNoticeDays]        = useState(RECOMMENDED.noticeDays);
   const [customNotice,      setCustomNotice]      = useState("");
+  // Pricing-lever qualifiers: the loyalty tier's relationship (tenure) band and
+  // the deductible-adjusted offer's deductible % against coverage.
+  const [loyaltyTenure,     setLoyaltyTenure]     = useState([3, 10]);   // years of relationship
+  const [deductiblePct,     setDeductiblePct]     = useState(10);        // % of coverage set as deductible
 
   const toggleBundleOffer = (id) => setBundleOffers((cur) => {
     if (cur[id]) {
@@ -556,7 +560,7 @@ export default function RetentionSimulateView() {
       verdict,
       playKey: Date.now(),
       outcomes: o,
-      lever: { cohortPresets, offerCeilingBps, channels, minBalanceK, offerTerm, productOffers, bankingServices, bundles, multiTouch, triggerWindowDays, noticeDays },
+      lever: { cohortPresets, offerCeilingBps, channels, minBalanceK, offerTerm, productOffers, bankingServices, bundles, multiTouch, triggerWindowDays, noticeDays, loyaltyTenure, deductiblePct },
     });
     setMode("results");
     pushAgentEvent({
@@ -564,7 +568,7 @@ export default function RetentionSimulateView() {
       src: "Simulation",
       text: `What-If converged · +$${o.retainedM.toFixed(1)}M retained · −${(o.runoffReductionPp * 100).toFixed(1)}pp renewals lapsing`,
     });
-  }, [outcomes, pushAgentEvent, cohortPresets, offerCeilingBps, channels, minBalanceK, offerTerm]);
+  }, [outcomes, pushAgentEvent, cohortPresets, offerCeilingBps, channels, minBalanceK, offerTerm, productOffers, bankingServices, bundles, multiTouch, triggerWindowDays, noticeDays, loyaltyTenure, deductiblePct]);
 
   const onLoaderCancel = useCallback(() => setMode("config"), []);
   const onBackToConfig = useCallback(() => { setResults(null); setMode("config"); }, []);
@@ -580,7 +584,7 @@ export default function RetentionSimulateView() {
       experimentType: "retention",
       minBalanceK, offerCeilingBps, offerTerm, productOffers, channels,
       cohortPresets,
-      bankingServices, triggerWindowDays, noticeDays,
+      bankingServices, triggerWindowDays, noticeDays, loyaltyTenure, deductiblePct,
       // Pilot defaults — Deploy will own these when the user actually
       // configures the RCT. Carried along so the staged-policy record
       // is complete for downstream consumers.
@@ -975,6 +979,34 @@ export default function RetentionSimulateView() {
                           <span className="rate-ref-item"><span className="rate-ref-l">our renewal rate</span><span className="rate-ref-v">{(mkt - bps / 100).toFixed(2)}%</span></span>
                           <span className="rate-ref-item" style={{ marginLeft: "auto", color: "var(--green)", fontWeight: 700 }}>−{bps} bps savings</span>
                         </div>
+                        {p.id === "smart_savings" && (
+                          <div className="px-offer-qual" style={{ marginTop: 10, paddingTop: 10, borderTop: "1px dashed var(--hair)" }}>
+                            <div style={{ fontSize: 11.5, color: "var(--ink-2)", marginBottom: 4, fontWeight: 600 }}>
+                              Relationship range — tenure the loyalty discount applies to
+                            </div>
+                            <DualRange min={0} max={20} step={1} unit="y"
+                              low={loyaltyTenure[0]} high={loyaltyTenure[1]}
+                              onChange={({ low, high }) => setLoyaltyTenure([low, high])} />
+                            <div style={{ fontSize: 11, color: "var(--ink-3)", marginTop: 4 }}>
+                              Households with <b>{loyaltyTenure[0]}–{loyaltyTenure[1]} years</b> of relationship qualify for this tier.
+                            </div>
+                          </div>
+                        )}
+                        {p.id === "elite_mma" && (
+                          <div className="px-offer-qual" style={{ marginTop: 10, paddingTop: 10, borderTop: "1px dashed var(--hair)" }}>
+                            <div style={{ fontSize: 11.5, color: "var(--ink-2)", marginBottom: 4, fontWeight: 600 }}>
+                              Deductible level — % of coverage moved to the deductible to offset the rate
+                            </div>
+                            <RangeWithBubble min={5} max={25} step={5}
+                              value={deductiblePct}
+                              onChange={(e) => setDeductiblePct(+e.target.value)}
+                              disabled={isAutopilot}
+                              formatter={(v) => `${v}% deductible`} />
+                            <div style={{ fontSize: 11, color: "var(--ink-3)", marginTop: 4 }}>
+                              Deductible set at <b>{deductiblePct}%</b> of coverage — a higher deductible funds a larger rate offset.
+                            </div>
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>
@@ -1110,8 +1142,8 @@ export default function RetentionSimulateView() {
           </div>
 
           <LeverRow
-            label="Renewal notice — days to reach out"
-            caption="How many days before renewal to open the outreach. Select any number of leads (or add a custom one) — each micro-segment is then reached out to at its most-effective lead from your set. 45d is the sweet spot for most; high-value shoppers warrant an earlier 60-day start."
+            label="Renewal reminders — days before renewal"
+            caption="How many days before renewal to send the reminder. Select any number of reminder windows (or add a custom one) — each micro-segment is then reminded at its most-effective window from your set. 45d is the sweet spot for most; high-value shoppers warrant an earlier 60-day reminder."
             value={noticeDays.map((d) => `${d}d`).join(" · ")}
             offDefault={JSON.stringify(noticeDays) !== JSON.stringify(RECOMMENDED.noticeDays)}
           >
@@ -1120,13 +1152,13 @@ export default function RetentionSimulateView() {
                 <label key={d} className={"lever-check" + (noticeDays.includes(d) ? " on" : "")}>
                   <input type="checkbox" checked={noticeDays.includes(d)}
                     onChange={() => toggleNotice(d)} disabled={isAutopilot} />
-                  {d}-day
+                  {d}-day reminder
                 </label>
               ))}
               {noticeDays.filter((d) => !NOTICE_DAY_PRESETS.includes(d)).map((d) => (
                 <label key={d} className="lever-check on">
                   <input type="checkbox" checked onChange={() => toggleNotice(d)} disabled={isAutopilot} />
-                  {d}-day
+                  {d}-day reminder
                 </label>
               ))}
             </div>
@@ -1142,7 +1174,7 @@ export default function RetentionSimulateView() {
                 disabled={isAutopilot}
               />
               <button type="button" className="notice-custom-add" onClick={addCustomNotice} disabled={isAutopilot}>
-                + Add lead
+                + Add reminder
               </button>
             </div>
           </LeverRow>
@@ -1312,12 +1344,17 @@ function ResultsReveal({ results, onReRun, onStage }) {
     { k: "Cohort", v: (lever.cohortPresets || []).map((id) => COHORT_LABELS[id]).filter(Boolean).join(", ") || "All" },
     { k: "Min LTV", v: `$${lever.minBalanceK}K` },
     { k: "Pricing", v: Object.entries(lever.productOffers || {})
-        .map(([id, bps]) => `${(OFFER_PRODUCTS.find((p) => p.id === id) || {}).label || id} ${((PRODUCT_MARKET[id] ?? 0) + bps / 100).toFixed(2)}%`)
+        .map(([id, bps]) => {
+          let s = `${(OFFER_PRODUCTS.find((p) => p.id === id) || {}).label || id} ${((PRODUCT_MARKET[id] ?? 0) + bps / 100).toFixed(2)}%`;
+          if (id === "smart_savings" && lever.loyaltyTenure) s += ` (${lever.loyaltyTenure[0]}–${lever.loyaltyTenure[1]}y)`;
+          if (id === "elite_mma" && lever.deductiblePct != null) s += ` (${lever.deductiblePct}% deductible)`;
+          return s;
+        })
         .join(" · ") || "—" },
     { k: "Coverage", v: (lever.bankingServices || []).map((s) => (BANKING_SERVICES.find((x) => x.id === s) || {}).label).filter(Boolean).join(", ") || "—" },
     { k: "Bundle", v: (lever.bundles || []).map((s) => (BUNDLE_OPTIONS.find((x) => x.id === s) || {}).label).filter(Boolean).join(", ") || "—" },
     { k: "Channels", v: (lever.channels || []).map((c) => CHANNEL_OPTIONS.find((o) => o.id === c)?.label).filter(Boolean).join(", ") },
-    { k: "Reach-out lead", v: `${(lever.noticeDays && lever.noticeDays.length ? lever.noticeDays : [lever.triggerWindowDays || 45]).map((d) => `${d}d`).join(" · ")} notice${lever.multiTouch ? " · multi-touch" : ""}` },
+    { k: "Renewal reminder", v: `${(lever.noticeDays && lever.noticeDays.length ? lever.noticeDays : [lever.triggerWindowDays || 45]).map((d) => `${d}d`).join(" · ")} before renewal${lever.multiTouch ? " · multi-touch" : ""}` },
   ];
 
   const chartsGrid = (

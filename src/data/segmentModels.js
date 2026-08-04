@@ -124,7 +124,7 @@ const CHANNEL_LABEL = { app: "In-app", email: "Email", banker: "Banker", mail: "
    our language (rate caps, Comparion agents) instead of the banking defaults
    (CDs, bankers). Passed in via model.productLabels / model.channelLabels. */
 export const RETENTION_PRODUCT_LABEL = {
-  cd_6mo: "Rate cap · light", cd_12mo: "Rate cap + $100 offer", cd_18mo: "Rate cap + $150 offer",
+  cd_6mo: "Rate cap", cd_12mo: "Discount", cd_18mo: "Combined — rate cap + discount",
   cd_trade_up_24: "Multi-year rate lock", elite_mma: "Deductible-adjusted", smart_savings: "Loyalty discount tier",
   reengage: "Re-engage on value (no rate)",
 };
@@ -246,10 +246,24 @@ export function deriveSegments(model, lever, outcomes) {
       bundleText = Array.isArray(rng) ? `${bName} (-${Math.round((rng[0] + rng[1]) / 2)} bps)` : bName;
     }
 
+    // Per-product qualifiers surfaced at the micro-segment level. The loyalty
+    // tier carries the relationship (tenure) band it applies to; the
+    // deductible-adjusted offer carries the deductible % we set against
+    // coverage (insurance-context lever). Both flow from the pricing levers.
+    let productDisplay = productLabelMap[productId] || productId;
+    if (productId === "smart_savings" && lever.loyaltyTenure != null) {
+      const lt = lever.loyaltyTenure;
+      productDisplay += Array.isArray(lt) ? ` · ${lt[0]}–${lt[1]}y relationship` : ` · ${lt}y+ relationship`;
+    }
+    if (productId === "elite_mma" && lever.deductiblePct != null) {
+      const dp = lever.deductiblePct;
+      productDisplay += Array.isArray(dp) ? ` · ${dp[0]}–${dp[1]}% deductible` : ` · ${dp}% deductible`;
+    }
+
     return { name: s.name, need: s.need, parent: s.parent, size, rateBps, valueW, marketRate,
       convPct: s.convPct,   // wealth: display conversion rate, passed through to the table
       reachOutDays: noticeDayFor(s),   // retention: per-segment renewal-notice lead
-      product: productLabelMap[productId] || productId,
+      product: productDisplay,
       bundle: bundleText,
       channel: channelLabelMap[channelId] || channelId, noRate: s.rateFactor === 0 };
   });

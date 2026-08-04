@@ -59,9 +59,9 @@ const COHORT_OPTIONS = [
 ];
 
 const OFFER_PRODUCT_OPTIONS = [
-  { id: "cd_6mo",          label: "Rate cap · light" },
-  { id: "cd_12mo",         label: "Rate cap + $100 offer" },
-  { id: "cd_18mo",         label: "Rate cap + $150 offer" },
+  { id: "cd_6mo",          label: "Rate cap" },
+  { id: "cd_12mo",         label: "Discount" },
+  { id: "cd_18mo",         label: "Combined — rate cap + discount" },
   { id: "cd_trade_up_24",  label: "Multi-year rate lock" },
   { id: "elite_mma",       label: "Deductible-adjusted" },
   { id: "smart_savings",   label: "Loyalty discount tier" },
@@ -515,6 +515,10 @@ export default function RetentionIfWhatView() {
   const [bundleOffers,    setBundleOffers]    = useState({ auto_home: [15, 35] });
   const [noticeDays,      setNoticeDays]      = useState([45]);
   const [customNotice,    setCustomNotice]    = useState("");
+  // Pricing-lever qualifiers (mirror the What-If view): the loyalty tier's
+  // relationship (tenure) range and the deductible-adjusted offer's deductible %.
+  const [loyaltyTenure,   setLoyaltyTenure]   = useState([3, 10]);
+  const [deductiblePct,   setDeductiblePct]   = useState([10, 20]);
   const [multiTouch,      setMultiTouch]      = useState(true);
 
   const toggleCoverage = (id) => setAllowedCoverage((cur) => cur.includes(id) ? cur.filter((c) => c !== id) : [...cur, id]);
@@ -653,6 +657,7 @@ export default function RetentionIfWhatView() {
       bankingServices: selected.picks.allowedCoverage,
       channels: (allowedChannels && allowedChannels.length ? allowedChannels : ["app", "email", "banker"]),
       noticeDays: Array.isArray(noticeDays) ? noticeDays : [noticeDays],   // per-segment reach-out lead in the deep-dive table
+      loyaltyTenure, deductiblePct,   // pricing-lever qualifiers surfaced per segment
     }, _o) : null;
     // runoffReductionPp from the optimizer is ALREADY in pp (= C.runoffBau*100*scale).
     const _baseRunoffPp = RETENTION_CALIBRATION.runoffBau * 100;
@@ -675,14 +680,19 @@ export default function RetentionIfWhatView() {
       { k: "Cohort", v: (selected.picks.cohortPresets || []).map((id) => COHORT_OPTIONS.find((c) => c.id === id)?.name).filter(Boolean).join(", ") || "All" },
       { k: "Min LTV", v: `$${selected.picks.minBalanceK}K` },
       { k: "Pricing", v: Object.entries(selected.picks.productOffers || {})
-          .map(([id, bps]) => `${fmtProduct(id)} ${((PRODUCT_MARKET[id] ?? 0) + bps / 100).toFixed(2)}%`)
+          .map(([id, bps]) => {
+            let s = `${fmtProduct(id)} ${((PRODUCT_MARKET[id] ?? 0) + bps / 100).toFixed(2)}%`;
+            if (id === "smart_savings") s += ` (${loyaltyTenure[0]}–${loyaltyTenure[1]}y)`;
+            if (id === "elite_mma") s += ` (${deductiblePct[0]}–${deductiblePct[1]}% deductible)`;
+            return s;
+          })
           .join(" · ") || "—" },
       { k: "Coverage", v: allowedCoverage.map((c) => COVERAGE_OPTIONS.find((o) => o.id === c)?.label).filter(Boolean).join(", ") || "—" },
       { k: "Bundle", v: Object.entries(selected.picks.bundleOffers || bundleOffers)
           .map(([id, rng]) => `${BUNDLE_OPTIONS.find((o) => o.id === id)?.label || id} (-${Array.isArray(rng) ? Math.round((rng[0] + rng[1]) / 2) : rng} bps)`)
           .join(" · ") || "—" },
       { k: "Channels", v: selected.picks.channels.map((c) => CHANNEL_OPTIONS.find((o) => o.id === c)?.label).filter(Boolean).join(", ") },
-      { k: "Timing", v: `${(Array.isArray(noticeDays) ? noticeDays : [noticeDays]).join(" / ")}-day notice${multiTouch ? " · multi-touch" : ""}` },
+      { k: "Renewal reminder", v: `${(Array.isArray(noticeDays) ? noticeDays : [noticeDays]).join(" / ")}-day before renewal${multiTouch ? " · multi-touch" : ""}` },
       { k: "Treated", v: `${(_seg ? _seg.rollup.reach : 0).toLocaleString()} customers` },
     ] : [];
     const _chartsGrid = selected ? (
@@ -764,6 +774,7 @@ export default function RetentionIfWhatView() {
                   cohortPresets: rec.picks.cohortPresets,
                   productOffers: rec.picks.productOffers,
                   channels: rec.picks.channels,
+                  loyaltyTenure, deductiblePct,
                 }, rec.outcomes);
                 const _recVehicles = [...new Set((_recSeg.rows || []).map((r) => r.product))].filter(Boolean);
                 return (
@@ -1100,6 +1111,32 @@ export default function RetentionIfWhatView() {
                           <span className="px-offer-arrow">→</span>
                           <span className="rate-ref-item"><span className="rate-ref-l">offer range</span><span className="rate-ref-v">{(mkt - rng[1] / 100).toFixed(2)}–{(mkt - rng[0] / 100).toFixed(2)}%</span></span>
                         </div>
+                        {p.id === "smart_savings" && (
+                          <div className="px-offer-qual" style={{ marginTop: 10, paddingTop: 10, borderTop: "1px dashed var(--hair)" }}>
+                            <div style={{ fontSize: 11.5, color: "var(--ink-2)", marginBottom: 4, fontWeight: 600 }}>
+                              Relationship range — tenure band the optimizer may target with the loyalty discount
+                            </div>
+                            <DualRange min={0} max={20} step={1} unit="y"
+                              low={loyaltyTenure[0]} high={loyaltyTenure[1]}
+                              onChange={({ low, high }) => setLoyaltyTenure([low, high])} />
+                            <div style={{ fontSize: 11, color: "var(--ink-3)", marginTop: 4 }}>
+                              Applies to households with <b>{loyaltyTenure[0]}–{loyaltyTenure[1]} years</b> of relationship.
+                            </div>
+                          </div>
+                        )}
+                        {p.id === "elite_mma" && (
+                          <div className="px-offer-qual" style={{ marginTop: 10, paddingTop: 10, borderTop: "1px dashed var(--hair)" }}>
+                            <div style={{ fontSize: 11.5, color: "var(--ink-2)", marginBottom: 4, fontWeight: 600 }}>
+                              Deductible range — % of coverage moved to the deductible to offset the rate
+                            </div>
+                            <DualRange min={5} max={25} step={5} unit="%"
+                              low={deductiblePct[0]} high={deductiblePct[1]}
+                              onChange={({ low, high }) => setDeductiblePct([low, high])} />
+                            <div style={{ fontSize: 11, color: "var(--ink-3)", marginTop: 4 }}>
+                              Deductible swept between <b>{deductiblePct[0]}–{deductiblePct[1]}%</b> of coverage — a higher deductible funds a larger rate offset.
+                            </div>
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>
@@ -1216,21 +1253,21 @@ export default function RetentionIfWhatView() {
           </div>
           <div className="lever-row">
             <div className="lever-head">
-              <span className="lever-name">Renewal notice lead</span>
-              <span className="lever-value">{(Array.isArray(noticeDays) ? noticeDays : [noticeDays]).map((d) => `${d}d`).join(" · ")} notice</span>
+              <span className="lever-name">Renewal reminder</span>
+              <span className="lever-value">{(Array.isArray(noticeDays) ? noticeDays : [noticeDays]).map((d) => `${d}d`).join(" · ")} before renewal</span>
             </div>
-            <div className="lever-caption">How many days before renewal the optimizer may open outreach. Select preset lead horizons or enter custom lead.</div>
+            <div className="lever-caption">How many days before renewal the optimizer may send the reminder. Select preset reminder windows or enter a custom one.</div>
             <div className="lever-checks" style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
               {(Array.isArray(noticeDays) ? noticeDays : [noticeDays]).map((d) => (
                 <label key={d} className="lever-check on" style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "6px 12px", background: "rgba(66, 224, 139, 0.12)", border: "1px solid var(--green)", borderRadius: 6, fontSize: 12, cursor: "pointer" }}>
                   <input type="checkbox" checked={true} onChange={() => toggleNotice(d)} disabled={isAutopilot} />
-                  {d}-day lead
+                  {d}-day reminder
                 </label>
               ))}
               {[35, 45, 60].filter((p) => !(Array.isArray(noticeDays) ? noticeDays : [noticeDays]).includes(p)).map((p) => (
                 <label key={p} className="lever-check" style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "6px 12px", background: "var(--bg-2)", border: "1px solid var(--hair)", borderRadius: 6, fontSize: 12, cursor: "pointer" }}>
                   <input type="checkbox" checked={false} onChange={() => toggleNotice(p)} disabled={isAutopilot} />
-                  {p}-day lead
+                  {p}-day reminder
                 </label>
               ))}
             </div>
@@ -1253,7 +1290,7 @@ export default function RetentionIfWhatView() {
                 disabled={isAutopilot}
                 style={{ padding: "6px 14px", borderRadius: 6, border: "1px solid var(--green)", background: "rgba(66, 224, 139, 0.15)", color: "var(--ink)", cursor: "pointer", fontSize: 12, fontWeight: 700 }}
               >
-                + Add lead
+                + Add reminder
               </button>
             </div>
           </div>

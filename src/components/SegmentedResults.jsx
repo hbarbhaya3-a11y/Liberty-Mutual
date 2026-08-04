@@ -154,7 +154,7 @@ export default function SegmentedResults({
               {retailActive ? (
                 <>
                   <span className="seg-th">Channel</span>
-                  <span className="seg-th">Time to reach before</span>
+                  <span className="seg-th">Renewal reminder</span>
                   <span className="seg-th">Content</span>
                 </>
               ) : (
@@ -210,7 +210,7 @@ export default function SegmentedResults({
                           {r.channel}
                         </span>
                         <span className="seg-td seg-lead">
-                          <span className="seg-channel-lead">{r.reachOutDays ? `${r.reachOutDays}-day notice` : "45-day notice"}</span>
+                          <span className="seg-channel-lead">{r.reachOutDays ? `${r.reachOutDays} days before renewal` : "45 days before renewal"}</span>
                         </span>
                         <span className="seg-td seg-content">
                           <button
@@ -230,7 +230,7 @@ export default function SegmentedResults({
                       <span className="seg-td seg-channel">
                         <span className="seg-channel-name">{r.channel}</span>
                         {r.reachOutDays != null && (
-                          <span className="seg-channel-lead">{r.reachOutDays}-day reach-out</span>
+                          <span className="seg-channel-lead">{r.reachOutDays}-day reminder</span>
                         )}
                       </span>
                     )}
