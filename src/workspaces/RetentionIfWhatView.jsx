@@ -520,6 +520,7 @@ export default function RetentionIfWhatView() {
   const [loyaltyTenure,   setLoyaltyTenure]   = useState([3, 10]);
   const [deductiblePct,   setDeductiblePct]   = useState([10, 20]);
   const [lockYears,       setLockYears]       = useState([2, 4]);   // multi-year rate-lock term range
+  const [combinedDollar,  setCombinedDollar]  = useState([50, 150]); // combined offer's $ statement-credit range
   const [multiTouch,      setMultiTouch]      = useState(true);
 
   const toggleCoverage = (id) => setAllowedCoverage((cur) => cur.includes(id) ? cur.filter((c) => c !== id) : [...cur, id]);
@@ -658,7 +659,7 @@ export default function RetentionIfWhatView() {
       bankingServices: selected.picks.allowedCoverage,
       channels: (allowedChannels && allowedChannels.length ? allowedChannels : ["app", "email", "banker"]),
       noticeDays: Array.isArray(noticeDays) ? noticeDays : [noticeDays],   // per-segment reach-out lead in the deep-dive table
-      loyaltyTenure, deductiblePct, lockYears,   // pricing-lever qualifiers surfaced per segment
+      loyaltyTenure, deductiblePct, lockYears, combinedDollar,   // pricing-lever qualifiers surfaced per segment
     }, _o) : null;
     // runoffReductionPp from the optimizer is ALREADY in pp (= C.runoffBau*100*scale).
     const _baseRunoffPp = RETENTION_CALIBRATION.runoffBau * 100;
@@ -686,6 +687,7 @@ export default function RetentionIfWhatView() {
             if (id === "smart_savings") s += ` (${loyaltyTenure[0]}–${loyaltyTenure[1]}y)`;
             if (id === "elite_mma") s += ` (${deductiblePct[0]}–${deductiblePct[1]}% deductible)`;
             if (id === "cd_trade_up_24") s += ` (${lockYears[0]}–${lockYears[1]}y lock)`;
+            if (id === "cd_18mo") s += ` + $${combinedDollar[0]}–$${combinedDollar[1]} credit`;
             return s;
           })
           .join(" · ") || "—" },
@@ -776,7 +778,7 @@ export default function RetentionIfWhatView() {
                   cohortPresets: rec.picks.cohortPresets,
                   productOffers: rec.picks.productOffers,
                   channels: rec.picks.channels,
-                  loyaltyTenure, deductiblePct, lockYears,
+                  loyaltyTenure, deductiblePct, lockYears, combinedDollar,
                 }, rec.outcomes);
                 const _recVehicles = [...new Set((_recSeg.rows || []).map((r) => r.product))].filter(Boolean);
                 return (
@@ -1113,6 +1115,19 @@ export default function RetentionIfWhatView() {
                           <span className="px-offer-arrow">→</span>
                           <span className="rate-ref-item"><span className="rate-ref-l">offer range</span><span className="rate-ref-v">{(mkt - rng[1] / 100).toFixed(2)}–{(mkt - rng[0] / 100).toFixed(2)}%</span></span>
                         </div>
+                        {p.id === "cd_18mo" && (
+                          <div className="px-offer-qual" style={{ marginTop: 10, paddingTop: 10, borderTop: "1px dashed var(--hair)" }}>
+                            <div style={{ fontSize: 11.5, color: "var(--ink-2)", marginBottom: 4, fontWeight: 600 }}>
+                              Dollar-discount range — statement credit layered on top of the rate cap (the bps range above is the rate)
+                            </div>
+                            <DualRange min={0} max={300} step={25} unit=" USD"
+                              low={combinedDollar[0]} high={combinedDollar[1]}
+                              onChange={({ low, high }) => setCombinedDollar([low, high])} />
+                            <div style={{ fontSize: 11, color: "var(--ink-3)", marginTop: 4 }}>
+                              Combined offer: <b>{rng[0]}–{rng[1]} bps</b> rate cap <b>+ ${combinedDollar[0]}–${combinedDollar[1]}</b> statement credit.
+                            </div>
+                          </div>
+                        )}
                         {p.id === "smart_savings" && (
                           <div className="px-offer-qual" style={{ marginTop: 10, paddingTop: 10, borderTop: "1px dashed var(--hair)" }}>
                             <div style={{ fontSize: 11.5, color: "var(--ink-2)", marginBottom: 4, fontWeight: 600 }}>
