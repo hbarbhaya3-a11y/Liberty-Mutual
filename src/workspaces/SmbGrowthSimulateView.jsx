@@ -464,6 +464,7 @@ export default function SmbGrowthSimulateView() {
       verdict,
       playKey: Date.now(),
       outcomes: o,
+      offerCeilingBps,
     });
     setMode("results");
     pushAgentEvent({
@@ -471,7 +472,7 @@ export default function SmbGrowthSimulateView() {
       src: "Simulation",
       text: `What-If converged · +$${o.retainedM.toFixed(0)}M incremental Yr-1 revenue · conversion ${(o.runoffWithPolicy * 100).toFixed(1)}%`,
     });
-  }, [outcomes, pushAgentEvent]);
+  }, [outcomes, pushAgentEvent, offerCeilingBps]);
 
   const onLoaderCancel = useCallback(() => setMode("config"), []);
   const onBackToConfig = useCallback(() => { setResults(null); setMode("config"); }, []);
@@ -968,6 +969,29 @@ function ResultsReveal({ results, onReRun, onStage }) {
   const { explorationMode, setExplorationMode } = useAppShell();
   const { verdict, playKey, outcomes } = results;
   const o = outcomes;
+
+  // Config-driven per-segment recommendation. The commercial "value" is
+  // Incr. NWP / acct / yr; each segment's rate discount (bps off filed) and
+  // effective rate come FROM the selected offer configuration — bps = the
+  // chosen offer's discount ceiling × the segment's own offerFrac (elasticity),
+  // so a deeper/looser offer moves every segment's discount, effective rate,
+  // and NWP together.
+  const cfgBps = results.offerCeilingBps != null ? results.offerCeilingBps : RECOMMENDED.offerCeilingBps;
+  const configuredSegments = useMemo(() => {
+    const revFactor = 1 + ((cfgBps - RECOMMENDED.offerCeilingBps) / RECOMMENDED.offerCeilingBps) * 0.25;
+    return SMBGROWTH_MICROSEGMENTS.map((s) => {
+      if (s.offerFrac == null || s.tone === "hold" || s.tone === "blocked") {
+        return { ...s, disc: "—" };
+      }
+      const bps = Math.round((cfgBps * s.offerFrac) / 5) * 5;
+      const effRate = s.filedRate != null ? (s.filedRate - bps / 100).toFixed(2) + "%" : null;
+      const disc = effRate ? `−${bps} bps · ${effRate}` : `−${bps} bps`;
+      const revNum = Number(String(s.rev || "").replace(/[^0-9.]/g, ""));
+      const rev = revNum ? `$${Math.round(revNum * revFactor).toLocaleString()}` : s.rev;
+      return { ...s, disc, rev };
+    });
+  }, [cfgBps]);
+
   const [showVerdict, setShowVerdict] = useState(false);
   const [showKpis,    setShowKpis]    = useState(false);
   const [showChart,   setShowChart]   = useState(false);
@@ -1190,7 +1214,7 @@ function ResultsReveal({ results, onReRun, onStage }) {
       <section className={`panel reveal ${showSegs ? "in" : ""}`}>
         <MicroSegmentTable
           segmentColumns={SMBGROWTH_SEGMENT_COLUMNS}
-          microSegments={SMBGROWTH_MICROSEGMENTS}
+          microSegments={configuredSegments}
         />
       </section>
 

@@ -178,15 +178,17 @@ export const SMBGROWTH_CALIBRATION = {
 /* ---- emergent micro-segments (the B2B addition to the results) ---- */
 export const SMBGROWTH_SEGMENT_COLUMNS = [
   { id: "product", label: "Recommended lead line" },
+  { id: "disc", label: "Rate discount · eff. rate" },
   { id: "channel", label: "Channel" },
   { id: "conv", label: "Bind (vs base)" },
-  { id: "rev", label: "Incr. NWP / acct" },
+  { id: "rev", label: "Incr. NWP / acct / yr" },
   { id: "attach", label: "Cross-line attach" },
 ];
 export const SMBGROWTH_MICROSEGMENTS = [
   { id: "multisite", name: "Scaling multi-location", n: 9200, tone: "go",
     signals: "Real-estate expansion + new location + rising payroll",
     product: "BOP for the new site (auto-quoted) + Workers Comp",
+    offerFrac: 0.60, filedRate: 5.10,
     channel: "Broker / Agent", conv: 26, convBase: 9, rev: "$1,640", attach: "Umbrella, Auto",
     need: "A multi-location expansion needs property and liability at the new site, and WC for the added payroll, before the competitor writes it.",
     offer: "Pre-analyzed submission, elasticity-aware quote with terms up front · WC bundled with the BOP.",
@@ -195,6 +197,7 @@ export const SMBGROWTH_MICROSEGMENTS = [
   { id: "offus", name: "Off-us / insurtech placers", n: 12400, tone: "go",
     signals: "New off-us placement + prior-carrier switch",
     product: "Win-back quote on the lead line, priced to bind",
+    offerFrac: 0.95, filedRate: 4.80,
     channel: "Direct digital instant-quote", conv: 22, convBase: 7, rev: "$880", attach: "GL, Cyber",
     need: "The coverage is already leaving — win the account back with a fast, competitive quote before the insurtech deepens.",
     offer: "Elasticity-aware quote at the recommended price point, delivered the moment the off-us signal fires.",
@@ -203,6 +206,7 @@ export const SMBGROWTH_MICROSEGMENTS = [
   { id: "equip", name: "Fleet / equipment-heavy", n: 7600, tone: "go",
     signals: "Fleet size increase + equipment purchase",
     product: "Commercial Auto (fleet) + inland marine",
+    offerFrac: 0.40, filedRate: 5.60,
     channel: "Referral UW + digital", conv: 18, convBase: 8, rev: "$2,100", attach: "Umbrella",
     need: "A growing fleet raises auto exposure — a fleet Commercial Auto program with a safety credit fits the risk.",
     offer: "Pre-qualified fleet terms with a telematics safety credit, specialist-led with a digital follow-up.",
@@ -211,6 +215,7 @@ export const SMBGROWTH_MICROSEGMENTS = [
   { id: "surplus", name: "Revenue-surge, scaling", n: 6300, tone: "go",
     signals: "Revenue growth + profitability boost",
     product: "Business Advantage bundle (BOP + WC + Umbrella + Cyber)",
+    offerFrac: 0.75, filedRate: 4.95,
     channel: "Direct digital", conv: 24, convBase: 11, rev: "$640", attach: "Auto, Umbrella",
     need: "Surplus and growth call for a bundle that captures the whole account and lowers the blended loss ratio.",
     offer: "Bundled multi-line quote on the Business Advantage package, presented digitally.",
