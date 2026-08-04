@@ -264,16 +264,19 @@ export function deriveSegments(model, lever, outcomes) {
       productDisplay += Array.isArray(ly) ? ` · ${ly[0]}–${ly[1]}y lock` : ` · ${ly}y lock`;
     }
     // Combined "rate cap + discount" offer — the discount here is a dollar
-    // statement credit (not bps). Surface it alongside the bps rate cap.
+    // statement credit (not bps). Carried as a separate field so the offer
+    // cell can render "XX bps + $YY" (rate cap bps + dollar credit).
+    let dollarCredit = null;
     if (productId === "cd_18mo" && lever.combinedDollar != null) {
       const cd = lever.combinedDollar;
-      productDisplay += Array.isArray(cd) ? ` + $${cd[0]}–$${cd[1]} credit` : ` + $${cd} credit`;
+      dollarCredit = Array.isArray(cd) ? Math.round((cd[0] + cd[1]) / 2) : cd;
     }
 
     return { name: s.name, need: s.need, parent: s.parent, size, rateBps, valueW, marketRate,
       convPct: s.convPct,   // wealth: display conversion rate, passed through to the table
       reachOutDays: noticeDayFor(s),   // retention: per-segment renewal-notice lead
       product: productDisplay,
+      dollarCredit,   // combined offer's $ statement credit → shown in the offer cell
       bundle: bundleText,
       channel: channelLabelMap[channelId] || channelId, noRate: s.rateFactor === 0 };
   });
