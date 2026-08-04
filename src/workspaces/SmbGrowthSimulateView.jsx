@@ -151,10 +151,12 @@ function simulateOutcomes(opts) {
   const balanceFactor = Math.max(0.5, 1 - (minBalanceK - RECOMMENDED.minBalanceK) * 0.004);
   const eligibleN = Math.round(presetBase * Math.max(0.4, Math.min(1.4, balanceFactor)));
 
-  /* Packaging-tier factor: pulled from the OFFER_PRODUCTS table so adding new
-     tiers doesn't require math updates here. A richer bundle drives more
-     conversion / incremental revenue. */
-  const termFactor = (OFFER_PRODUCTS.find((p) => p.id === offerTerm) || OFFER_PRODUCTS[0]).factor;
+  /* Packaging-tier factor: blended across the selected products when a
+     termFactor override is supplied (multi-select offer), else the single
+     product's factor from the OFFER_PRODUCTS table. */
+  const termFactor = opts.termFactor != null
+    ? opts.termFactor
+    : (OFFER_PRODUCTS.find((p) => p.id === offerTerm) || OFFER_PRODUCTS[0]).factor;
 
   /* Treatment / control split. */
   const treatmentN = Math.round(eligibleN * (1 - holdoutPct / 100));
@@ -391,15 +393,29 @@ export default function SmbGrowthSimulateView() {
 
   // ---- Lever state ----
   const [minBalanceK,       setMinBalanceK]       = useState(RECOMMENDED.minBalanceK);
-  const [offerTerm,         setOfferTerm]         = useState(RECOMMENDED.offerTerm);
+  // Offer products — MULTI-SELECT (checkboxes), mirroring the If-What optimizer's
+  // OFFER section. Each selected product reveals its own rate-discount slider;
+  // the simulation prices against the blended discount + blended packaging factor.
+  const [selectedOffers,    setSelectedOffers]    = useState([RECOMMENDED.offerTerm]);
+  const toggleOffer = (id) => setSelectedOffers((cur) =>
+    cur.includes(id) ? (cur.length === 1 ? cur : cur.filter((x) => x !== id)) : [...cur, id]
+  );
+  // Primary product (first selected) — used where a single anchor is needed
+  // (packaging-factor fallback, staged-policy record).
+  const offerTerm = selectedOffers[0] || RECOMMENDED.offerTerm;
   // Per-product rate-flexibility (bps) — each offer/packaging product carries
-  // its OWN slider, consistent with the If-What optimizer's OFFER section. The
-  // selected packaging's flexibility is what the simulation prices against.
+  // its OWN slider, consistent with the If-What optimizer's OFFER section.
   const [productFlexMap,    setProductFlexMap]    = useState(() =>
     Object.fromEntries(OFFER_PRODUCTS.map((p) => [p.id, RECOMMENDED.offerCeilingBps]))
   );
   const setProductFlex = (id, val) => setProductFlexMap((cur) => ({ ...cur, [id]: val }));
-  const offerCeilingBps = productFlexMap[offerTerm] ?? RECOMMENDED.offerCeilingBps;
+  // Blended discount (bps) + blended packaging factor across the selected products.
+  const offerCeilingBps = selectedOffers.length
+    ? Math.round(selectedOffers.reduce((a, id) => a + (productFlexMap[id] ?? RECOMMENDED.offerCeilingBps), 0) / selectedOffers.length)
+    : RECOMMENDED.offerCeilingBps;
+  const blendedTermFactor = selectedOffers.length
+    ? selectedOffers.reduce((a, id) => a + ((OFFER_PRODUCTS.find((p) => p.id === id) || OFFER_PRODUCTS[0]).factor), 0) / selectedOffers.length
+    : 1;
   const [channels,          setChannels]          = useState(RECOMMENDED.channels);
   const [cohortPresets,     setCohortPresets]     = useState(["full"]);
   const [bankingServices,   setBankingServices]   = useState(RECOMMENDED.bankingServices);
@@ -429,12 +445,12 @@ export default function SmbGrowthSimulateView() {
   // Pilot params come from PILOT_DEFAULTS — they're not levers in this
   // workspace; Deploy owns them downstream when configuring the RCT.
   const outcomes = useMemo(() => simulateOutcomes({
-    minBalanceK, offerCeilingBps, offerTerm, channels,
+    minBalanceK, offerCeilingBps, offerTerm, termFactor: blendedTermFactor, channels,
     holdoutPct:    PILOT_DEFAULTS.holdoutPct,
     pilotDuration: PILOT_DEFAULTS.pilotDuration,
     cohortPresets,
     bankingServices, triggerWindowDays,
-  }), [minBalanceK, offerCeilingBps, offerTerm,
+  }), [minBalanceK, offerCeilingBps, offerTerm, blendedTermFactor,
        channels, cohortPresets,
        bankingServices, triggerWindowDays]);
 
@@ -568,7 +584,7 @@ export default function SmbGrowthSimulateView() {
   const resetToRecommended = useCallback(() => {
     setMinBalanceK(RECOMMENDED.minBalanceK);
     setProductFlexMap(Object.fromEntries(OFFER_PRODUCTS.map((p) => [p.id, RECOMMENDED.offerCeilingBps])));
-    setOfferTerm(RECOMMENDED.offerTerm);
+    setSelectedOffers([RECOMMENDED.offerTerm]);
     setChannels(RECOMMENDED.channels);
     setCohortPresets(["full"]);
     setBankingServices(RECOMMENDED.bankingServices);
@@ -765,13 +781,13 @@ export default function SmbGrowthSimulateView() {
 
           <LeverRow
             label="Packaging & rate discount"
-            caption="Pick how the lead line is wrapped — each packaging option carries its OWN rate-discount slider (how deep a discount off filed rate its quote may give to win the bind). A richer bundle binds and attaches more; a deeper discount binds more but gives up margin, held to adequacy."
-            value={(OFFER_PRODUCTS.find((p) => p.id === offerTerm) || OFFER_PRODUCTS[0]).label}
-            offDefault={off("offerTerm", offerTerm)}
+            caption="Select the offers to put in front of the account — each selected product reveals its OWN rate-discount slider (how deep a discount off filed rate its quote gives to win the bind). Multiple products blend into the quoted offer; a richer bundle binds and attaches more, a deeper discount binds more but gives up margin, held to adequacy."
+            value={`${selectedOffers.length} of ${OFFER_PRODUCTS.length}`}
+            offDefault={selectedOffers.length !== 1 || selectedOffers[0] !== RECOMMENDED.offerTerm}
           >
             <div className="iw-objectives">
               {OFFER_PRODUCTS.map((p) => {
-                const selected = offerTerm === p.id;
+                const selected = selectedOffers.includes(p.id);
                 const flex = productFlexMap[p.id] ?? RECOMMENDED.offerCeilingBps;
                 return (
                   <div
@@ -781,11 +797,9 @@ export default function SmbGrowthSimulateView() {
                   >
                     <label style={{ display: "flex", alignItems: "center", gap: 10, cursor: "pointer", width: "100%" }}>
                       <input
-                        type="radio"
-                        name="smbgrowth-offer-packaging"
-                        value={p.id}
+                        type="checkbox"
                         checked={selected}
-                        onChange={() => setOfferTerm(p.id)}
+                        onChange={() => toggleOffer(p.id)}
                         disabled={isAutopilot}
                       />
                       <span className="iw-objective-body">
@@ -793,18 +807,20 @@ export default function SmbGrowthSimulateView() {
                         <span className="iw-objective-d">{p.sub}</span>
                       </span>
                     </label>
-                    <div style={{ paddingLeft: 26, paddingTop: 6, borderTop: "1px solid var(--hair)" }}>
-                      <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11.5, fontFamily: "var(--ui)", color: "var(--ink-2)", marginBottom: 6 }}>
-                        <span>Rate discount</span>
-                        <span style={{ fontWeight: 700, color: selected ? "var(--acc, #10b981)" : "var(--ink-2)" }}>{flex} bps off</span>
+                    {selected && (
+                      <div style={{ paddingLeft: 26, paddingTop: 6, borderTop: "1px solid var(--hair)" }}>
+                        <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11.5, fontFamily: "var(--ui)", color: "var(--ink-2)", marginBottom: 6 }}>
+                          <span>Rate discount (off filed)</span>
+                          <span style={{ fontWeight: 700, color: "var(--acc, #10b981)" }}>{flex} bps off</span>
+                        </div>
+                        <RangeWithBubble
+                          min={10} max={120} step={5} value={flex}
+                          onChange={(e) => setProductFlex(p.id, +e.target.value)}
+                          disabled={isAutopilot}
+                          formatter={(v) => `${v} bps off`}
+                        />
                       </div>
-                      <RangeWithBubble
-                        min={0} max={150} step={1} value={flex}
-                        onChange={(e) => setProductFlex(p.id, +e.target.value)}
-                        disabled={isAutopilot}
-                        formatter={(v) => `${v} bps off`}
-                      />
-                    </div>
+                    )}
                   </div>
                 );
               })}
