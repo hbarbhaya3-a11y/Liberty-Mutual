@@ -28,6 +28,7 @@ import SimulationLoader from "@/components/loaders/SimulationLoader";
 import Icon from "@/components/Icon";
 import { ResultTileNII, ResultTileBars, ResultTileCohort } from "@/components/SimResultTiles";
 import RangeWithBubble from "@/components/RangeWithBubble";
+import DualRange from "@/components/DualRange";
 import { MOCK_EXPERIMENTS } from "@/workspaces/LearnWorkspace";
 import ConversationalCohortBuilder from "@/components/ConversationalCohortBuilder";
 import SegmentedResults from "@/components/SegmentedResults";
@@ -404,14 +405,22 @@ export default function SmbGrowthSimulateView() {
   // (packaging-factor fallback, staged-policy record).
   const offerTerm = selectedOffers[0] || RECOMMENDED.offerTerm;
   // Per-product rate-flexibility (bps) — each offer/packaging product carries
-  // its OWN slider, consistent with the If-What optimizer's OFFER section.
+  // its OWN dual-range slider [low, high] (a discount band with lower + upper
+  // bounds), consistent with the If-What optimizer's range-based OFFER section.
+  const DEFAULT_FLEX_RANGE = [RECOMMENDED.offerCeilingBps - 15, RECOMMENDED.offerCeilingBps + 15];
   const [productFlexMap,    setProductFlexMap]    = useState(() =>
-    Object.fromEntries(OFFER_PRODUCTS.map((p) => [p.id, RECOMMENDED.offerCeilingBps]))
+    Object.fromEntries(OFFER_PRODUCTS.map((p) => [p.id, [...DEFAULT_FLEX_RANGE]]))
   );
-  const setProductFlex = (id, val) => setProductFlexMap((cur) => ({ ...cur, [id]: val }));
+  const setProductRange = (id, low, high) => setProductFlexMap((cur) => ({ ...cur, [id]: [low, high] }));
+  // Midpoint of a product's discount band — the point the single-policy sim
+  // prices against.
+  const flexMid = (id) => {
+    const r = productFlexMap[id];
+    return Array.isArray(r) ? Math.round((r[0] + r[1]) / 2) : (r ?? RECOMMENDED.offerCeilingBps);
+  };
   // Blended discount (bps) + blended packaging factor across the selected products.
   const offerCeilingBps = selectedOffers.length
-    ? Math.round(selectedOffers.reduce((a, id) => a + (productFlexMap[id] ?? RECOMMENDED.offerCeilingBps), 0) / selectedOffers.length)
+    ? Math.round(selectedOffers.reduce((a, id) => a + flexMid(id), 0) / selectedOffers.length)
     : RECOMMENDED.offerCeilingBps;
   const blendedTermFactor = selectedOffers.length
     ? selectedOffers.reduce((a, id) => a + ((OFFER_PRODUCTS.find((p) => p.id === id) || OFFER_PRODUCTS[0]).factor), 0) / selectedOffers.length
@@ -583,7 +592,7 @@ export default function SmbGrowthSimulateView() {
   // ---- Reset to Twin's recommendations ----
   const resetToRecommended = useCallback(() => {
     setMinBalanceK(RECOMMENDED.minBalanceK);
-    setProductFlexMap(Object.fromEntries(OFFER_PRODUCTS.map((p) => [p.id, RECOMMENDED.offerCeilingBps])));
+    setProductFlexMap(Object.fromEntries(OFFER_PRODUCTS.map((p) => [p.id, [...DEFAULT_FLEX_RANGE]])));
     setSelectedOffers([RECOMMENDED.offerTerm]);
     setChannels(RECOMMENDED.channels);
     setCohortPresets(["full"]);
@@ -788,7 +797,7 @@ export default function SmbGrowthSimulateView() {
             <div className="iw-objectives">
               {OFFER_PRODUCTS.map((p) => {
                 const selected = selectedOffers.includes(p.id);
-                const flex = productFlexMap[p.id] ?? RECOMMENDED.offerCeilingBps;
+                const rng = Array.isArray(productFlexMap[p.id]) ? productFlexMap[p.id] : DEFAULT_FLEX_RANGE;
                 return (
                   <div
                     key={p.id}
@@ -810,14 +819,13 @@ export default function SmbGrowthSimulateView() {
                     {selected && (
                       <div style={{ paddingLeft: 26, paddingTop: 6, borderTop: "1px solid var(--hair)" }}>
                         <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11.5, fontFamily: "var(--ui)", color: "var(--ink-2)", marginBottom: 6 }}>
-                          <span>Rate discount (off filed)</span>
-                          <span style={{ fontWeight: 700, color: "var(--acc, #10b981)" }}>{flex} bps off</span>
+                          <span>Rate discount range (off filed)</span>
+                          <span style={{ fontWeight: 700, color: "var(--acc, #10b981)" }}>{rng[0]}–{rng[1]} bps off</span>
                         </div>
-                        <RangeWithBubble
-                          min={10} max={120} step={5} value={flex}
-                          onChange={(e) => setProductFlex(p.id, +e.target.value)}
-                          disabled={isAutopilot}
-                          formatter={(v) => `${v} bps off`}
+                        <DualRange
+                          min={10} max={120} step={5} unit=" bps"
+                          low={rng[0]} high={rng[1]}
+                          onChange={({ low, high }) => setProductRange(p.id, low, high)}
                         />
                       </div>
                     )}
