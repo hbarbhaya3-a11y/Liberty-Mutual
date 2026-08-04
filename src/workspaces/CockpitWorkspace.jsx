@@ -29,8 +29,13 @@ export default function CockpitWorkspace() {
     pushAgentEvent({ kind: "info", src: "Cockpit", text: `Opened theme · ${id}` });
     // Renewal signal (smbrate) runs its own guided RFP wizard (signal details →
     // goals & guardrails → simulation → outputs), so open it directly in the
-    // Analyze stage instead of the generic Theme detail page.
-    if (id === "smbrate") { navigate(`/?seed_route=analyse`); return; }
+    // Analyze stage instead of the generic Theme detail page. The two "signal 1"
+    // tiles — retail (retention) and commercial (smbgrowth) — likewise jump
+    // straight to the Hypothesize/Analyse stage rather than the Sense detail page.
+    if (id === "smbrate" || id === "smbgrowth" || id === "retention") {
+      navigate(`/?seed_route=analyse&seed_theme=${encodeURIComponent(id)}`);
+      return;
+    }
     navigate(`/theme?id=${encodeURIComponent(id)}&mode=${encodeURIComponent(mode)}`);
   };
 
