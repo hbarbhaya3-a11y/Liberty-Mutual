@@ -1142,8 +1142,8 @@ export default function RetentionSimulateView() {
           </div>
 
           <LeverRow
-            label="Renewal notice — days to reach out"
-            caption="How many days before renewal to open the outreach. Select any number of leads (or add a custom one) — each micro-segment is then reached out to at its most-effective lead from your set. 45d is the sweet spot for most; high-value shoppers warrant an earlier 60-day start."
+            label="Renewal reminders — days before renewal"
+            caption="How many days before renewal to send the reminder. Select any number of reminder windows (or add a custom one) — each micro-segment is then reminded at its most-effective window from your set. 45d is the sweet spot for most; high-value shoppers warrant an earlier 60-day reminder."
             value={noticeDays.map((d) => `${d}d`).join(" · ")}
             offDefault={JSON.stringify(noticeDays) !== JSON.stringify(RECOMMENDED.noticeDays)}
           >
@@ -1152,13 +1152,13 @@ export default function RetentionSimulateView() {
                 <label key={d} className={"lever-check" + (noticeDays.includes(d) ? " on" : "")}>
                   <input type="checkbox" checked={noticeDays.includes(d)}
                     onChange={() => toggleNotice(d)} disabled={isAutopilot} />
-                  {d}-day
+                  {d}-day reminder
                 </label>
               ))}
               {noticeDays.filter((d) => !NOTICE_DAY_PRESETS.includes(d)).map((d) => (
                 <label key={d} className="lever-check on">
                   <input type="checkbox" checked onChange={() => toggleNotice(d)} disabled={isAutopilot} />
-                  {d}-day
+                  {d}-day reminder
                 </label>
               ))}
             </div>
@@ -1174,7 +1174,7 @@ export default function RetentionSimulateView() {
                 disabled={isAutopilot}
               />
               <button type="button" className="notice-custom-add" onClick={addCustomNotice} disabled={isAutopilot}>
-                + Add lead
+                + Add reminder
               </button>
             </div>
           </LeverRow>
@@ -1354,7 +1354,7 @@ function ResultsReveal({ results, onReRun, onStage }) {
     { k: "Coverage", v: (lever.bankingServices || []).map((s) => (BANKING_SERVICES.find((x) => x.id === s) || {}).label).filter(Boolean).join(", ") || "—" },
     { k: "Bundle", v: (lever.bundles || []).map((s) => (BUNDLE_OPTIONS.find((x) => x.id === s) || {}).label).filter(Boolean).join(", ") || "—" },
     { k: "Channels", v: (lever.channels || []).map((c) => CHANNEL_OPTIONS.find((o) => o.id === c)?.label).filter(Boolean).join(", ") },
-    { k: "Reach-out lead", v: `${(lever.noticeDays && lever.noticeDays.length ? lever.noticeDays : [lever.triggerWindowDays || 45]).map((d) => `${d}d`).join(" · ")} notice${lever.multiTouch ? " · multi-touch" : ""}` },
+    { k: "Renewal reminder", v: `${(lever.noticeDays && lever.noticeDays.length ? lever.noticeDays : [lever.triggerWindowDays || 45]).map((d) => `${d}d`).join(" · ")} before renewal${lever.multiTouch ? " · multi-touch" : ""}` },
   ];
 
   const chartsGrid = (

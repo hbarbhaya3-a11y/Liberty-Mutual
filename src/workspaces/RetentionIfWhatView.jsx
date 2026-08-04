@@ -692,7 +692,7 @@ export default function RetentionIfWhatView() {
           .map(([id, rng]) => `${BUNDLE_OPTIONS.find((o) => o.id === id)?.label || id} (-${Array.isArray(rng) ? Math.round((rng[0] + rng[1]) / 2) : rng} bps)`)
           .join(" · ") || "—" },
       { k: "Channels", v: selected.picks.channels.map((c) => CHANNEL_OPTIONS.find((o) => o.id === c)?.label).filter(Boolean).join(", ") },
-      { k: "Timing", v: `${(Array.isArray(noticeDays) ? noticeDays : [noticeDays]).join(" / ")}-day notice${multiTouch ? " · multi-touch" : ""}` },
+      { k: "Renewal reminder", v: `${(Array.isArray(noticeDays) ? noticeDays : [noticeDays]).join(" / ")}-day before renewal${multiTouch ? " · multi-touch" : ""}` },
       { k: "Treated", v: `${(_seg ? _seg.rollup.reach : 0).toLocaleString()} customers` },
     ] : [];
     const _chartsGrid = selected ? (
@@ -1253,21 +1253,21 @@ export default function RetentionIfWhatView() {
           </div>
           <div className="lever-row">
             <div className="lever-head">
-              <span className="lever-name">Renewal notice lead</span>
-              <span className="lever-value">{(Array.isArray(noticeDays) ? noticeDays : [noticeDays]).map((d) => `${d}d`).join(" · ")} notice</span>
+              <span className="lever-name">Renewal reminder</span>
+              <span className="lever-value">{(Array.isArray(noticeDays) ? noticeDays : [noticeDays]).map((d) => `${d}d`).join(" · ")} before renewal</span>
             </div>
-            <div className="lever-caption">How many days before renewal the optimizer may open outreach. Select preset lead horizons or enter custom lead.</div>
+            <div className="lever-caption">How many days before renewal the optimizer may send the reminder. Select preset reminder windows or enter a custom one.</div>
             <div className="lever-checks" style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
               {(Array.isArray(noticeDays) ? noticeDays : [noticeDays]).map((d) => (
                 <label key={d} className="lever-check on" style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "6px 12px", background: "rgba(66, 224, 139, 0.12)", border: "1px solid var(--green)", borderRadius: 6, fontSize: 12, cursor: "pointer" }}>
                   <input type="checkbox" checked={true} onChange={() => toggleNotice(d)} disabled={isAutopilot} />
-                  {d}-day lead
+                  {d}-day reminder
                 </label>
               ))}
               {[35, 45, 60].filter((p) => !(Array.isArray(noticeDays) ? noticeDays : [noticeDays]).includes(p)).map((p) => (
                 <label key={p} className="lever-check" style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "6px 12px", background: "var(--bg-2)", border: "1px solid var(--hair)", borderRadius: 6, fontSize: 12, cursor: "pointer" }}>
                   <input type="checkbox" checked={false} onChange={() => toggleNotice(p)} disabled={isAutopilot} />
-                  {p}-day lead
+                  {p}-day reminder
                 </label>
               ))}
             </div>
@@ -1290,7 +1290,7 @@ export default function RetentionIfWhatView() {
                 disabled={isAutopilot}
                 style={{ padding: "6px 14px", borderRadius: 6, border: "1px solid var(--green)", background: "rgba(66, 224, 139, 0.15)", color: "var(--ink)", cursor: "pointer", fontSize: 12, fontWeight: 700 }}
               >
-                + Add lead
+                + Add reminder
               </button>
             </div>
           </div>
