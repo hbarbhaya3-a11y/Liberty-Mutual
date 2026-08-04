@@ -24,12 +24,15 @@ import { ResultTileNII, ResultTileBars, ResultTileCohort } from "@/components/Si
 import RangeWithBubble from "@/components/RangeWithBubble";
 import ConversationalCohortBuilder from "@/components/ConversationalCohortBuilder";
 import SegmentedResults from "@/components/SegmentedResults";
+import { MicroSegmentTable } from "@/workspaces/SmbGrowthSimulateView";
 import {
   SMBGROWTH_HYPOTHESIS_ID,
   SMBGROWTH_HYPOTHESIS_TITLE,
   SMBGROWTH_CALIBRATION,
   SMBGROWTH_CONFIG,
   SMBGROWTH_MICROSEGMENTS,
+  SMBGROWTH_SEGMENT_COLUMNS,
+  configureGrowthSegments,
 } from "@/data/smbGrowthConfig";
 import "@/styles/ifwhat.css";
 
@@ -882,9 +885,15 @@ export default function SmbGrowthIfWhatView() {
                 </div>
               </div>
 
-              {/* RECOMMENDED MICRO-SEGMENTS & CONSUMER DETAILS TABLE */}
+              {/* RECOMMENDED MICRO-SEGMENTS — config-driven per-segment table
+                  (same component the What-If Simulate uses), so the discount
+                  bps / effective rate / NWLP reflect the optimizer's chosen
+                  offer discount ceiling. */}
               <div className="iw-dd-block" style={{ marginTop: 20 }}>
-                <SegmentedResults segments={SMBGROWTH_MICROSEGMENTS} accent="#10b981" />
+                <MicroSegmentTable
+                  segmentColumns={SMBGROWTH_SEGMENT_COLUMNS}
+                  microSegments={configureGrowthSegments(selected?.picks?.offerCeilingBps)}
+                />
               </div>
             </div>
           </section>

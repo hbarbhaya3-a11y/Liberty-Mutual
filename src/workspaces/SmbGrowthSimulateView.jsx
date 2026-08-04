@@ -39,6 +39,7 @@ import {
   SMBGROWTH_MICROSEGMENTS,
   SMBGROWTH_SEGMENT_COLUMNS,
   SMBGROWTH_CONFIG,
+  configureGrowthSegments,
 } from "@/data/smbGrowthConfig";
 
 const PAGE_SUBTITLE = SMBGROWTH_HYPOTHESIS_TITLE;
@@ -977,20 +978,10 @@ function ResultsReveal({ results, onReRun, onStage }) {
   // so a deeper/looser offer moves every segment's discount, effective rate,
   // and NWP together.
   const cfgBps = results.offerCeilingBps != null ? results.offerCeilingBps : RECOMMENDED.offerCeilingBps;
-  const configuredSegments = useMemo(() => {
-    const revFactor = 1 + ((cfgBps - RECOMMENDED.offerCeilingBps) / RECOMMENDED.offerCeilingBps) * 0.25;
-    return SMBGROWTH_MICROSEGMENTS.map((s) => {
-      if (s.offerFrac == null || s.tone === "hold" || s.tone === "blocked") {
-        return { ...s, disc: "—" };
-      }
-      const bps = Math.round((cfgBps * s.offerFrac) / 5) * 5;
-      const effRate = s.filedRate != null ? (s.filedRate - bps / 100).toFixed(2) + "%" : null;
-      const disc = effRate ? `−${bps} bps · ${effRate}` : `−${bps} bps`;
-      const revNum = Number(String(s.rev || "").replace(/[^0-9.]/g, ""));
-      const rev = revNum ? `$${Math.round(revNum * revFactor).toLocaleString()}` : s.rev;
-      return { ...s, disc, rev };
-    });
-  }, [cfgBps]);
+  const configuredSegments = useMemo(
+    () => configureGrowthSegments(cfgBps, RECOMMENDED.offerCeilingBps),
+    [cfgBps]
+  );
 
   const [showVerdict, setShowVerdict] = useState(false);
   const [showKpis,    setShowKpis]    = useState(false);
@@ -1231,7 +1222,7 @@ function ResultsReveal({ results, onReRun, onStage }) {
   );
 }
 
-function MicroSegmentTable({ segmentColumns, microSegments }) {
+export function MicroSegmentTable({ segmentColumns, microSegments }) {
   const firstGo = microSegments.find((s) => s.tone === "go") || microSegments[0];
   const [selId, setSelId] = useState(firstGo ? firstGo.id : null);
   const toggle = (id) => setSelId((cur) => (cur === id ? null : id));

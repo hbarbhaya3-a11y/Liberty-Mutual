@@ -231,4 +231,27 @@ export const SMBGROWTH_MICROSEGMENTS = [
     confidence: "Suppressed — below the rate-adequacy threshold." },
 ];
 
+/* Config-driven per-segment recommendation. The commercial "value" is
+   Incr. NWP / acct / yr; each segment's rate discount (bps off filed) and
+   effective rate come FROM the selected offer configuration — bps = the chosen
+   offer's discount ceiling × the segment's own offerFrac (elasticity), effective
+   rate = filed rate − discount. Incr. NWP scales modestly with the configured
+   discount depth. Shared by the What-If Simulate table and the If-What optimizer
+   table so both commercial recommendation paths stay in sync. */
+export function configureGrowthSegments(offerCeilingBps, refBps = 75) {
+  const bpsRef = offerCeilingBps != null ? offerCeilingBps : refBps;
+  const revFactor = 1 + ((bpsRef - refBps) / refBps) * 0.25;
+  return SMBGROWTH_MICROSEGMENTS.map((s) => {
+    if (s.offerFrac == null || s.tone === "hold" || s.tone === "blocked") {
+      return { ...s, disc: "—" };
+    }
+    const bps = Math.round((bpsRef * s.offerFrac) / 5) * 5;
+    const effRate = s.filedRate != null ? (s.filedRate - bps / 100).toFixed(2) + "%" : null;
+    const disc = effRate ? `−${bps} bps · ${effRate}` : `−${bps} bps`;
+    const revNum = Number(String(s.rev || "").replace(/[^0-9.]/g, ""));
+    const rev = revNum ? `$${Math.round(revNum * revFactor).toLocaleString()}` : s.rev;
+    return { ...s, disc, rev };
+  });
+}
+
 export default SMBGROWTH_CONFIG;
