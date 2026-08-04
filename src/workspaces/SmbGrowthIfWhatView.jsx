@@ -493,6 +493,10 @@ export default function SmbGrowthIfWhatView() {
     cur.includes(id) ? (cur.length === 1 ? cur : cur.filter((p) => p !== id)) : [...cur, id]
   );
   const [ranges, setRanges]                   = useState(DEFAULT_RANGES);
+  // Patch a single range lever (matches the sibling If-What views). Without this
+  // helper the OFFER "Rate-discount ceiling" and ELIGIBILITY sliders threw
+  // "setRange is not defined" on every change and never moved.
+  const setRange = (key, value) => setRanges((cur) => ({ ...cur, [key]: { ...cur[key], ...value } }));
   const [allowedProducts, setAllowedProducts] = useState(["card_winback", "bundle", "line_preapprove"]);
   const [productFlexMap, setProductFlexMap]   = useState({ card_winback: 60, line_preapprove: 45, equip_finance: 50, merchant: 40, bundle: 75, sweep: 30 });
   const [allowedChannels, setAllowedChannels] = useState(["banker", "app", "rmcall"]);
