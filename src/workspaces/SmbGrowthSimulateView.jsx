@@ -40,6 +40,9 @@ import {
   SMBGROWTH_MICROSEGMENTS,
   SMBGROWTH_SEGMENT_COLUMNS,
   SMBGROWTH_CONFIG,
+  SMBGROWTH_OFFER_PRODUCTS,
+  SMBGROWTH_DEFAULT_FLEX,
+  SMBGROWTH_DEFAULT_CEILING,
   configureGrowthSegments,
 } from "@/data/smbGrowthConfig";
 
@@ -59,7 +62,7 @@ const PAGE_SUBTITLE = SMBGROWTH_HYPOTHESIS_TITLE;
 const RECOMMENDED = {
   minBalanceK:        75,
   offerCeilingBps:    75,
-  offerTerm:          "pkg_bundled",
+  offerTerm:          "bundle",
   channels:           ["app", "banker", "rmcall"],   // multi-select
   bankingServices:    [],                             // default off; turn on to layer expansion nudges
   triggerWindowDays:  60,                             // expansion-signal window before the competitor finances it
@@ -81,13 +84,9 @@ const BANKING_SERVICES = [
    How the lead line is wrapped. factor scales conversion / incremental
    NWP relative to the recommended bundled packaging.
 ---------------------------------------------------------------------------- */
-const OFFER_PRODUCTS = [
-  { id: "pkg_alacarte", label: "Packaging · single line", sub: "Lead line only · lowest cost, weakest attach and bind rate",              factor: 0.90 },
-  { id: "pkg_light",    label: "Packaging · light bundle", sub: "Lead + one line · modest bind lift, modest give-up",                     factor: 0.96 },
-  { id: "pkg_bundled",  label: "Packaging · bundled",     sub: "Recommended · lead + core lines attached · best bind balance",           factor: 1.00 },
-  { id: "pkg_intro",    label: "Packaging · rate-flexed bundle", sub: "Bundle with a rate concession · binds more, gives up more margin", factor: 1.05 },
-  { id: "pkg_full",     label: "Packaging · full account", sub: "Full Business Advantage stack · highest attach, approaches rate adequacy", factor: 1.08 },
-];
+/* Same product list the If-What optimizer uses, so the two OFFER sections are
+   identical. */
+const OFFER_PRODUCTS = SMBGROWTH_OFFER_PRODUCTS;
 
 /* ----------------------------------------------------------------------------
    Delivery channels · multi-select checkboxes.
@@ -397,31 +396,22 @@ export default function SmbGrowthSimulateView() {
   // Offer products — MULTI-SELECT (checkboxes), mirroring the If-What optimizer's
   // OFFER section. Each selected product reveals its own rate-discount slider;
   // the simulation prices against the blended discount + blended packaging factor.
-  const [selectedOffers,    setSelectedOffers]    = useState([RECOMMENDED.offerTerm]);
+  // Products the offer may include — MULTI-SELECT (checkboxes), identical to the
+  // If-What optimizer's OFFER section (same product list + defaults).
+  const [selectedOffers,    setSelectedOffers]    = useState(["card_winback", "bundle", "line_preapprove"]);
   const toggleOffer = (id) => setSelectedOffers((cur) =>
     cur.includes(id) ? (cur.length === 1 ? cur : cur.filter((x) => x !== id)) : [...cur, id]
   );
-  // Primary product (first selected) — used where a single anchor is needed
-  // (packaging-factor fallback, staged-policy record).
+  // Primary product (first selected) — used where a single anchor is needed.
   const offerTerm = selectedOffers[0] || RECOMMENDED.offerTerm;
-  // Per-product rate-flexibility (bps) — each offer/packaging product carries
-  // its OWN dual-range slider [low, high] (a discount band with lower + upper
-  // bounds), consistent with the If-What optimizer's range-based OFFER section.
-  const DEFAULT_FLEX_RANGE = [RECOMMENDED.offerCeilingBps - 15, RECOMMENDED.offerCeilingBps + 15];
-  const [productFlexMap,    setProductFlexMap]    = useState(() =>
-    Object.fromEntries(OFFER_PRODUCTS.map((p) => [p.id, [...DEFAULT_FLEX_RANGE]]))
-  );
+  // Per-product rate-discount BAND [low, high] — same defaults as If-What.
+  const [productFlexMap,    setProductFlexMap]    = useState({ ...SMBGROWTH_DEFAULT_FLEX });
   const setProductRange = (id, low, high) => setProductFlexMap((cur) => ({ ...cur, [id]: [low, high] }));
-  // Midpoint of a product's discount band — the point the single-policy sim
-  // prices against.
-  const flexMid = (id) => {
-    const r = productFlexMap[id];
-    return Array.isArray(r) ? Math.round((r[0] + r[1]) / 2) : (r ?? RECOMMENDED.offerCeilingBps);
-  };
-  // Blended discount (bps) + blended packaging factor across the selected products.
-  const offerCeilingBps = selectedOffers.length
-    ? Math.round(selectedOffers.reduce((a, id) => a + flexMid(id), 0) / selectedOffers.length)
-    : RECOMMENDED.offerCeilingBps;
+  // Rate-discount ceiling BAND [low, high] — the global cap, identical to the
+  // If-What optimizer's ceiling. The single-policy sim prices against its midpoint.
+  const [offerCeilingRange, setOfferCeilingRange] = useState([...SMBGROWTH_DEFAULT_CEILING]);
+  const offerCeilingBps = Math.round((offerCeilingRange[0] + offerCeilingRange[1]) / 2);
+  // Blended packaging factor across the selected products.
   const blendedTermFactor = selectedOffers.length
     ? selectedOffers.reduce((a, id) => a + ((OFFER_PRODUCTS.find((p) => p.id === id) || OFFER_PRODUCTS[0]).factor), 0) / selectedOffers.length
     : 1;
@@ -592,8 +582,9 @@ export default function SmbGrowthSimulateView() {
   // ---- Reset to Twin's recommendations ----
   const resetToRecommended = useCallback(() => {
     setMinBalanceK(RECOMMENDED.minBalanceK);
-    setProductFlexMap(Object.fromEntries(OFFER_PRODUCTS.map((p) => [p.id, [...DEFAULT_FLEX_RANGE]])));
-    setSelectedOffers([RECOMMENDED.offerTerm]);
+    setProductFlexMap({ ...SMBGROWTH_DEFAULT_FLEX });
+    setOfferCeilingRange([...SMBGROWTH_DEFAULT_CEILING]);
+    setSelectedOffers(["card_winback", "bundle", "line_preapprove"]);
     setChannels(RECOMMENDED.channels);
     setCohortPresets(["full"]);
     setBankingServices(RECOMMENDED.bankingServices);
@@ -785,19 +776,33 @@ export default function SmbGrowthSimulateView() {
           <div className="sim-lever-section-band">
             <div className="sim-lever-section-num">3</div>
             <div className="sim-lever-section-name">OFFER</div>
-            <div className="sim-lever-section-meta">What we quote in front of the account</div>
+            <div className="sim-lever-section-meta">Rate-discount range + the lines we may quote</div>
           </div>
 
           <LeverRow
-            label="Packaging & rate discount"
-            caption="Select the offers to put in front of the account — each selected product reveals its OWN rate-discount slider (how deep a discount off filed rate its quote gives to win the bind). Multiple products blend into the quoted offer; a richer bundle binds and attaches more, a deeper discount binds more but gives up margin, held to adequacy."
-            value={`${selectedOffers.length} of ${OFFER_PRODUCTS.length}`}
-            offDefault={selectedOffers.length !== 1 || selectedOffers[0] !== RECOMMENDED.offerTerm}
+            label="Rate-discount ceiling"
+            caption="Deepest discount off filed rate to quote any single account, within adequacy."
+            value={`${offerCeilingRange[0]}–${offerCeilingRange[1]} bps off`}
+            offDefault={offerCeilingRange[0] !== SMBGROWTH_DEFAULT_CEILING[0] || offerCeilingRange[1] !== SMBGROWTH_DEFAULT_CEILING[1]}
+          >
+            <DualRange
+              min={0} max={120} step={1} unit=" bps off"
+              low={offerCeilingRange[0]} high={offerCeilingRange[1]}
+              onChange={({ low, high }) => setOfferCeilingRange([low, high])}
+            />
+            <RangeScale marks={["10 bps off", "65 bps off", "120 bps off"]} />
+          </LeverRow>
+
+          <LeverRow
+            label="Products we may quote"
+            caption="Select allowed commercial products. Each selected product includes an individual rate-discount limit (bps off filed rate) slider."
+            value={`${selectedOffers.length} of ${OFFER_PRODUCTS.length} allowed`}
+            offDefault={selectedOffers.length !== 3}
           >
             <div className="iw-objectives">
               {OFFER_PRODUCTS.map((p) => {
                 const selected = selectedOffers.includes(p.id);
-                const rng = Array.isArray(productFlexMap[p.id]) ? productFlexMap[p.id] : DEFAULT_FLEX_RANGE;
+                const rng = Array.isArray(productFlexMap[p.id]) ? productFlexMap[p.id] : [40, 60];
                 return (
                   <div
                     key={p.id}

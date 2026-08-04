@@ -32,6 +32,8 @@ import {
   SMBGROWTH_CONFIG,
   SMBGROWTH_MICROSEGMENTS,
   SMBGROWTH_SEGMENT_COLUMNS,
+  SMBGROWTH_OFFER_PRODUCTS,
+  SMBGROWTH_DEFAULT_FLEX,
   configureGrowthSegments,
 } from "@/data/smbGrowthConfig";
 import "@/styles/ifwhat.css";
@@ -56,14 +58,7 @@ const COHORT_OPTIONS = [
   { id: "multi-product",   name: "Account-anchorable",        count:  9100, share: 0.010, sig: "3+ lines held · WC/GL still on the book · partial off-us placement signals." },
 ];
 
-const OFFER_PRODUCT_OPTIONS = [
-  { id: "card_winback",    label: "Win back the lead line", sub: "Priced to bind lead line" },
-  { id: "line_preapprove", label: "Auto-quoted BOP / property", sub: "Pre-analyzed site coverage" },
-  { id: "equip_finance",   label: "Commercial Auto (fleet) / inland marine", sub: "Fleet safety credit" },
-  { id: "merchant",        label: "Workers Comp for added payroll", sub: "Payroll-linked WC" },
-  { id: "bundle",          label: "Business Advantage bundle", sub: "Multi-line discount package" },
-  { id: "sweep",           label: "Add umbrella / cyber", sub: "High-limit liability attach" },
-];
+const OFFER_PRODUCT_OPTIONS = SMBGROWTH_OFFER_PRODUCTS;
 
 /* Delivery channels — kept consistent with the What-If simulation's CHANNEL
    filter (same ids and labels) so the two flows read as one. */
@@ -504,10 +499,7 @@ export default function SmbGrowthIfWhatView() {
   // Per-product rate-discount BAND [low, high] (lower + upper bound), matching
   // the What-If offer sliders. Display-only — the optimizer sweeps within the
   // global "Rate-discount ceiling" range.
-  const [productFlexMap, setProductFlexMap]   = useState({
-    card_winback: [50, 70], line_preapprove: [35, 55], equip_finance: [40, 60],
-    merchant: [30, 50], bundle: [65, 85], sweep: [20, 40],
-  });
+  const [productFlexMap, setProductFlexMap]   = useState({ ...SMBGROWTH_DEFAULT_FLEX });
   const [allowedChannels, setAllowedChannels] = useState(["banker", "app", "rmcall"]);
   /* Simulation duration — single configurable value (not a search dimension).
      Default 8wk matches the calibration horizon every candidate is scored over. */
