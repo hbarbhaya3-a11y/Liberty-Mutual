@@ -519,6 +519,7 @@ export default function RetentionIfWhatView() {
   // relationship (tenure) range and the deductible-adjusted offer's deductible %.
   const [loyaltyTenure,   setLoyaltyTenure]   = useState([3, 10]);
   const [deductiblePct,   setDeductiblePct]   = useState([10, 20]);
+  const [lockYears,       setLockYears]       = useState([2, 4]);   // multi-year rate-lock term range
   const [multiTouch,      setMultiTouch]      = useState(true);
 
   const toggleCoverage = (id) => setAllowedCoverage((cur) => cur.includes(id) ? cur.filter((c) => c !== id) : [...cur, id]);
@@ -657,7 +658,7 @@ export default function RetentionIfWhatView() {
       bankingServices: selected.picks.allowedCoverage,
       channels: (allowedChannels && allowedChannels.length ? allowedChannels : ["app", "email", "banker"]),
       noticeDays: Array.isArray(noticeDays) ? noticeDays : [noticeDays],   // per-segment reach-out lead in the deep-dive table
-      loyaltyTenure, deductiblePct,   // pricing-lever qualifiers surfaced per segment
+      loyaltyTenure, deductiblePct, lockYears,   // pricing-lever qualifiers surfaced per segment
     }, _o) : null;
     // runoffReductionPp from the optimizer is ALREADY in pp (= C.runoffBau*100*scale).
     const _baseRunoffPp = RETENTION_CALIBRATION.runoffBau * 100;
@@ -684,6 +685,7 @@ export default function RetentionIfWhatView() {
             let s = `${fmtProduct(id)} ${((PRODUCT_MARKET[id] ?? 0) + bps / 100).toFixed(2)}%`;
             if (id === "smart_savings") s += ` (${loyaltyTenure[0]}–${loyaltyTenure[1]}y)`;
             if (id === "elite_mma") s += ` (${deductiblePct[0]}–${deductiblePct[1]}% deductible)`;
+            if (id === "cd_trade_up_24") s += ` (${lockYears[0]}–${lockYears[1]}y lock)`;
             return s;
           })
           .join(" · ") || "—" },
@@ -774,7 +776,7 @@ export default function RetentionIfWhatView() {
                   cohortPresets: rec.picks.cohortPresets,
                   productOffers: rec.picks.productOffers,
                   channels: rec.picks.channels,
-                  loyaltyTenure, deductiblePct,
+                  loyaltyTenure, deductiblePct, lockYears,
                 }, rec.outcomes);
                 const _recVehicles = [...new Set((_recSeg.rows || []).map((r) => r.product))].filter(Boolean);
                 return (
@@ -1134,6 +1136,19 @@ export default function RetentionIfWhatView() {
                               onChange={({ low, high }) => setDeductiblePct([low, high])} />
                             <div style={{ fontSize: 11, color: "var(--ink-3)", marginTop: 4 }}>
                               Deductible swept between <b>{deductiblePct[0]}–{deductiblePct[1]}%</b> of coverage — a higher deductible funds a larger rate offset.
+                            </div>
+                          </div>
+                        )}
+                        {p.id === "cd_trade_up_24" && (
+                          <div className="px-offer-qual" style={{ marginTop: 10, paddingTop: 10, borderTop: "1px dashed var(--hair)" }}>
+                            <div style={{ fontSize: 11.5, color: "var(--ink-2)", marginBottom: 4, fontWeight: 600 }}>
+                              Lock term range — years the optimizer may lock the rate for
+                            </div>
+                            <DualRange min={1} max={5} step={1} unit="y"
+                              low={lockYears[0]} high={lockYears[1]}
+                              onChange={({ low, high }) => setLockYears([low, high])} />
+                            <div style={{ fontSize: 11, color: "var(--ink-3)", marginTop: 4 }}>
+                              Rate locked for <b>{lockYears[0]}–{lockYears[1]} years</b> — the customer keeps it even if the market rises.
                             </div>
                           </div>
                         )}
