@@ -263,6 +263,12 @@ export function deriveSegments(model, lever, outcomes) {
       const ly = lever.lockYears;
       productDisplay += Array.isArray(ly) ? ` · ${ly[0]}–${ly[1]}y lock` : ` · ${ly}y lock`;
     }
+    // Combined "rate cap + discount" offer — the discount here is a dollar
+    // statement credit (not bps). Surface it alongside the bps rate cap.
+    if (productId === "cd_18mo" && lever.combinedDollar != null) {
+      const cd = lever.combinedDollar;
+      productDisplay += Array.isArray(cd) ? ` + $${cd[0]}–$${cd[1]} credit` : ` + $${cd} credit`;
+    }
 
     return { name: s.name, need: s.need, parent: s.parent, size, rateBps, valueW, marketRate,
       convPct: s.convPct,   // wealth: display conversion rate, passed through to the table
