@@ -57,6 +57,14 @@
 .seg-tabs-hint { margin-left: auto; font: 400 11.5px/1 var(--ui); color: var(--ink-4); }
 
 .seg-pane { animation: seg-fade .18s ease; }
+
+/* ---- Single-view (no tabs): charts on top, segments below ---- */
+/* The tab strip normally supplied the gap under the KPI strip; restore it and
+   add breathing room between the KPI tiles, the policy band, and the panes. */
+.seg-single .seg-kpis { margin-bottom: 22px; }
+.seg-single .seg-policy { margin-top: 0; margin-bottom: 18px; }
+.seg-single .seg-pane + .seg-pane { margin-top: 26px; }
+.seg-single .sim-result-grid { margin-bottom: 22px; }
 @keyframes seg-fade { from { opacity: 0; transform: translateY(3px); } to { opacity: 1; transform: none; } }
 
 /* ---- 3b · Micro-segment table ---- */
