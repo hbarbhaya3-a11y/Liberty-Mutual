@@ -125,12 +125,12 @@ export const RETENTION_CALIBRATION = {
 
 /* Pre-simulation range strings for Analyze hero KPIs (aligned with Signal Card 1). */
 export const RETENTION_PRESIM_RANGES = [
-  { label: "NWP impact",                    value: "+$130–145M", unit: "/ yr · est. range",          tone: "g" },
-  { label: "CLV impact",                    value: "+$325–360M", unit: "/ yr · est. range",          tone: "g" },
-  { label: "Policies retained",             value: "82–85K",     unit: "/ yr · of at-risk renewals",  tone: "g" },
-  { label: "At-risk retained",              value: "15%+",       unit: "of the at-risk book",         tone: "g" },
-  { label: "Margin protected",              value: "+$3.4M",     unit: "/ yr · underwriting margin",  tone: "g" },
-  { label: "Lapse reduction",               value: "−19pp",      unit: "/ yr · est. range",           tone: "g" },
+  { label: "NWP at stake",                  value: "$909M",      unit: "all 550,849 at-risk renewals", tone: "g" },
+  { label: "CLV at stake",                  value: "$2.27B",     unit: "full at-risk book",            tone: "g" },
+  { label: "NWP impact",                    value: "+$130–145M", unit: "/ yr · protected premium",     tone: "g" },
+  { label: "CLV impact",                    value: "+$325–360M", unit: "/ yr · est. range",            tone: "g" },
+  { label: "Policies retained",             value: "82–85K",     unit: "/ yr · of at-risk renewals",   tone: "g" },
+  { label: "At-risk retained",              value: "15%+",       unit: "of the at-risk book",          tone: "g" },
 ];
 
 
