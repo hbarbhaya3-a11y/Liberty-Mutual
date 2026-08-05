@@ -96,10 +96,10 @@ export const RETENTION_ARCHETYPE_ORDER = ["drifting_saver", "operating_decliner"
    ALL 550,849 at-risk renewals (not a gated subset). Every number below
    derives from this cohort at an avg annual premium of ~$1,650:
      · treatmentN        = 80% of the cohort (20% measurement holdout)
-     · Policies retained = treatmentN × 19pp lapse reduction ≈ 83,700 / yr
+     · Policies retained = treatmentN × 19pp lapse reduction ≈ 83,700 / 8 wk
                            (≈ one-sixth of the at-risk book held)
      · NWP under obs     = 550,849 × $1,650 ≈ $909M
-     · NWP impact        = policies retained × $1,650 ≈ $138M / yr
+     · NWP impact        = policies retained × $1,650 ≈ $138M / 8 wk
      · CLV impact        = NWP impact × 2.5 relationship multiple ≈ $345M    */
 export const RETENTION_CALIBRATION = {
   cohortTotal:           550849,    // 550,849 at-risk auto renewals (signal 1)
@@ -128,7 +128,7 @@ export const RETENTION_PRESIM_RANGES = [
   { label: "NWP at stake",                  value: "$909M",   unit: "all 550,849 at-risk renewals", tone: "g" },
   { label: "CLV at stake",                  value: "$2.27B",  unit: "full at-risk book",            tone: "g" },
   { label: "At-risk renewals",              value: "550,849", unit: "high-LTV · claims-free",       tone: "g" },
-  { label: "Avg annual premium",            value: "$1,650",  unit: "per policy",                   tone: "g" },
+  { label: "Avg premium",            value: "$1,650",  unit: "per policy",                   tone: "g" },
 ];
 
 

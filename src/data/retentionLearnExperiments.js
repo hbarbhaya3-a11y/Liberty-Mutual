@@ -29,11 +29,11 @@ export const RETENTION_EXPERIMENTS = [
     treatmentN: 440679,
     controlN: 110170,
     fidelityRows: [
-      { k: "NWP protected",           predicted: "+$138.2M / yr",  actual: "+$134M",    tone: "ok"   },
+      { k: "NWP protected",           predicted: "+$138.2M / 8 wk",  actual: "+$134M",    tone: "ok"   },
       { k: "Lapse-rate reduction",     predicted: "−19pp",         actual: "−18pp",     tone: "ok"   },
       { k: "Bundle-penetration lift",  predicted: "+6pp",          actual: "+14pp",      tone: "warn" },   // OVERSHOOT
       { k: "Fair-lending margin",      predicted: "0.93",          actual: "0.93",       tone: "ok"   },
-      { k: "Customer fatigue",         predicted: "+180 / qtr",    actual: "+162 / qtr", tone: "ok"   },
+      { k: "Customer fatigue",         predicted: "+180 / 8 wk",    actual: "+162 / 8 wk", tone: "ok"   },
     ],
     writeback: [
       "Sticky-bundled filter threshold validated at 0.70: gate confirmed across 440,679 treated policies — no fair-lending complaint generated",

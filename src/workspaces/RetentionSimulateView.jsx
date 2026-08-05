@@ -169,9 +169,9 @@ const PILOT_DEFAULTS = {
    Anchors at recommended defaults (per RETENTION_CALIBRATION):
      - cohortTotal = 550,849 at-risk auto renewals (signal 1, run across all)
      - treatmentN/controlN = 440,679 / 110,170  (80% / 20% holdout)
-     - NWP impact annual = $138.2M · CLV impact = $345M · ~83,700 policies retained
+     - NWP impact (8-wk) = $138.2M · CLV impact = $345M · ~83,700 policies retained
      - Lapse: 30% (BAU) → 11% (with policy) → −19pp reduction
-     - Spread protected = $166K / yr · offer cost = $60K · net = $106K
+     - Spread protected = $3.45M / 8 wk · offer cost = $60K · net = $106K
      - Fair-lending margin = 0.93 (held constant by loyalty gate)
 ---------------------------------------------------------------------------- */
 function simulateOutcomes(opts) {
@@ -1390,7 +1390,7 @@ function ResultsReveal({ results, onReRun, onStage }) {
         outcomes={tileOutcomes}
         progress={progress}
         title="NWP protected accumulation"
-        subhead="annualized run-rate · vs $0 baseline (no policy)"
+        subhead="cumulative over 8-wk pilot · vs $0 baseline (no policy)"
         insight="Most retention lands inside the first 4 weeks — customers reached early commit early. Extending the pilot adds little new retention."
       />
       <ResultTileBars
@@ -1405,7 +1405,7 @@ function ResultsReveal({ results, onReRun, onStage }) {
         numbers={[
           { k: "steady rate (with policy)",  v: `${(o.runoffWithPolicy * 100).toFixed(1)}% / qtr` },
           { k: "reduction vs today",         v: `−${(o.runoffReductionPp * 100).toFixed(1)}pp` },
-          { k: "annualized NWP protected", v: `+$${o.retainedM.toFixed(1)}M` },
+          { k: "8-wk NWP protected", v: `+$${o.retainedM.toFixed(1)}M` },
         ]}
         insight="The first two weeks lag — customers need to act on the offer before the leaving rate starts dropping. Full effect from week 3."
         accent="var(--acc, #ffb15a)"
@@ -1448,7 +1448,7 @@ function ResultsReveal({ results, onReRun, onStage }) {
         <SegmentedResults
           kpis={kpis}
           accent="#ffb15a"
-          valueLabel="NWP protected / yr"
+          valueLabel="NWP protected / 8 wk"
           offerLabel="Discount"
           rateLabel="Capped renewal rate"
           hideBaseline={true}
@@ -1470,7 +1470,7 @@ function ResultsReveal({ results, onReRun, onStage }) {
             <span className={"sim-guardrail-pill " + (o.profitabilityOk ? "sim-guardrail-pass" : "sim-guardrail-fail")}>
               <span className="sim-guardrail-pill-dot" />
               <span className="sim-guardrail-pill-l">Profitability floor</span>
-              <span className="sim-guardrail-pill-d">net annualised +${o.netAnnualisedK}K</span>
+              <span className="sim-guardrail-pill-d">net +${o.netAnnualisedK}K / 8 wk</span>
             </span>
             <span className={"sim-guardrail-pill " + (o.udaapOk ? "sim-guardrail-pass" : "sim-guardrail-fail")}>
               <span className="sim-guardrail-pill-dot" />

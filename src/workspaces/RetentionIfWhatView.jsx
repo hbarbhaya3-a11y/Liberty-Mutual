@@ -427,7 +427,7 @@ function RetentionPareto({ recs, selectedId, onSelect }) {
             {/* Axis labels */}
             <text x={(PL + W - PR) / 2} y={H - 10} textAnchor="middle" fontSize="9.5"
                   fontFamily="var(--mono)" fill="var(--ink-3)">
-              NWP protected · $M / yr →
+              NWP protected · $M / 8 wk →
             </text>
             <text x={-((PT + H - PB) / 2)} y={14} textAnchor="middle" fontSize="9.5"
                   fontFamily="var(--mono)" fill="var(--ink-3)"
@@ -818,7 +818,7 @@ export default function RetentionIfWhatView() {
                     <div className="iw-rank-name">{rec.name}</div>
                     <div className="iw-rank-hero iw-rank-kpi-good">
                       <div className="iw-rank-hero-k">
-                        {objective === "retained_deposits" ? "NWP protected / yr"
+                        {objective === "retained_deposits" ? "NWP protected / 8 wk"
                          : objective === "runoff_reduction" ? "Lapse-rate reduction"
                          : "Bundle adds / qtr"}
                       </div>
@@ -840,7 +840,7 @@ export default function RetentionIfWhatView() {
                       </div>
                       <div className="iw-rank-summary-row">
                         <span className="iw-rank-summary-k">Net</span>
-                        <span className="iw-rank-summary-v">+${rec.outcomes.netAnnualisedK}K / yr</span>
+                        <span className="iw-rank-summary-v">+${rec.outcomes.netAnnualisedK}K / 8 wk</span>
                       </div>
                     </div>
                   </button>
@@ -888,7 +888,7 @@ export default function RetentionIfWhatView() {
                   kpis={_kpis}
                   accent="#ffb15a"
                   objective={objLabel}
-                  valueLabel="NWP protected / yr"
+                  valueLabel="NWP protected / 8 wk"
                   productHeader="Offer"
                   hideRateCap={false}
                   offerLabel="Discount"
@@ -917,7 +917,7 @@ export default function RetentionIfWhatView() {
                     <span className="sim-guardrail-pill sim-guardrail-pass">
                       <span className="sim-guardrail-pill-dot" />
                       <span className="sim-guardrail-pill-l">Profitability floor</span>
-                      <span className="sim-guardrail-pill-d">net +${selected.outcomes.netAnnualisedK}K annualised</span>
+                      <span className="sim-guardrail-pill-d">net +${selected.outcomes.netAnnualisedK}K / 8 wk</span>
                     </span>
                     <span className="sim-guardrail-pill sim-guardrail-pass">
                       <span className="sim-guardrail-pill-dot" />
