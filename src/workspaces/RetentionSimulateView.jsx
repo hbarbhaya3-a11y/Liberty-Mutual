@@ -988,9 +988,9 @@ export default function RetentionSimulateView() {
                           value={bps}
                           onChange={(e) => setProductOffer(p.id, +e.target.value)}
                           disabled={isAutopilot}
-                          formatter={(v) => p.id === "cd_6mo" ? `${v} bps capped rate` : `$${dollarOff(v)} off`} />
+                          formatter={(v) => p.id === "cd_6mo" ? `${(v / 100).toFixed(2)}% rate cap` : `$${dollarOff(v)} off`} />
                         <div className="px-offer-eff">
-                          <span className="rate-ref-item"><span className="rate-ref-l">discount</span><span className="rate-ref-v" style={{ color: "var(--green)", fontWeight: 700 }}>{p.id === "cd_6mo" ? `${bps} bps off renewal rate` : `$${dollarOff(bps)} off premium`}</span></span>
+                          <span className="rate-ref-item"><span className="rate-ref-l">discount</span><span className="rate-ref-v" style={{ color: "var(--green)", fontWeight: 700 }}>{p.id === "cd_6mo" ? "— (renewal rate capped)" : `$${dollarOff(bps)} off premium`}</span></span>
                         </div>
                         {p.id === "smart_savings" && (
                           <div className="px-offer-qual" style={{ marginTop: 10, paddingTop: 10, borderTop: "1px dashed var(--hair)" }}>
@@ -1330,7 +1330,9 @@ function ResultsReveal({ results, onReRun, onStage }) {
   // which reads `outcomes.NII_8wk_M` and synthesises a CI cone). For
   // retention we map "retained deposits over the 8-week horizon" into the
   // same field — ~8/52 of the annual retainedM.
-  const tileOutcomes = { NII_8wk_M: o.retainedM * (8 / 52) };
+  // Show the accumulation near the annual NWP-impact KPI on the dashboard
+  // (not the ~8/52 pilot slice), so the graph and the KPI cards line up.
+  const tileOutcomes = { NII_8wk_M: o.retainedM };
 
   // Per-week steady values for the bar tiles. Total over 8 wks ≈ steady × 8.
   const retainedPerWk_M    = o.retainedM / 52 * (52 / 8) / 8;        // ≈ retained M-per-week ramp target
@@ -1388,7 +1390,7 @@ function ResultsReveal({ results, onReRun, onStage }) {
         outcomes={tileOutcomes}
         progress={progress}
         title="NWP protected accumulation"
-        subhead="cumulative over 8-wk pilot · vs $0 baseline (no policy)"
+        subhead="annualized run-rate · vs $0 baseline (no policy)"
         insight="Most retention lands inside the first 4 weeks — customers reached early commit early. Extending the pilot adds little new retention."
       />
       <ResultTileBars
@@ -1403,7 +1405,7 @@ function ResultsReveal({ results, onReRun, onStage }) {
         numbers={[
           { k: "steady rate (with policy)",  v: `${(o.runoffWithPolicy * 100).toFixed(1)}% / qtr` },
           { k: "reduction vs today",         v: `−${(o.runoffReductionPp * 100).toFixed(1)}pp` },
-          { k: "8-wk NWP protected",     v: `+$${o.retainedM.toFixed(1)}M` },
+          { k: "annualized NWP protected", v: `+$${o.retainedM.toFixed(1)}M` },
         ]}
         insight="The first two weeks lag — customers need to act on the offer before the leaving rate starts dropping. Full effect from week 3."
         accent="var(--acc, #ffb15a)"
