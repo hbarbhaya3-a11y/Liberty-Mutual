@@ -1450,6 +1450,7 @@ function ResultsReveal({ results, onReRun, onStage }) {
           valueLabel="NWP protected / yr"
           offerLabel="Discount"
           rateLabel="Capped renewal rate"
+          hideBaseline={true}
           segments={seg}
           policy={policy}
           charts={chartsGrid}

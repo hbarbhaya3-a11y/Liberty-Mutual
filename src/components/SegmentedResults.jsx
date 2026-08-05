@@ -18,7 +18,7 @@ export default function SegmentedResults({
   kpis = [], charts, segments, policy = [], objective, valueLabel = "Value", accent = "#5b9dff",
   anchorRate = null, valueScale = 1,
   offerLabel = "Offer increment", rateLabel = "Recommended APY", productHeader, hideRateCap = false,
-  isRetail = false, defaultTab,
+  isRetail = false, defaultTab, hideBaseline = false,
 }) {
   const rows = (segments && segments.rows) || (Array.isArray(segments) ? segments : []);
   const hasBundle = rows.some((r) => r.bundle != null);
@@ -66,7 +66,7 @@ export default function SegmentedResults({
             <div className={"seg-kpi" + (i === 0 ? " seg-kpi-lead" : "")} key={i}>
               <div className="seg-kpi-l">{k.label}</div>
               <div className="seg-kpi-v">{k.value}</div>
-              {k.baseline != null
+              {!hideBaseline && k.baseline != null
                 ? <div className="seg-kpi-base"><span className="seg-kpi-base-k">baseline</span><span className="seg-kpi-base-v">{k.baseline}</span></div>
                 : (k.sub && <div className="seg-kpi-s">{k.sub}</div>)}
             </div>
