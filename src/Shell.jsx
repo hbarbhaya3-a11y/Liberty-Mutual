@@ -38,7 +38,7 @@ export default function Shell() {
   }, [sector, selectedThemeId, selectTheme]);
 
   // Account/RFP-level commercial intelligence routes (Quote / Elasticity / Negotiation).
-  const ciView = route === "quoteintel" || route === "elasticity" || route === "negotiation" ? route : null;
+  const ciView = route === "book" || route === "quoteintel" || route === "elasticity" || route === "negotiation" ? route : null;
   const Workspace =
     ciView ? () => <CommercialIntelWorkspace view={ciView} /> :
     route === "cockpit" ? CockpitWorkspace :

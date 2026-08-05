@@ -44,6 +44,19 @@ const ACCOUNTS = [
     portfolio: "Grows target TX construction segment · concentration +0.2% (within cap) · appetite aligned",
     competitors: [{ n: "Next Insurance", pv: 18900 }, { n: "biBERK", pv: 17400 }, { n: "Hiscox", pv: 19600 }],
     lines: ["BOP", "General Liability"], crossLine: ["Workers Comp", "Commercial Auto", "Umbrella"],
+    econ: {
+      technicalPrem: 15400, expenseRatio: 27.5, costToServe: 640, channel: "Broker (auto-quote)",
+      ltv: { years: 3, value: 44200, note: "3-yr expected value at ~88% renewal" },
+      attach: { line: "Umbrella + Cyber", prob: 0.42, ev: 6300 },
+    },
+    concentration: { seg: "TX construction", before: 4.1, after: 4.3, cap: 6.0 },
+    blendedLR: { before: 71.8, after: 71.9 },
+    compReaction: {
+      competitor: "biBERK", theirPrice: 17400,
+      ifMatch: { ourPrice: 17400, theirResp: "Hold — thin service model, rarely re-cuts", netWin: 74 },
+      ifHold: { ourPrice: 18200, theirResp: "Broker leans biBERK on price", netWin: 62 },
+      note: "Matching biBERK is safe here — they seldom counter below adequacy; hold on service value.",
+    },
     // quote scenarios: premium, win %, margin %, portfolio NWP $, recommended
     quotes: [
       { id: "base", label: "Baseline", prem: 18200, cov: "BOP + GL · $1M/$2M", margin: 14.8, win: 62, rec: false },
@@ -97,6 +110,19 @@ const ACCOUNTS = [
     portfolio: "Adds OH transportation exposure · concentration +0.6% (watch) · appetite: monitor",
     competitors: [{ n: "biBERK", pv: 142000 }, { n: "Progressive", pv: 138000 }, { n: "Next", pv: 151000 }],
     lines: ["Commercial Auto"], crossLine: ["Inland Marine", "Umbrella", "General Liability"],
+    econ: {
+      technicalPrem: 132000, expenseRatio: 26.0, costToServe: 2100, channel: "Broker + referral UW",
+      ltv: { years: 3, value: 214000, note: "3-yr expected value at ~79% renewal" },
+      attach: { line: "Inland Marine + Umbrella", prob: 0.36, ev: 14800 },
+    },
+    concentration: { seg: "OH transportation", before: 5.4, after: 6.0, cap: 6.5 },
+    blendedLR: { before: 77.6, after: 77.9 },
+    compReaction: {
+      competitor: "Progressive", theirPrice: 138000,
+      ifMatch: { ourPrice: 138000, theirResp: "Likely re-cut −$4K (aggressive on fleet)", netWin: 52 },
+      ifHold: { ourPrice: 146000, theirResp: "Progressive holds the low price", netWin: 44 },
+      note: "Matching Progressive invites a counter-cut; the telematics safety credit wins with a better loss ratio.",
+    },
     quotes: [
       { id: "base", label: "Baseline", prem: 146000, cov: "Fleet CA · $1M CSL", margin: 11.2, win: 44, rec: false },
       { id: "ded", label: "Deductible-optimized", prem: 134000, cov: "$2.5K → $5K deductible", margin: 12.6, win: 53, rec: false },
@@ -139,6 +165,52 @@ const ACCOUNTS = [
     },
   },
 ];
+
+/* ---- Book-level P&L context (Small Commercial · quarter-to-date) ---- */
+const BOOK = {
+  nwp: 41.8, nwpPlan: 48.0, winRate: 34, winRatePlan: 38,
+  lossRatio: 63.2, lossTarget: 66, expenseRatio: 27.1, combinedTarget: 96,
+  quoted: 312, bound: 106, pipelineEV: 2.14, // $M expected value in open pipeline
+  byClass: [
+    { k: "Contractors / GL", nwp: 12.4, lr: 61, share: 30 },
+    { k: "Fleet / Comm Auto", nwp: 9.1, lr: 74, share: 22 },
+    { k: "Property / BOP", nwp: 8.7, lr: 58, share: 21 },
+    { k: "Workers Comp", nwp: 6.9, lr: 66, share: 16 },
+    { k: "Hospitality", nwp: 4.7, lr: 79, share: 11 },
+  ],
+  byState: [
+    { k: "TX", nwp: 11.2, lr: 62 }, { k: "OH", nwp: 8.4, lr: 71 },
+    { k: "FL", nwp: 7.1, lr: 74 }, { k: "CA", nwp: 6.3, lr: 68 },
+    { k: "Other", nwp: 8.8, lr: 59 },
+  ],
+  // concentration heatmap: appetite headroom by class × state (share vs cap)
+  concentration: [
+    { seg: "TX construction", share: 4.3, cap: 6.0 },
+    { seg: "OH transportation", share: 6.0, cap: 6.5 },
+    { seg: "FL property", share: 5.2, cap: 6.0 },
+    { seg: "CA hospitality", share: 3.1, cap: 4.0 },
+  ],
+};
+
+/* Broker scorecard — cross-book performance (drives quote flexibility) */
+const BROKERS = [
+  { name: "Lockton — Dallas", tier: "Elite", submissions: 41, bindRate: 31, bookLR: 68, winTrend: +4 },
+  { name: "USI — Columbus", tier: "Preferred", submissions: 33, bindRate: 24, bookLR: 74, winTrend: -2 },
+  { name: "Comparion", tier: "Standard", submissions: 58, bindRate: 19, bookLR: 79, winTrend: +1 },
+];
+
+/* Win/Loss feed — closes the Learn loop; recalibrates win-prob + elasticity */
+const WINLOSS = [
+  { acct: "Ridgeline Roofing", outcome: "bound", prem: 22400, predWin: 68, note: "Priced at EV-optimal; broker took first offer" },
+  { acct: "Blue Harbor Cold Storage", outcome: "lost", prem: 96000, predWin: 55, note: "Lost to Progressive −$9K; model over-estimated flexibility" },
+  { acct: "Verde Landscaping", outcome: "bound", prem: 14100, predWin: 72, note: "Safety credit closed it; LR came in below plan" },
+  { acct: "Anchor Freight", outcome: "lost", prem: 141000, predWin: 47, note: "Declined match below adequacy — correct no-bid" },
+];
+
+/* ---- economic helpers shared across views ---- */
+const marginDollars = (q) => q.prem * (q.margin / 100);       // annual margin $
+const evOf = (q) => (q.win / 100) * marginDollars(q);          // expected margin $ = win% × margin$
+const combinedOf = (acc) => (parseFloat(acc.projLR) || 0) + (acc.econ?.expenseRatio || 0); // loss + expense
 
 /* linear interpolation of bind% along the elasticity curve for a given premium */
 function bindAt(curve, x) {
@@ -241,15 +313,24 @@ function Radar({ dims }) {
 function SensitivityLab({ e }) {
   const lo = e.curve[0][0], hi = e.curve[e.curve.length - 1][0];
   const [prem, setPrem] = useState(e.rec);
+  const marginAt = (p) => e.marginLo + ((e.marginHi - e.marginLo) * (p - lo)) / (hi - lo);
+  const evAt = (p) => (bindAt(e.curve, p) / 100) * p * (marginAt(p) / 100); // expected margin $
   const bind = bindAt(e.curve, prem);
-  const margin = e.marginLo + ((e.marginHi - e.marginLo) * (prem - lo)) / (hi - lo);
-  const expNWP = (bind / 100) * prem;                 // bind-weighted premium
+  const margin = marginAt(prem);
+  const ev = evAt(prem);
   const inZone = prem >= e.zone[0] && prem <= e.zone[1];
+
+  // scan the range for the EV-optimal price + max EV (for the normalized EV curve)
+  const N = 160, step = (hi - lo) / N;
+  const samples = Array.from({ length: N + 1 }, (_, i) => { const p = lo + i * step; return { p, ev: evAt(p) }; });
+  const evMax = Math.max(...samples.map((s) => s.ev));
+  const evStar = samples.reduce((a, b) => (b.ev > a.ev ? b : a)).p;
 
   const W = 960, H = 260, pad = 44;
   const sx = (x) => pad + ((x - lo) / (hi - lo)) * (W - pad - 16);
   const sy = (y) => H - pad - (y / 100) * (H - pad - 16);
   const d = e.curve.map((p, i) => `${i ? "L" : "M"}${sx(p[0]).toFixed(1)},${sy(p[1]).toFixed(1)}`).join(" ");
+  const evD = samples.map((s, i) => `${i ? "L" : "M"}${sx(s.p).toFixed(1)},${sy((s.ev / evMax) * 100).toFixed(1)}`).join(" ");
   const mx = sx(prem), my = sy(bind);
   return (
     <div>
@@ -262,22 +343,31 @@ function SensitivityLab({ e }) {
           </g>
         ))}
         <path d={d} fill="none" stroke={ACC} strokeWidth="2.5" />
+        <path d={evD} fill="none" stroke="var(--green)" strokeWidth="2" strokeDasharray="5 3" />
+        {/* EV-optimal price marker */}
+        <line x1={sx(evStar)} y1={12} x2={sx(evStar)} y2={H - pad} stroke="var(--green)" strokeWidth="1.5" />
+        <text x={sx(evStar)} y={9} fontSize="8.5" fill="var(--green)" textAnchor="middle" fontWeight="700">EV-optimal {money(Math.round(evStar))}</text>
         <line x1={mx} y1={12} x2={mx} y2={H - pad} stroke="var(--acq)" strokeDasharray="4 3" />
         <line x1={pad} y1={my} x2={mx} y2={my} stroke="var(--acq)" strokeDasharray="4 3" />
         <circle cx={mx} cy={my} r="6" fill="var(--acq)" stroke="var(--panel)" strokeWidth="2" />
-        <text x={pad} y={sy(100) - 3} fontSize="8" fill={INK3}>bind %</text>
+        <text x={pad} y={sy(100) - 3} fontSize="8" fill={ACC}>bind %</text>
+        <text x={pad + 44} y={sy(100) - 3} fontSize="8" fill="var(--green)">expected value (norm.)</text>
         <text x={W - 90} y={H - pad + 14} fontSize="9" fill={INK3}>{money(hi)} premium →</text>
         <text x={pad} y={H - pad + 14} fontSize="9" fill={INK3}>{money(lo)}</text>
       </svg>
       <RangeWithBubble min={lo} max={hi} step={(hi - lo) / 120} value={prem}
-        onChange={(ev) => setPrem(+ev.target.value)}
+        onChange={(ev2) => setPrem(+ev2.target.value)}
         formatter={(v) => money(Math.round(v))} />
       <div className="ci-lab-read">
         <div><span>Premium</span><b>{money(Math.round(prem))}</b></div>
         <div><span>Bind probability</span><b>{bind.toFixed(0)}%</b></div>
         <div><span>Margin</span><b>{margin.toFixed(1)}%</b></div>
-        <div><span>Bind-weighted NWP</span><b>{money(Math.round(expNWP))}</b></div>
+        <div><span>Expected value</span><b>{money(Math.round(ev))}</b></div>
         <div className={inZone ? "ci-zone ok" : "ci-zone warn"}>{inZone ? "In recommended zone" : "Outside rec zone"}</div>
+      </div>
+      <div className="ci-evnote">
+        <b>EV-optimal price · {money(Math.round(evStar))}</b> maximizes win% × margin$. Below it, each extra win-point is bought with
+        more margin than the added bind probability returns — so chasing a lower price grows win-rate but shrinks expected value.
       </div>
     </div>
   );
@@ -340,7 +430,7 @@ function AccountBar({ acc, onPick }) {
 }
 
 function FlowNav({ view, nav }) {
-  const steps = [["quoteintel", "Quote"], ["elasticity", "Elasticity & Win-Prob"], ["negotiation", "Negotiation"]];
+  const steps = [["book", "Book"], ["quoteintel", "Quote"], ["elasticity", "Elasticity & Win-Prob"], ["negotiation", "Negotiation"]];
   return (
     <div className="ci-flow">
       {steps.map(([v, l], i) => (
@@ -483,12 +573,17 @@ function QuoteView({ acc, nav }) {
   const winner = acc.quotes.find((q) => q.rec);
   const scatter = acc.quotes.map((q) => ({ x: q.win, y: q.margin, label: q.label.split("-")[0].split(" ")[0], rec: q.rec }));
   const portBars = acc.quotes.map((q) => ({ k: q.label.split(" ")[0], v: q.prem, c: q.rec ? ACC : "var(--acq)" }));
+  const evBest = acc.quotes.reduce((a, b) => (evOf(b) > evOf(a) ? b : a), acc.quotes[0]);
+  const combined = combinedOf(acc);
+  const e = acc.econ || {};
+  const gap = e.technicalPrem ? ((winner.prem - e.technicalPrem) / e.technicalPrem) * 100 : null;
   return (
     <>
-      <KpiRibbon items={[
-        { label: "Win probability", value: winner.win + "%", icon: "↗", color: "var(--acc)" },
-        { label: "Margin impact", value: winner.margin + "%", icon: "$" },
-        { label: "Proj. loss ratio", value: acc.projLR, icon: "%", color: "var(--green)" },
+      <KpiRibbon cols={4} items={[
+        { label: "Win probability", value: winner.win + "%", icon: "↗", sub: "recommended structure", color: "var(--acc)" },
+        { label: "Expected value", value: money(Math.round(evOf(winner))), icon: "$", sub: "win% × margin$", color: "var(--green)" },
+        { label: "Margin", value: winner.margin + "%", icon: "%", sub: "on premium" },
+        { label: "Combined ratio", value: combined.toFixed(1) + "%", icon: "Σ", sub: `target < ${BOOK.combinedTarget}%`, color: combined < BOOK.combinedTarget ? "var(--green)" : "var(--ret)" },
       ]} />
       <div className="ci-grid2">
         <section className="ci-panel">
@@ -520,10 +615,12 @@ function QuoteView({ acc, nav }) {
           {acc.quotes.map((q) => (
             <div key={q.id} className={"ci-quote" + (q.rec ? " rec" : "")}>
               {q.rec && <span className="ci-badge">Recommended</span>}
+              {!q.rec && q.id === evBest.id && <span className="ci-badge ci-badge-ev">Best EV</span>}
               <div className="ci-quote-h">{q.label}</div>
               <div className="ci-quote-prem">{money(q.prem)}</div>
               <div className="ci-quote-cov">{q.cov}</div>
               <div className="ci-quote-metrics"><span>Win <b>{q.win}%</b></span><span>Margin <b>{q.margin}%</b></span></div>
+              <div className="ci-quote-ev"><span>Expected value</span><b>{money(Math.round(evOf(q)))}</b></div>
             </div>
           ))}
         </div>
@@ -538,7 +635,47 @@ function QuoteView({ acc, nav }) {
           </div>
         </div>
         <div className="ci-winner">
-          <b>TwinX pick · {winner.label}</b> — best balance of win probability ({winner.win}%) and margin ({winner.margin}%), held to loss ratio.
+          <b>TwinX pick · {winner.label}</b> — best balance of win probability ({winner.win}%) and expected value ({money(Math.round(evOf(winner)))}), held to loss ratio.
+          {evBest.id !== winner.id && <> The <b>{evBest.label}</b> structure has a higher raw EV ({money(Math.round(evOf(evBest)))}) but sits outside appetite / adequacy — the recommendation protects margin over the last win-point.</>}
+        </div>
+      </section>
+
+      <section className="ci-panel">
+        <h3>Deal → book bridge</h3>
+        <p className="ci-sub">How the recommended quote earns its rate and what binding it does to the book</p>
+        <div className="ci-grid2">
+          <div className="ci-bridgebox">
+            <div className="ci-bridge-t">This deal · rate adequacy</div>
+            <ul className="ci-kv">
+              <li><b>Technical premium</b><span>{e.technicalPrem ? money(e.technicalPrem) : "—"}</span></li>
+              <li><b>Quoted premium</b><span>{money(winner.prem)}</span></li>
+              <li><b>Rate to technical</b><span style={{ color: gap >= 0 ? "var(--green)" : "var(--red)" }}>{gap == null ? "—" : (gap >= 0 ? "+" : "") + gap.toFixed(1) + "%"}</span></li>
+              <li><b>Expected value</b><span>{money(Math.round(evOf(winner)))} <i style={{ color: "var(--ink-3)" }}>(win% × margin$)</i></span></li>
+              <li><b>Cost to serve</b><span>{e.costToServe ? money(e.costToServe) : "—"} · {e.channel || "—"}</span></li>
+              <li><b>3-yr lifetime value</b><span>{e.ltv ? money(e.ltv.value) : "—"} <i style={{ color: "var(--ink-3)" }}>{e.ltv?.note}</i></span></li>
+              <li><b>Cross-line attach EV</b><span>{e.attach ? `${money(e.attach.ev)} @ ${Math.round(e.attach.prob * 100)}% · ${e.attach.line}` : "—"}</span></li>
+            </ul>
+          </div>
+          <div className="ci-bridgebox">
+            <div className="ci-bridge-t">Marginal book impact</div>
+            {acc.concentration && (
+              <div className="ci-conc-row">
+                <div className="ci-conc-h"><span>{acc.concentration.seg} concentration</span>
+                  <b>{acc.concentration.before}% → {acc.concentration.after}%</b><i>cap {acc.concentration.cap}%</i></div>
+                <div className="ci-conc-track">
+                  <span className="ci-conc-cap" style={{ left: `${(acc.concentration.cap / (acc.concentration.cap * 1.25)) * 100}%` }} />
+                  <i className="ci-conc-before" style={{ width: `${(acc.concentration.before / (acc.concentration.cap * 1.25)) * 100}%` }} />
+                  <i className="ci-conc-add" style={{ left: `${(acc.concentration.before / (acc.concentration.cap * 1.25)) * 100}%`, width: `${((acc.concentration.after - acc.concentration.before) / (acc.concentration.cap * 1.25)) * 100}%` }} />
+                </div>
+                <p className="ci-conc-note">{acc.concentration.after <= acc.concentration.cap ? "Within appetite cap — safe to add." : "Exceeds cap — refer / decline growth here."}</p>
+              </div>
+            )}
+            <ul className="ci-kv" style={{ marginTop: 12 }}>
+              <li><b>Blended loss ratio</b><span>{acc.blendedLR ? `${acc.blendedLR.before}% → ${acc.blendedLR.after}%` : "—"} <i style={{ color: "var(--ink-3)" }}>book {BOOK.lossRatio}% · target {BOOK.lossTarget}%</i></span></li>
+              <li><b>Combined ratio (deal)</b><span>{combined.toFixed(1)}% <i style={{ color: "var(--ink-3)" }}>loss {acc.projLR} + expense {e.expenseRatio}%</i></span></li>
+              <li><b>Contribution to plan</b><span>{money(winner.prem)} NWP toward the ${BOOK.nwpPlan.toFixed(1)}M quarter plan</span></li>
+            </ul>
+          </div>
         </div>
       </section>
 
@@ -578,10 +715,32 @@ function ElasticityView({ acc, nav }) {
       </div>
 
       <section className="ci-panel">
-        <h3>Sensitivity Lab · bind probability vs premium</h3>
-        <p className="ci-sub">Drag the slider — live bind %, margin, and bind-weighted NWP. Shaded band is the recommended zone (max bind × margin within adequacy). Recommended price <b>{money(acc.elasticity.rec)}</b>.</p>
+        <h3>Sensitivity Lab · bind probability &amp; expected value vs premium</h3>
+        <p className="ci-sub">Drag the slider — live bind %, margin, and expected value (win% × margin$). Solid = bind probability; dashed green = expected value. Shaded band is the recommended zone within adequacy. Recommended price <b>{money(acc.elasticity.rec)}</b>.</p>
         <SensitivityLab e={acc.elasticity} />
       </section>
+
+      {acc.compReaction && (
+        <section className="ci-panel">
+          <h3>Competitor-reaction simulation · Market Twin</h3>
+          <p className="ci-sub">What {acc.compReaction.competitor} likely does back if we move — the win probability shown is <i>after</i> their response.</p>
+          <div className="ci-grid2">
+            <div className="ci-react">
+              <div className="ci-react-h">If we hold price</div>
+              <div className="ci-react-price">{money(acc.compReaction.ifHold.ourPrice)}</div>
+              <p className="ci-react-resp">{acc.compReaction.ifHold.theirResp}</p>
+              <div className="ci-react-win">Net win <b>{acc.compReaction.ifHold.netWin}%</b></div>
+            </div>
+            <div className="ci-react ci-react-match">
+              <div className="ci-react-h">If we match {acc.compReaction.competitor}</div>
+              <div className="ci-react-price">{money(acc.compReaction.ifMatch.ourPrice)}</div>
+              <p className="ci-react-resp">{acc.compReaction.ifMatch.theirResp}</p>
+              <div className="ci-react-win">Net win <b>{acc.compReaction.ifMatch.netWin}%</b></div>
+            </div>
+          </div>
+          <div className="ci-winner" style={{ marginTop: 12 }}>{acc.compReaction.note}</div>
+        </section>
+      )}
 
       <section className="ci-panel">
         <h3>Competitive positioning</h3>
@@ -703,7 +862,130 @@ Guardrails: rate-adequacy floor · loss-ratio limit · NAIC 24-08 fair-pricing
   );
 }
 
+/* ---------- 0 · BOOK COCKPIT (portfolio P&L) ---------- */
+function BookCockpit({ onOpen }) {
+  const nwpPct = (BOOK.nwp / BOOK.nwpPlan) * 100;
+  // EV-ranked submission pipeline: live accounts (clickable) + open leads
+  const pipeline = [
+    ...ACCOUNTS.map((a) => { const w = a.quotes.find((q) => q.rec); return { id: a.id, name: a.name, cls: a.classCode, state: a.state, ev: evOf(w), win: w.win, combined: combinedOf(a), triage: a.triage, live: true }; }),
+    { id: "harborview", name: "Harborview Property Mgmt", cls: "BOP 65112", state: "FL", ev: 14200, win: 66, combined: 92.4, triage: "auto-quote", live: false },
+    { id: "summit", name: "Summit Precision Machining", cls: "WC 3632", state: "OH", ev: 9800, win: 58, combined: 94.1, triage: "referral", live: false },
+    { id: "delmar", name: "Del Mar Coastal Eatery", cls: "BOP 16900", state: "CA", ev: 4100, win: 41, combined: 103.2, triage: "decline", live: false },
+  ].sort((a, b) => b.ev - a.ev);
+  const maxClassNwp = Math.max(...BOOK.byClass.map((c) => c.nwp));
+  return (
+    <>
+      <KpiRibbon cols={4} items={[
+        { label: "NWP vs plan (QTD)", value: `$${BOOK.nwp.toFixed(1)}M`, icon: "$", sub: `${nwpPct.toFixed(0)}% of $${BOOK.nwpPlan.toFixed(1)}M plan`, color: "var(--acc)" },
+        { label: "Win rate vs plan", value: BOOK.winRate + "%", icon: "↗", sub: `target ${BOOK.winRatePlan}% · ${BOOK.bound}/${BOOK.quoted} bound`, color: BOOK.winRate >= BOOK.winRatePlan ? "var(--green)" : "var(--ret)" },
+        { label: "Loss ratio", value: BOOK.lossRatio + "%", icon: "%", sub: `target < ${BOOK.lossTarget}%`, color: BOOK.lossRatio < BOOK.lossTarget ? "var(--green)" : "var(--ret)" },
+        { label: "Combined ratio", value: (BOOK.lossRatio + BOOK.expenseRatio).toFixed(1) + "%", icon: "Σ", sub: `target < ${BOOK.combinedTarget}%`, color: (BOOK.lossRatio + BOOK.expenseRatio) < BOOK.combinedTarget ? "var(--green)" : "var(--ret)" },
+      ]} />
+
+      <section className="ci-panel">
+        <div className="ci-ready-h"><h3>Submission pipeline · ranked by expected value</h3><span className="ci-ready-note">{money(Math.round(BOOK.pipelineEV * 1e6 / 1000) * 1000)} open EV · click a live RFP to price it</span></div>
+        <p className="ci-sub">Work the book by expected value (win% × margin$), not by arrival order. Combined-ratio flags where winning would cost the book.</p>
+        <div className="ci-tablewrap">
+          <table className="ci-book">
+            <thead><tr><th>RFP / account</th><th>Class</th><th>St</th><th>Expected value</th><th>Win %</th><th>Combined</th><th>Triage</th><th></th></tr></thead>
+            <tbody>
+              {pipeline.map((r) => (
+                <tr key={r.id + r.name} className={r.live ? "ci-book-live" : ""} onClick={r.live ? () => onOpen(r.id) : undefined}>
+                  <td><b>{r.name}</b></td>
+                  <td>{r.cls}</td>
+                  <td>{r.state}</td>
+                  <td className="ci-book-ev">{money(Math.round(r.ev))}</td>
+                  <td>{r.win}%</td>
+                  <td style={{ color: r.combined < BOOK.combinedTarget ? "var(--green)" : "var(--red)" }}>{r.combined.toFixed(1)}%</td>
+                  <td><span className={"ci-triage ci-triage-" + r.triage}>{r.triage.replace("-", " ")}</span></td>
+                  <td>{r.live ? <span className="ci-book-open">Open →</span> : <span className="ci-book-note">lead</span>}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <div className="ci-grid2">
+        <section className="ci-panel">
+          <h3>Mix &amp; loss ratio by class</h3>
+          <p className="ci-sub">NWP concentration and where the loss ratio is running hot</p>
+          <div className="ci-mix">
+            {BOOK.byClass.map((c) => (
+              <div key={c.k} className="ci-mix-row">
+                <span className="ci-mix-k">{c.k}</span>
+                <div className="ci-mix-track"><i style={{ width: `${(c.nwp / maxClassNwp) * 100}%`, background: c.lr >= BOOK.lossTarget ? "var(--red)" : "var(--acc)" }} /></div>
+                <span className="ci-mix-v">${c.nwp.toFixed(1)}M</span>
+                <span className="ci-mix-lr" style={{ color: c.lr >= BOOK.lossTarget ? "var(--red)" : "var(--green)" }}>{c.lr}% LR</span>
+              </div>
+            ))}
+          </div>
+        </section>
+        <section className="ci-panel">
+          <h3>Appetite concentration · headroom to cap</h3>
+          <p className="ci-sub">Where the book can still grow — and where to stop adding</p>
+          <div className="ci-mix">
+            {BOOK.concentration.map((c) => {
+              const pct = (c.share / c.cap) * 100;
+              const tone = pct >= 95 ? "var(--red)" : pct >= 80 ? "var(--ret)" : "var(--green)";
+              return (
+                <div key={c.seg} className="ci-mix-row">
+                  <span className="ci-mix-k">{c.seg}</span>
+                  <div className="ci-mix-track ci-mix-cap"><i style={{ width: `${Math.min(100, pct)}%`, background: tone }} /></div>
+                  <span className="ci-mix-v">{c.share}% / {c.cap}%</span>
+                  <span className="ci-mix-lr" style={{ color: tone }}>{pct >= 95 ? "at cap" : pct >= 80 ? "watch" : "open"}</span>
+                </div>
+              );
+            })}
+          </div>
+        </section>
+      </div>
+
+      <div className="ci-grid2">
+        <section className="ci-panel">
+          <h3>Broker scorecard</h3>
+          <p className="ci-sub">Cross-book performance — drives how much price flexibility each broker earns</p>
+          <div className="ci-tablewrap">
+            <table className="ci-book">
+              <thead><tr><th>Broker</th><th>Tier</th><th>Subs</th><th>Bind %</th><th>Book LR</th><th>Win trend</th></tr></thead>
+              <tbody>
+                {BROKERS.map((b) => (
+                  <tr key={b.name}>
+                    <td><b>{b.name}</b></td>
+                    <td>{b.tier}</td>
+                    <td>{b.submissions}</td>
+                    <td>{b.bindRate}%</td>
+                    <td style={{ color: b.bookLR >= BOOK.lossTarget ? "var(--red)" : "var(--green)" }}>{b.bookLR}%</td>
+                    <td style={{ color: b.winTrend >= 0 ? "var(--green)" : "var(--red)" }}>{b.winTrend >= 0 ? "+" : ""}{b.winTrend}pp</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </section>
+        <section className="ci-panel">
+          <h3>Win / loss learn loop</h3>
+          <p className="ci-sub">Closed outcomes recalibrate the win-probability model and elasticity anchors</p>
+          <ul className="ci-learn">
+            {WINLOSS.map((w) => (
+              <li key={w.acct} className={"ci-learn-" + w.outcome}>
+                <span className={"ci-learn-tag ci-learn-tag-" + w.outcome}>{w.outcome}</span>
+                <div className="ci-learn-b">
+                  <b>{w.acct}</b> · {money(w.prem)} · predicted win {w.predWin}%
+                  <span>{w.note}</span>
+                </div>
+              </li>
+            ))}
+          </ul>
+          <p className="ci-sub" style={{ marginTop: 10 }}>Recalibration: model was over-confident on fleet flexibility (−8pp adjustment applied); no-bid discipline validated on sub-adequacy accounts.</p>
+        </section>
+      </div>
+    </>
+  );
+}
+
 const TITLES = {
+  book: ["Book Cockpit", "Portfolio P&L · pipeline, mix, concentration and the learn loop"],
   quoteintel: ["Quote Intelligence", "Multi-scenario quote generation · account / RFP level"],
   elasticity: ["Elasticity & Win Probability", "Sensitivity Lab · price the account against the market"],
   negotiation: ["Negotiation Intelligence", "Playbook + concession strategy per broker"],
@@ -724,8 +1006,9 @@ export default function CommercialIntelWorkspace({ view = "quoteintel" }) {
         </div>
         <FlowNav view={view} nav={nav} />
       </header>
-      <AccountBar acc={acc} onPick={setAcc} />
-      {view === "elasticity" ? <ElasticityView key={acc.id} acc={acc} nav={nav} />
+      {view !== "book" && <AccountBar acc={acc} onPick={setAcc} />}
+      {view === "book" ? <BookCockpit onOpen={(id) => { setAcc(id); go(nav, "quoteintel"); }} />
+        : view === "elasticity" ? <ElasticityView key={acc.id} acc={acc} nav={nav} />
         : view === "negotiation" ? <NegotiationView key={acc.id} acc={acc} nav={nav} />
         : <QuoteView key={acc.id} acc={acc} nav={nav} />}
     </div>

@@ -304,3 +304,72 @@
 .sr-bar-fill { display: block; height: 100%; border-radius: 5px; }
 .sr-bar-good { background: #16a34a; } .sr-bar-warn { background: #d97706; } .sr-bar-risk { background: #dc2626; }
 .sr-bar-note { font-size: 11px; text-align: right; }
+
+/* ============ Holistic P&L additions ============ */
+/* EV badge on scenario cards + EV row */
+.ci-badge-ev { background: var(--green); }
+.ci-quote-ev { display: flex; justify-content: space-between; align-items: baseline; margin-top: 8px;
+  padding-top: 8px; border-top: 1px dashed var(--hair); font-size: 11px; color: var(--ink-3); }
+.ci-quote-ev b { font-size: 13px; color: var(--green); }
+
+/* Deal → book bridge */
+.ci-bridgebox { border: 1px solid var(--hair); border-radius: 10px; padding: 13px 15px; background: var(--bg-2); }
+.ci-bridge-t { font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: var(--ink-3);
+  font-weight: 700; margin-bottom: 10px; }
+.ci-bridgebox .ci-kv li { grid-template-columns: 150px 1fr; }
+.ci-bridgebox .ci-kv i { font-style: normal; font-size: 11px; }
+.ci-conc-row { margin-bottom: 4px; }
+.ci-conc-h { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; font-size: 12px; color: var(--ink-2); margin-bottom: 6px; }
+.ci-conc-h b { color: var(--ink); font-size: 13px; } .ci-conc-h i { font-style: normal; color: var(--ink-3); font-size: 11px; }
+.ci-conc-track { position: relative; height: 12px; border-radius: 6px; background: var(--hair); overflow: hidden; }
+.ci-conc-track i { position: absolute; top: 0; height: 100%; }
+.ci-conc-before { left: 0; background: var(--acc); border-radius: 6px 0 0 6px; }
+.ci-conc-add { background: var(--ret); }
+.ci-conc-cap { position: absolute; top: -2px; width: 2px; height: 16px; background: var(--red); z-index: 2; }
+.ci-conc-note { font-size: 11.5px; color: var(--ink-2); margin: 6px 0 0; }
+
+/* EV-optimal callout under the Sensitivity Lab */
+.ci-evnote { margin-top: 12px; padding: 11px 13px; border-radius: 8px; font-size: 12.5px; color: var(--ink);
+  background: color-mix(in srgb, var(--green) 9%, var(--panel)); border: 1px solid color-mix(in srgb, var(--green) 28%, var(--hair)); }
+.ci-evnote b { color: var(--green); }
+
+/* Competitor-reaction cards */
+.ci-react { border: 1px solid var(--hair); border-radius: 10px; padding: 14px; background: var(--bg-2); }
+.ci-react-match { border-color: color-mix(in srgb, var(--acc) 40%, var(--hair)); background: color-mix(in srgb, var(--acc) 7%, var(--panel)); }
+.ci-react-h { font-size: 11px; text-transform: uppercase; letter-spacing: .05em; color: var(--ink-3); font-weight: 700; }
+.ci-react-price { font-size: 22px; font-weight: 800; color: var(--ink); margin: 4px 0 6px; }
+.ci-react-resp { font-size: 12px; color: var(--ink-2); margin: 0 0 8px; min-height: 32px; }
+.ci-react-win { font-size: 12px; color: var(--ink-3); } .ci-react-win b { font-size: 16px; color: var(--acc); }
+
+/* Book cockpit tables */
+.ci-tablewrap { width: 100%; overflow-x: auto; }
+.ci-book { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+.ci-book th { text-align: left; color: var(--ink-3); font-weight: 600; font-size: 10.5px; text-transform: uppercase;
+  letter-spacing: .04em; padding: 8px; border-bottom: 1px solid var(--hair); white-space: nowrap; }
+.ci-book td { padding: 10px 8px; border-bottom: 1px dashed var(--hair); color: var(--ink); vertical-align: middle; }
+.ci-book-live { cursor: pointer; }
+.ci-book-live:hover { background: var(--bg-2); }
+.ci-book-ev { font-weight: 700; color: var(--green); font-variant-numeric: tabular-nums; }
+.ci-book-open { color: var(--acc); font-weight: 700; white-space: nowrap; }
+.ci-book-note { color: var(--ink-4); font-size: 11px; }
+
+/* Mix / concentration bar rows */
+.ci-mix { display: flex; flex-direction: column; gap: 9px; }
+.ci-mix-row { display: grid; grid-template-columns: 128px 1fr 62px 58px; align-items: center; gap: 9px; font-size: 12px; }
+.ci-mix-k { color: var(--ink-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ci-mix-track { height: 9px; border-radius: 5px; background: var(--hair); overflow: hidden; position: relative; }
+.ci-mix-track i { display: block; height: 100%; border-radius: 5px; }
+.ci-mix-cap::after { content: ""; position: absolute; right: 0; top: -2px; height: 13px; width: 2px; background: var(--red); }
+.ci-mix-v { text-align: right; color: var(--ink); font-weight: 600; font-variant-numeric: tabular-nums; }
+.ci-mix-lr { text-align: right; font-size: 11px; font-weight: 600; }
+
+/* Win/loss learn feed */
+.ci-learn { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 9px; }
+.ci-learn li { display: grid; grid-template-columns: 56px 1fr; gap: 10px; align-items: start;
+  padding: 9px 0; border-bottom: 1px dashed var(--hair); }
+.ci-learn-tag { font-size: 10px; font-weight: 800; text-transform: uppercase; text-align: center;
+  padding: 3px 0; border-radius: 6px; letter-spacing: .04em; }
+.ci-learn-tag-bound { color: var(--green); background: color-mix(in srgb, var(--green) 15%, transparent); }
+.ci-learn-tag-lost { color: var(--red); background: color-mix(in srgb, var(--red) 15%, transparent); }
+.ci-learn-b { font-size: 12.5px; color: var(--ink); }
+.ci-learn-b span { display: block; font-size: 11.5px; color: var(--ink-2); margin-top: 2px; }
