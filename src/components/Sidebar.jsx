@@ -80,6 +80,8 @@ export const NAV = [
 /* Account / RFP-level intelligence — commercial sector only. Three screens
    with a logical flow: Quote → Elasticity & Win-Prob → Negotiation. */
 export const ACCOUNT_INTEL = [
+  { id: "book", iconName: "sense", verb: "Book Cockpit", sub: "Portfolio P&L + pipeline",
+    path: "/?seed_route=book", match: (l) => l.search.includes("seed_route=book") },
   { id: "quoteintel", iconName: "hypothesize", verb: "Quote Intel", sub: "Multi-scenario quotes",
     path: "/?seed_route=quoteintel", match: (l) => l.search.includes("seed_route=quoteintel") },
   { id: "elasticity", iconName: "test", verb: "Elasticity & Win-Prob", sub: "Price vs the market",
