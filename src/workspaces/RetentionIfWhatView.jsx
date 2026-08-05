@@ -157,8 +157,11 @@ function MinRow({ label, caption, unit, min, max, step, value, onChange, ticks }
       </div>
       {caption && <div className="lever-caption">{caption}</div>}
       <div className="lever-control">
-        {/* Single-thumb slider that reuses the DualRange visual treatment. */}
-        <div className="iw-dual">
+        {/* Single-thumb slider that reuses the DualRange visual treatment.
+            `range-single` restores pointer-events on the input — without it the
+            base .iw-dual-input has pointer-events:none and the thumb can't be
+            dragged (the two-thumb DualRange relies on its per-thumb pseudos). */}
+        <div className="iw-dual range-single">
           <div className="iw-dual-track" />
           <div className="iw-dual-fill" style={{ left: thumbCenter(0), right: `calc(100% - ${at})` }} />
           <div className="iw-dual-thumb" style={{ left: at }} />
