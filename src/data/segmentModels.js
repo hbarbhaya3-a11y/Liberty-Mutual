@@ -272,7 +272,13 @@ export function deriveSegments(model, lever, outcomes) {
       dollarCredit = Array.isArray(cd) ? Math.round((cd[0] + cd[1]) / 2) : cd;
     }
 
+    // Dollar-discount equivalent of the bps offer (on the ~$1,650 avg premium),
+    // rounded to $5. Every offer EXCEPT the capped renewal rate (cd_6mo) is
+    // shown to the customer as a dollar discount rather than a rate.
+    const dollarOff = Math.round(1650 * (rateBps || 0) / 1000 / 5) * 5;
+
     return { name: s.name, need: s.need, parent: s.parent, size, rateBps, valueW, marketRate,
+      productId, dollarOff,   // productId gates rate-vs-dollar display; dollarOff is the $ discount
       convPct: s.convPct,   // wealth: display conversion rate, passed through to the table
       reachOutDays: noticeDayFor(s),   // retention: per-segment renewal-notice lead
       product: productDisplay,
