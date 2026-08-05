@@ -694,10 +694,10 @@ export default function RetentionIfWhatView() {
     const _mPct   = { label: "At-risk retained", value: `${_o ? (_o.treatmentN * (_baseRunoffPp - _withPp) / 100 / RETENTION_CALIBRATION.cohortTotal * 100).toFixed(1) : 0}%`, baseline: "0%" };
     const _kpis = !selected ? [] :
       objective === "retained_deposits"
-        ? [_mRet, _mRelVal, _mDefended, _mPct, _mLeave, _mDD]
+        ? [_mRet, _mRelVal, _mDefended, _mPct, _mLeave]
         : objective === "primacy_return"
-          ? [{ label: "Bundle adds", value: `+${_o.ddRecoveryPp}pp`, baseline: "0pp" }, _mRet, _mRelVal, _mDefended, _mPct, _mLeave]
-          : [{ label: "Lapse-rate reduction", value: `−${_o.runoffReductionPp.toFixed(1)}pp`, baseline: `${_baseRunoffPp.toFixed(1)}%` }, _mRet, _mRelVal, _mDefended, _mPct, _mDD];
+          ? [_mRet, _mRelVal, _mDefended, _mPct, _mLeave]
+          : [{ label: "Lapse-rate reduction", value: `${_o.runoffReductionPp.toFixed(1)}pp`, baseline: `${_baseRunoffPp.toFixed(1)}%` }, _mRet, _mRelVal, _mDefended, _mPct];
     // Policy band (the levers that produced this) — shown atop the Aggregate tab.
     const _policy = selected ? [
       { k: "Cohort", v: (selected.picks.cohortPresets || []).map((id) => COHORT_OPTIONS.find((c) => c.id === id)?.name).filter(Boolean).join(", ") || "All" },
@@ -713,7 +713,7 @@ export default function RetentionIfWhatView() {
           .join(" · ") || "—" },
       { k: "Coverage", v: allowedCoverage.map((c) => COVERAGE_OPTIONS.find((o) => o.id === c)?.label).filter(Boolean).join(", ") || "—" },
       { k: "Bundle", v: Object.entries(selected.picks.bundleOffers || bundleOffers)
-          .map(([id, rng]) => `${BUNDLE_OPTIONS.find((o) => o.id === id)?.label || id} (-${Array.isArray(rng) ? Math.round((rng[0] + rng[1]) / 2) : rng} bps)`)
+          .map(([id, rng]) => `${BUNDLE_OPTIONS.find((o) => o.id === id)?.label || id} (${Array.isArray(rng) ? Math.round((rng[0] + rng[1]) / 2) : rng}% off)`)
           .join(" · ") || "—" },
       { k: "Channels", v: selected.picks.channels.map((c) => CHANNEL_OPTIONS.find((o) => o.id === c)?.label).filter(Boolean).join(", ") },
       { k: "Renewal reminder", v: `${(Array.isArray(noticeDays) ? noticeDays : [noticeDays]).join(" / ")}-day before renewal${multiTouch ? " · multi-touch" : ""}` },
@@ -1132,7 +1132,7 @@ export default function RetentionIfWhatView() {
                           low={rng[0]} high={rng[1]}
                           onChange={({ low, high }) => setProductRange(p.id, low, high)} />
                         <div className="px-offer-eff">
-                          <span className="rate-ref-item"><span className="rate-ref-l">discount</span><span className="rate-ref-v" style={{ color: "var(--green)", fontWeight: 700 }}>{p.id === "cd_6mo" ? `−${rng[0]}–${rng[1]} bps off renewal rate` : `−$${dollarOff(rng[0])}–$${dollarOff(rng[1])} off premium`}</span></span>
+                          <span className="rate-ref-item"><span className="rate-ref-l">discount</span><span className="rate-ref-v" style={{ color: "var(--green)", fontWeight: 700 }}>{p.id === "cd_6mo" ? `${rng[0]}–${rng[1]} bps off renewal rate` : `$${dollarOff(rng[0])}–$${dollarOff(rng[1])} off premium`}</span></span>
                         </div>
                         {p.id === "smart_savings" && (
                           <div className="px-offer-qual" style={{ marginTop: 10, paddingTop: 10, borderTop: "1px dashed var(--hair)" }}>
@@ -1222,7 +1222,7 @@ export default function RetentionIfWhatView() {
               <span className="lever-name">Bundle plays &amp; discount ranges</span>
               <span className="lever-value">{Object.keys(bundleOffers).length} of {BUNDLE_OPTIONS.length}</span>
             </div>
-            <div className="lever-caption">Cross-line offers the optimizer may attach; set the contingent discount range (bps) for each allowed bundle play.</div>
+            <div className="lever-caption">Cross-line offers the optimizer may attach; set the contingent discount range (%) for each allowed bundle play.</div>
             <div className="px-offer-list" style={{ display: "grid", gap: 10, marginTop: 8 }}>
               {BUNDLE_OPTIONS.map((b) => {
                 const rng = bundleOffers[b.id];
@@ -1236,11 +1236,11 @@ export default function RetentionIfWhatView() {
                     <div style={{ fontSize: 11.5, color: "var(--ink-3)", marginTop: 2, marginLeft: 24 }}>{b.sub}</div>
                     {sel && (
                       <div className="px-offer-body" style={{ marginTop: 8, marginLeft: 24 }}>
-                        <DualRange min={0} max={80} step={5} unit=" bps"
+                        <DualRange min={0} max={80} step={5} unit="%"
                           low={rng[0]} high={rng[1]}
                           onChange={({ low, high }) => setBundleRange(b.id, low, high)} />
                         <div className="px-offer-eff" style={{ fontSize: 11, color: "var(--ink-2)", marginTop: 4 }}>
-                          <span className="rate-ref-item"><span className="rate-ref-l">contingent discount range: </span><b>{rng[0]}–{rng[1]} bps</b></span>
+                          <span className="rate-ref-item"><span className="rate-ref-l">contingent discount range: </span><b>{rng[0]}–{rng[1]}%</b></span>
                         </div>
                       </div>
                     )}

@@ -221,6 +221,11 @@ export function deriveSegments(model, lever, outcomes) {
       : (Array.isArray(offerRange) && s.offerFrac != null && lever.offerMult != null)
         ? Math.round(Math.max(offerRange[0], Math.min(offerRange[1],
             offerRange[0] + Math.min(1, s.offerFrac * lever.offerMult) * (offerRange[1] - offerRange[0]))))
+      // No per-segment offerFrac (e.g. retention): sit each segment at its OWN
+      // point WITHIN the selected [low,high] range, scaled by need (rateFactor),
+      // so the micro-segment table stays inside the ranges set on the sim form.
+      : Array.isArray(offerRange)
+        ? Math.round(offerRange[0] + Math.min(1, s.rateFactor / maxFactor) * (offerRange[1] - offerRange[0]))
       : productOffers ? offerBpsFor(productId)
       : Math.min(Math.round(ceiling * (s.rateFactor / maxFactor) / 5) * 5, ceiling);
     const marketRate = productOffers ? (PRODUCT_MARKET[productId] ?? null) : null;
@@ -237,13 +242,13 @@ export function deriveSegments(model, lever, outcomes) {
       if (matchId) {
         const bName = BUNDLE_MAP[matchId] || matchId;
         const rng = bundleOffersMap ? bundleOffersMap[matchId] : null;
-        bundleText = Array.isArray(rng) ? `${bName} (-${Math.round((rng[0] + rng[1]) / 2)} bps)` : bName;
+        bundleText = Array.isArray(rng) ? `${bName} (${Math.round((rng[0] + rng[1]) / 2)}% off)` : bName;
       }
     } else if (segBundles === undefined && allowedBundleIds.length > 0 && s.rateFactor > 1.2) {
       const defaultId = allowedBundleIds[0];
       const bName = BUNDLE_MAP[defaultId] || defaultId;
       const rng = bundleOffersMap ? bundleOffersMap[defaultId] : null;
-      bundleText = Array.isArray(rng) ? `${bName} (-${Math.round((rng[0] + rng[1]) / 2)} bps)` : bName;
+      bundleText = Array.isArray(rng) ? `${bName} (${Math.round((rng[0] + rng[1]) / 2)}% off)` : bName;
     }
 
     // Per-product qualifiers surfaced at the micro-segment level. The loyalty
