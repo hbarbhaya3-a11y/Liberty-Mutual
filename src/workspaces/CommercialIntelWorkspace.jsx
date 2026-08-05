@@ -297,7 +297,7 @@ function Radar({ dims }) {
   const ring = (f) => dims.map((_, i) => pt(i, f).join(",")).join(" ");
   const poly = dims.map((d, i) => pt(i, d.v).join(",")).join(" ");
   return (
-    <svg viewBox={`0 0 ${S} ${S}`} className="ci-svg">
+    <svg viewBox={`0 0 ${S} ${S}`} className="ci-svg ci-radar">
       {[100, 66, 33].map((f) => <polygon key={f} points={ring(f)} fill="none" stroke={GRID} />)}
       {dims.map((d, i) => { const [x, y] = pt(i, 100); return <line key={d.k} x1={cx} y1={cy} x2={x} y2={y} stroke={GRID} />; })}
       <polygon points={poly} fill={ACC} fillOpacity="0.18" stroke={ACC} strokeWidth="2" />
