@@ -28,7 +28,7 @@ import { RETENTION_SEGMENTS, deriveSegments, PRODUCT_MARKET, RETENTION_PRODUCT_L
    micro-segments and filters by what the user selected. */
 const RET_SEG_MODEL = {
   segments: RETENTION_SEGMENTS,
-  cohortCounts: { full: 75000, "rate-sensitive": 22000, "operating-decliner": 18000, "high-value": 3000, "long-tenured": 8000, "multi-product": 12000 },
+  cohortCounts: { full: 550000, "rate-sensitive": 161000, "operating-decliner": 132000, "high-value": 22000, "long-tenured": 59000, "multi-product": 88000 },
   heldBackLabel: "Will-stay & already-gone",
   heldBackShare: 0.06,
   // Insurance-context label overrides so the recommendation table speaks our
@@ -148,14 +148,13 @@ const PILOT_DEFAULTS = {
    simulateOutcomes — retention lever → outcome chain.
 
    Anchors at recommended defaults (per RETENTION_CALIBRATION):
-     - eligibleAfterGate = 22,000  (out of 75K cohort, gated by stickiness < 0.70)
-     - treatmentN/controlN = 17,600 / 4,400
-     - NWP protected annual = $10.5M
-     - Balance runoff: 6.5% (BAU) → 4.8% (with policy) → −1.7pp reduction
-     - Spread protected = $210K / yr
-     - Offer cost = $95K
+     - cohortTotal = 550,000 at-risk auto customers (signal 1)
+     - eligibleAfterGate = 220,000  (40% clear the stickiness/fairness gate)
+     - treatmentN/controlN = 176,000 / 44,000
+     - NWP impact annual = $6.7M · CLV impact = $16.7M · ~4,050 policies retained
+     - Lapse: 7.5% (BAU) → 5.2% (with policy) → −2.3pp reduction
+     - Spread protected = $166K / yr · offer cost = $60K · net = $106K
      - Fair-lending margin = 0.93 (held constant by loyalty gate)
-     - Complaints delta = +120 / qtr
 ---------------------------------------------------------------------------- */
 function simulateOutcomes(opts) {
   const C = RETENTION_CALIBRATION;
@@ -173,9 +172,9 @@ function simulateOutcomes(opts) {
     "full":               C.cohortTotal,
     "rate-sensitive":     C.eligibleAfterGate,
     "operating-decliner": C.operatingDeclinerN,
-    "high-value":         3000,
-    "long-tenured":       8000,
-    "multi-product":      12000,
+    "high-value":         22000,
+    "long-tenured":       59000,
+    "multi-product":      88000,
   };
   const list = Array.isArray(cohortPresets) ? cohortPresets : [cohortPresets];
   const presetBase = list.includes("full")
@@ -688,10 +687,10 @@ export default function RetentionSimulateView() {
 
   // ---- Live eligibility count (recomputes as the min-balance slider moves) ----
   // Cohort base from the selected presets; higher min-balance → lower count.
-  const ELIG_COHORT_COUNTS = { "rate-sensitive": 22000, "operating-decliner": 18000, "high-value": 3000, "long-tenured": 8000, "multi-product": 12000 };
+  const ELIG_COHORT_COUNTS = { "rate-sensitive": 161000, "operating-decliner": 132000, "high-value": 22000, "long-tenured": 59000, "multi-product": 88000 };
   const _cohortBase = (cohortPresets.includes("full")
-    ? 75000
-    : cohortPresets.reduce((s, id) => s + (ELIG_COHORT_COUNTS[id] || 0), 0)) || 75000;
+    ? 550000
+    : cohortPresets.reduce((s, id) => s + (ELIG_COHORT_COUNTS[id] || 0), 0)) || 550000;
   const _eligFrac = Math.max(0.2, Math.min(1, 1 - ((minBalanceK - 20) / (100 * 1.4))));
   const eligibleCount = Math.round(_cohortBase * _eligFrac);
 
@@ -780,12 +779,12 @@ export default function RetentionSimulateView() {
           </div>
           <div className="sim-lever-fieldset" style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 12 }}>
             {[
-              { id: "full",               count: 75000, signature: "Every customer showing one or more shopping-risk signals." },
-              { id: "rate-sensitive",     count: 22000, signature: "Engagement dropping >20% · price-elastic · not deeply bundled." },
-              { id: "operating-decliner", count: 18000, signature: "Portal logins falling · paperless-opens decaying · no competitor quote yet." },
-              { id: "high-value",         count:  3000, signature: "LTV >$12K · top shopping decile · single-line (unbundled)." },
-              { id: "long-tenured",       count:  8000, signature: "10+ years tenure · rate action landed in the last 6 months." },
-              { id: "multi-product",      count: 12000, signature: "3+ policies held · early shopping signals on the auto policy." },
+              { id: "full",               count: 550000, signature: "Every customer showing one or more shopping-risk signals." },
+              { id: "rate-sensitive",     count: 161000, signature: "Engagement dropping >20% · price-elastic · not deeply bundled." },
+              { id: "operating-decliner", count: 132000, signature: "Portal logins falling · paperless-opens decaying · no competitor quote yet." },
+              { id: "high-value",         count:  22000, signature: "LTV >$12K · top shopping decile · single-line (unbundled)." },
+              { id: "long-tenured",       count:  59000, signature: "10+ years tenure · rate action landed in the last 6 months." },
+              { id: "multi-product",      count:  88000, signature: "3+ policies held · early shopping signals on the auto policy." },
             ].map((c) => {
               const name = c.id === "full" ? "Full cohort"
                          : c.id === "rate-sensitive" ? "Shopping-elastic eligible"
@@ -1343,11 +1342,11 @@ function ResultsReveal({ results, onReRun, onStage }) {
   const lever = results.lever || { cohortPresets: ["rate-sensitive"], productOffers: RECOMMENDED_OFFERS, channels: ["app", "email", "banker"] };
   const seg = deriveSegments(RET_SEG_MODEL, lever, o);
   const kpis = [
-    { label: "NWP protected", value: `+$${o.retainedM.toFixed(1)}M`, baseline: "$0" },
-    { label: "Annualized relationship value", value: `+$${(o.retainedM * 2.5).toFixed(1)}M`, baseline: "$0" },
+    { label: "NWP impact", value: `+$${o.retainedM.toFixed(1)}M`, baseline: "$0" },
+    { label: "CLV impact", value: `+$${(o.retainedM * 2.5).toFixed(1)}M`, baseline: "$0" },
+    { label: "Policies retained", value: `${Math.round(o.treatmentN * (o.runoffBau - o.runoffWithPolicy)).toLocaleString()}`, baseline: "0" },
     { label: "% renewals lapsing", value: `${(o.runoffWithPolicy * 100).toFixed(1)}%`, baseline: `${(o.runoffBau * 100).toFixed(1)}%` },
     { label: "Bundle penetration", value: `+${o.ddRecoveryPp}pp`, baseline: "0pp" },
-    { label: "Policies retained", value: `${Math.round(o.treatmentN * (o.runoffBau - o.runoffWithPolicy)).toLocaleString()}`, baseline: "0" },
   ];
 
   // Policy band (the levers that produced this) — shown atop the Aggregate tab.

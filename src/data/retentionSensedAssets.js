@@ -27,7 +27,7 @@ const retentionSensedAssets = [
         { label: 'Policy observation events',    value: '4.2M over 18 months' },
         { label: 'Renewals entering window / mo', value: '~10,500' },
         { label: 'Coverage-reduction requests',   value: '847K over 90 days' },
-        { label: 'Cohort coverage',               value: '75,000 of 75,000 (100%)' },
+        { label: 'Cohort coverage',               value: '550,000 of 550,000 (100%)' },
       ],
       compositionChain: {
         feedsInto: ['Shopping-risk model', 'Engagement-decay index', 'Margin guardrail'],
@@ -66,7 +66,7 @@ const retentionSensedAssets = [
     group: 'data',
     name: 'Agent / CSW signals',
     subtitle: 'Comparion agent activity + service notes',
-    quickNumbers: '3K high-value · agent-active',
+    quickNumbers: '22K high-value · agent-active',
     informs: 'agent save-call eligibility + relationship context',
     drillDownLight: {
       provenance: {
