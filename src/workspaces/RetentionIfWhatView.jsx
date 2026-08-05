@@ -722,7 +722,7 @@ export default function RetentionIfWhatView() {
     const _chartsGrid = selected ? (
       <div className="sim-result-grid">
         <ResultTileNII
-          outcomes={{ NII_8wk_M: _o.retainedM * (8 / 52) }}
+          outcomes={{ NII_8wk_M: _o.retainedM }}
           progress={1}
           title="NWP protected accumulation"
           subhead="projected · cumulative over an 8-wk pilot"
