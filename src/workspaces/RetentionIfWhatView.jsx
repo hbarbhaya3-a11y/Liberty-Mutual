@@ -893,6 +893,7 @@ export default function RetentionIfWhatView() {
                   hideRateCap={false}
                   offerLabel="Discount"
                   rateLabel="Capped renewal rate"
+                  hideBaseline={true}
                   segments={_seg}
                   policy={_policy}
                   charts={_chartsGrid}
