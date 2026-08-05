@@ -242,7 +242,8 @@ export function deriveSegments(model, lever, outcomes) {
       if (matchId) {
         const bName = BUNDLE_MAP[matchId] || matchId;
         const rng = bundleOffersMap ? bundleOffersMap[matchId] : null;
-        bundleText = Array.isArray(rng) ? `${bName} (${((rng[0] + rng[1]) / 2).toFixed(1)}% off)` : bName;
+        bundleText = Array.isArray(rng) ? `${bName} (${((rng[0] + rng[1]) / 2).toFixed(1)}% off)`
+          : (typeof rng === "number" ? `${bName} (${rng.toFixed(1)}% off)` : bName);
       }
     } else if (segBundles === undefined && allowedBundleIds.length > 0 && s.rateFactor > 1.2) {
       const defaultId = allowedBundleIds[0];
