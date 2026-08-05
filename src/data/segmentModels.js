@@ -249,7 +249,8 @@ export function deriveSegments(model, lever, outcomes) {
       const defaultId = allowedBundleIds[0];
       const bName = BUNDLE_MAP[defaultId] || defaultId;
       const rng = bundleOffersMap ? bundleOffersMap[defaultId] : null;
-      bundleText = Array.isArray(rng) ? `${bName} (${((rng[0] + rng[1]) / 2).toFixed(1)}% off)` : bName;
+      bundleText = Array.isArray(rng) ? `${bName} (${((rng[0] + rng[1]) / 2).toFixed(1)}% off)`
+        : (typeof rng === "number" ? `${bName} (${rng.toFixed(1)}% off)` : bName);
     }
 
     // Per-product qualifiers surfaced at the micro-segment level. The loyalty
