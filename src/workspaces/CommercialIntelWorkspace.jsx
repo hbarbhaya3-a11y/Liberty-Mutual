@@ -172,30 +172,51 @@ function BarRow({ data, fmt, max }) {
 }
 
 function Scatter({ points, xLab, yLab }) {
-  const W = 300, H = 210, pad = 34;
+  const W = 440, H = 240, padL = 42, padR = 16, padT = 16, padB = 38;
   const xs = points.map((p) => p.x), ys = points.map((p) => p.y);
-  const x0 = Math.min(...xs) * 0.96, x1 = Math.max(...xs) * 1.04;
-  const y0 = Math.min(...ys) * 0.9, y1 = Math.max(...ys) * 1.08;
-  const sx = (x) => pad + ((x - x0) / (x1 - x0)) * (W - pad - 12);
-  const sy = (y) => H - pad - ((y - y0) / (y1 - y0)) * (H - pad - 12);
+  const xMin = Math.min(...xs), xMax = Math.max(...xs);
+  const yMin = Math.min(...ys), yMax = Math.max(...ys);
+  const xPad = (xMax - xMin) * 0.18 || 5, yPad = (yMax - yMin) * 0.28 || 1;
+  const x0 = xMin - xPad, x1 = xMax + xPad, y0 = yMin - yPad, y1 = yMax + yPad;
+  const sx = (x) => padL + ((x - x0) / (x1 - x0)) * (W - padL - padR);
+  const sy = (y) => H - padB - ((y - y0) / (y1 - y0)) * (H - padB - padT);
+  const nice = (v) => (Math.abs(v) >= 10 ? Math.round(v) : Math.round(v * 10) / 10);
+  const ticks = (lo, hi, n) => Array.from({ length: n + 1 }, (_, i) => lo + ((hi - lo) * i) / n);
+  const xt = ticks(x0, x1, 4), yt = ticks(y0, y1, 4);
   return (
     <svg viewBox={`0 0 ${W} ${H}`} className="ci-svg">
-      <line x1={pad} y1={H - pad} x2={W - 12} y2={H - pad} stroke={AXIS} />
-      <line x1={pad} y1={12} x2={pad} y2={H - pad} stroke={AXIS} />
+      {/* y grid + tick values */}
+      {yt.map((v, i) => (
+        <g key={"y" + i}>
+          <line x1={padL} y1={sy(v)} x2={W - padR} y2={sy(v)} stroke={GRID} />
+          <text x={padL - 6} y={sy(v) + 3} fontSize="9" fill={INK3} textAnchor="end">{nice(v)}</text>
+        </g>
+      ))}
+      {/* x tick values */}
+      {xt.map((v, i) => (
+        <text key={"x" + i} x={sx(v)} y={H - padB + 14} fontSize="9" fill={INK3} textAnchor="middle">{nice(v)}</text>
+      ))}
+      <line x1={padL} y1={H - padB} x2={W - padR} y2={H - padB} stroke={AXIS} />
+      <line x1={padL} y1={padT} x2={padL} y2={H - padB} stroke={AXIS} />
       {points.map((p) => (
         <g key={p.label}>
           <circle cx={sx(p.x)} cy={sy(p.y)} r={p.rec ? 7 : 5} fill={p.rec ? ACC : "var(--acq)"} opacity={p.rec ? 1 : 0.75} />
-          <text x={sx(p.x)} y={sy(p.y) - 10} fontSize="8" fill={INK3} textAnchor="middle">{p.label}</text>
+          <text x={sx(p.x)} y={sy(p.y) - 11} fontSize="8.5" fill={INK3} textAnchor="middle">{p.label}</text>
+          <text x={sx(p.x)} y={sy(p.y) + 15} fontSize="8" fill={p.rec ? ACC : INK3} textAnchor="middle" fontWeight="700">{nice(p.x)}% · {nice(p.y)}%</text>
         </g>
       ))}
-      <text x={W / 2} y={H - 4} fontSize="9" fill={INK3} textAnchor="middle">{xLab}</text>
-      <text x={10} y={14} fontSize="9" fill={INK3}>{yLab}</text>
+      <text x={(W + padL) / 2} y={H - 4} fontSize="9.5" fill={INK3} textAnchor="middle">{xLab}</text>
+      <text x={12} y={12} fontSize="9.5" fill={INK3}>{yLab}</text>
     </svg>
   );
 }
 
 function Radar({ dims }) {
-  const W = 240, H = 210, cx = W / 2, cy = H / 2 + 4, r = 74, n = dims.length;
+  // viewBox fits the content tightly: max drawn radius is the label ring
+  // (labelF × r); pad just enough for the label text. No dead margin.
+  const n = dims.length, r = 96, labelF = 1.16, M = 20;
+  const maxR = r * labelF, C = maxR + M, S = C * 2;
+  const cx = C, cy = C;
   const pt = (i, val) => {
     const a = (Math.PI * 2 * i) / n - Math.PI / 2;
     const rr = (val / 100) * r;
@@ -204,13 +225,13 @@ function Radar({ dims }) {
   const ring = (f) => dims.map((_, i) => pt(i, f).join(",")).join(" ");
   const poly = dims.map((d, i) => pt(i, d.v).join(",")).join(" ");
   return (
-    <svg viewBox={`0 0 ${W} ${H}`} className="ci-svg">
+    <svg viewBox={`0 0 ${S} ${S}`} className="ci-svg">
       {[100, 66, 33].map((f) => <polygon key={f} points={ring(f)} fill="none" stroke={GRID} />)}
       {dims.map((d, i) => { const [x, y] = pt(i, 100); return <line key={d.k} x1={cx} y1={cy} x2={x} y2={y} stroke={GRID} />; })}
       <polygon points={poly} fill={ACC} fillOpacity="0.18" stroke={ACC} strokeWidth="2" />
       {dims.map((d, i) => {
-        const [x, y] = pt(i, 118);
-        return <text key={d.k} x={x} y={y} fontSize="8.5" fill={INK3} textAnchor="middle" dominantBaseline="middle">{d.k}</text>;
+        const [x, y] = pt(i, 100 * labelF);
+        return <text key={d.k} x={x} y={y} fontSize="10.5" fill={INK3} textAnchor="middle" dominantBaseline="middle">{d.k}</text>;
       })}
     </svg>
   );
@@ -225,16 +246,21 @@ function SensitivityLab({ e }) {
   const expNWP = (bind / 100) * prem;                 // bind-weighted premium
   const inZone = prem >= e.zone[0] && prem <= e.zone[1];
 
-  const W = 560, H = 220, pad = 38;
-  const sx = (x) => pad + ((x - lo) / (hi - lo)) * (W - pad - 12);
-  const sy = (y) => H - pad - (y / 100) * (H - pad - 14);
+  const W = 960, H = 260, pad = 44;
+  const sx = (x) => pad + ((x - lo) / (hi - lo)) * (W - pad - 16);
+  const sy = (y) => H - pad - (y / 100) * (H - pad - 16);
   const d = e.curve.map((p, i) => `${i ? "L" : "M"}${sx(p[0]).toFixed(1)},${sy(p[1]).toFixed(1)}`).join(" ");
   const mx = sx(prem), my = sy(bind);
   return (
     <div>
       <svg viewBox={`0 0 ${W} ${H}`} className="ci-svg ci-lab-svg">
         <rect x={sx(e.zone[0])} y={12} width={sx(e.zone[1]) - sx(e.zone[0])} height={H - pad - 12} fill={ACC} opacity="0.10" />
-        {[25, 50, 75, 100].map((g) => <line key={g} x1={pad} y1={sy(g)} x2={W - 12} y2={sy(g)} stroke={GRID} />)}
+        {[25, 50, 75, 100].map((g) => (
+          <g key={g}>
+            <line x1={pad} y1={sy(g)} x2={W - 16} y2={sy(g)} stroke={GRID} />
+            <text x={pad - 6} y={sy(g) + 3} fontSize="9" fill={INK3} textAnchor="end">{g}</text>
+          </g>
+        ))}
         <path d={d} fill="none" stroke={ACC} strokeWidth="2.5" />
         <line x1={mx} y1={12} x2={mx} y2={H - pad} stroke="var(--acq)" strokeDasharray="4 3" />
         <line x1={pad} y1={my} x2={mx} y2={my} stroke="var(--acq)" strokeDasharray="4 3" />
