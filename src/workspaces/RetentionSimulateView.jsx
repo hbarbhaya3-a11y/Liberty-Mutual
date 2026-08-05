@@ -1399,12 +1399,12 @@ function ResultsReveal({ results, onReRun, onStage }) {
         steady={runoffReductionPct / 8}
         baselinePerWk={(o.runoffBau * 100) / 8}
         progress={progress}
-        format={(n) => `${n.toFixed(2)}pp`}
+        format={(n) => `${n.toFixed(2)}%`}
         rampWeeks={2}
         seed={11}
         numbers={[
           { k: "steady rate (with policy)",  v: `${(o.runoffWithPolicy * 100).toFixed(1)}% / qtr` },
-          { k: "reduction vs today",         v: `−${(o.runoffReductionPp * 100).toFixed(1)}pp` },
+          { k: "reduction vs today",         v: `−${(o.runoffReductionPp * 100).toFixed(1)}%` },
           { k: "8-wk NWP protected", v: `+$${o.retainedM.toFixed(1)}M` },
         ]}
         insight="The first two weeks lag — customers need to act on the offer before the leaving rate starts dropping. Full effect from week 3."
@@ -1416,13 +1416,13 @@ function ResultsReveal({ results, onReRun, onStage }) {
         steady={ddRecPerWk}
         baselinePerWk={0}
         progress={progress}
-        format={(n) => `${n.toFixed(2)}pp`}
+        format={(n) => `${n.toFixed(2)}%`}
         rampWeeks={4}
         seed={23}
         numbers={[
-          { k: "steady rate / wk",      v: `${ddRecPerWk.toFixed(2)}pp` },
-          { k: "8-wk total",            v: `+${o.ddRecoveryPp}pp` },
-          { k: "v1 pilot overshoot",    v: "+8pp vs predicted" },
+          { k: "steady rate / wk",      v: `${ddRecPerWk.toFixed(2)}%` },
+          { k: "8-wk total",            v: `+${o.ddRecoveryPp}%` },
+          { k: "v1 pilot overshoot",    v: "+8% vs predicted" },
         ]}
         insight="Bundle adds lag the save offer by ~3 weeks — households take time to act on the pre-filled quote. Concentrated in weeks 6–8 in the v1 pilot."
         accent="var(--violet, #b794f6)"
