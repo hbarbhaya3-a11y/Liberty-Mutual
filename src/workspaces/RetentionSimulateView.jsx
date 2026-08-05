@@ -452,7 +452,7 @@ export default function RetentionSimulateView() {
   const [channels,          setChannels]          = useState(RECOMMENDED.channels);
   const [cohortPresets,     setCohortPresets]     = useState(["rate-sensitive"]);
   const [bankingServices,   setBankingServices]   = useState(RECOMMENDED.bankingServices);
-  const [bundleOffers,      setBundleOffers]      = useState({ auto_home: [15, 35] });
+  const [bundleOffers,      setBundleOffers]      = useState({ auto_home: [2, 5] });
   const [bundles,           setBundles]           = useState(RECOMMENDED.bundles);
   const [multiTouch,        setMultiTouch]        = useState(RECOMMENDED.multiTouch);
   const [noticeDays,        setNoticeDays]        = useState(RECOMMENDED.noticeDays);
@@ -467,7 +467,7 @@ export default function RetentionSimulateView() {
     if (cur[id]) {
       const next = { ...cur }; delete next[id]; return next;
     }
-    return { ...cur, [id]: [10, 30] };
+    return { ...cur, [id]: [2, 5] };
   });
   const setBundleRange = (id, low, high) => setBundleOffers((cur) => ({ ...cur, [id]: [low, high] }));
   // Representative scalar the outcome math scores against (single horizon).
@@ -1109,7 +1109,7 @@ export default function RetentionSimulateView() {
                     <div style={{ fontSize: 11.5, color: "var(--ink-3)", marginTop: 2, marginLeft: 24 }}>{b.sub}</div>
                     {sel && (
                       <div className="px-offer-body" style={{ marginTop: 8, marginLeft: 24 }}>
-                        <DualRange min={0} max={80} step={5} unit="%"
+                        <DualRange min={0} max={10} step={0.1} unit="%"
                           low={rng[0]} high={rng[1]}
                           onChange={({ low, high }) => setBundleRange(b.id, low, high)} />
                         <div className="px-offer-eff" style={{ fontSize: 11, color: "var(--ink-2)", marginTop: 4 }}>
