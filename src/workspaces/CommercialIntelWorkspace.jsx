@@ -802,7 +802,11 @@ Guardrails: rate-adequacy floor · loss-ratio limit · NAIC 24-08 fair-pricing
           <h3>Broker negotiation context</h3>
           <ul className="ci-kv">
             <li><b>Broker</b><span>{acc.broker.name} · {acc.broker.tier} · bind {acc.broker.bindRate}</span></li>
+            <li><b>Book quality</b><span>{acc.broker.book}</span></li>
             <li><b>Flexibility</b><span>{n.flex}</span></li>
+            <li><b>Opening</b><span>{n.opening}</span></li>
+            <li><b>Anticipated counter</b><span>{n.counter}</span></li>
+            <li><b>Non-price levers</b><span>{n.nonprice.join(" · ")}</span></li>
             <li><b>Walk-away</b><span>{money(n.walkaway)} — rate-adequacy floor</span></li>
           </ul>
         </section>
