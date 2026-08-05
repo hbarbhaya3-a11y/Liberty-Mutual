@@ -14,7 +14,7 @@
      - Own numeric caption row (k/v pairs that close the loop with KPIs)
      - Own business-language insight line
    ========================================================================= */
-import { useState } from "react";
+import { useState, useId } from "react";
 
 /* Deterministic per-week noise: same `seed` always produces the same
    sequence, so the chart doesn't flicker between renders. Returns a
@@ -70,6 +70,7 @@ export function ResultTileNII({
   const [hoverWk, setHoverWk] = useState(null);
   const hoverSample = hoverWk != null ? samples[hoverWk] : null;
   const fmt$ = (v) => `+$${v.toFixed(1)}M`;
+  const fillId = useId();
 
   return (
     <div className="sim-result-tile">
@@ -79,6 +80,12 @@ export function ResultTileNII({
       </div>
       <div className="sim-result-svg-wrap">
         <svg viewBox={`0 0 ${W} ${H}`} className="sim-result-svg" preserveAspectRatio="none">
+          <defs>
+            <linearGradient id={fillId} x1="0" y1={PT} x2="0" y2={Y(0)} gradientUnits="userSpaceOnUse">
+              <stop offset="0%" stopColor="var(--acq, #5b9dff)" stopOpacity="0.04" />
+              <stop offset="100%" stopColor="var(--acq, #5b9dff)" stopOpacity="0.34" />
+            </linearGradient>
+          </defs>
           {[0, yMax * 0.5, yMax].map((v, i) => (
             <g key={i}>
               <line x1={PL} y1={Y(v)} x2={W - PR} y2={Y(v)} stroke="var(--hair)" strokeWidth="0.5" />
@@ -88,7 +95,7 @@ export function ResultTileNII({
             </g>
           ))}
           {vis.length > 1 && <polygon points={bandPoly} fill="var(--acq, #5b9dff)" opacity="0.12" />}
-          {vis.length > 1 && <polygon points={fillPoly} fill="var(--acq, #5b9dff)" opacity="0.28" />}
+          {vis.length > 1 && <polygon points={fillPoly} fill={`url(#${fillId})`} />}
           {vis.length > 1 && (
             <polyline points={centralPath} fill="none" stroke="var(--acq, #5b9dff)" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" />
           )}
