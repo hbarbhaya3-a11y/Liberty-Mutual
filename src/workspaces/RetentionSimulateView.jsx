@@ -1394,23 +1394,6 @@ function ResultsReveal({ results, onReRun, onStage }) {
         insight="Most retention lands inside the first 4 weeks — customers reached early commit early. Extending the pilot adds little new retention."
       />
       <ResultTileBars
-        title="% renewals lapsing / wk"
-        subhead={`drops from ${(o.runoffBau*100).toFixed(1)}% today to ${(o.runoffWithPolicy*100).toFixed(1)}% with policy`}
-        steady={runoffReductionPct / 8}
-        baselinePerWk={(o.runoffBau * 100) / 8}
-        progress={progress}
-        format={(n) => `${n.toFixed(2)}%`}
-        rampWeeks={2}
-        seed={11}
-        numbers={[
-          { k: "steady rate (with policy)",  v: `${(o.runoffWithPolicy * 100).toFixed(1)}% / qtr` },
-          { k: "reduction vs today",         v: `−${(o.runoffReductionPp * 100).toFixed(1)}%` },
-          { k: "8-wk NWP protected", v: `+$${o.retainedM.toFixed(1)}M` },
-        ]}
-        insight="The first two weeks lag — customers need to act on the offer before the leaving rate starts dropping. Full effect from week 3."
-        accent="var(--acc, #ffb15a)"
-      />
-      <ResultTileBars
         title="Bundle adds at save / wk"
         subhead="households adding a home/umbrella policy at renewal"
         steady={ddRecPerWk}
@@ -1452,6 +1435,7 @@ function ResultsReveal({ results, onReRun, onStage }) {
           offerLabel="Discount"
           rateLabel="Capped renewal rate"
           hideBaseline={true}
+          singleView={true}
           segments={seg}
           policy={policy}
           charts={chartsGrid}
