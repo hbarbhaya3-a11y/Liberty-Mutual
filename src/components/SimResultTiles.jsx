@@ -147,7 +147,7 @@ export function ResultTileNII({
         </div>
         <div className="sim-result-tile-num">
           <span className="sim-result-tile-num-k">CI (95%)</span>
-          <span className="sim-result-tile-num-v">${lower.toFixed(1)}M – ${upper.toFixed(1)}M</span>
+          <span className="sim-result-tile-num-v">${lower.toFixed(0)}–${upper.toFixed(0)}M</span>
         </div>
       </div>
       <div className="sim-result-tile-insight">
