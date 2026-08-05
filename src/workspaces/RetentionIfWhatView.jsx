@@ -237,7 +237,7 @@ function runOptimizer(objective, ranges, productOffers, bundleOffers, allowedCov
     const bpsVal = blended(prodOffersMap);
     const bundleBpsVal = blended(bundOffersMap);
 
-    const bundleLiftVal = selBundles.length * 0.04 + (bundleBpsVal / 100) * 0.08;
+    const bundleLiftVal = selBundles.length * 0.04 + (bundleBpsVal / 10) * 0.08;   // bundle discount now a 0–10% range
     const coverageLiftVal = (allowedCoverage || []).length * 0.03;
 
     let calcRetainedM = C.retainedDepositsAnnualM * (retainedScale + bundleLiftVal + coverageLiftVal) * (cohortBase / C.eligibleAfterGate);
@@ -246,7 +246,7 @@ function runOptimizer(objective, ranges, productOffers, bundleOffers, allowedCov
     let calcRunoff = (C.runoffReductionPp * 100) * runoffScale;
     if (isNaN(calcRunoff) || calcRunoff <= 0) calcRunoff = 2.3 * runoffScale;
 
-    let calcDD = 6 + Math.round(bundleBpsVal / 10) + (rank === 1 ? 2 : 0);
+    let calcDD = 6 + Math.round(bundleBpsVal) + (rank === 1 ? 2 : 0);
     if (isNaN(calcDD) || calcDD <= 0) calcDD = 8;
 
     return {

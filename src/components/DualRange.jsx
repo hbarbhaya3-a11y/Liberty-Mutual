@@ -42,6 +42,10 @@ export default function DualRange({ min, max, step, low, high, onChange, unit = 
         type="range" min={min} max={max} step={step} value={high}
         onChange={(e) => setHigh(e.target.value)}
         className="iw-dual-input iw-dual-input-high" aria-label="Maximum"
+        /* Keep the upper thumb above the lower input so it stays grabbable —
+           the lower input (z-index 3) otherwise sits on top and can swallow the
+           upper thumb near the middle/upper end of the track. */
+        style={{ zIndex: 4 }}
       />
     </div>
   );
