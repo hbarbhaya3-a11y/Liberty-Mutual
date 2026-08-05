@@ -33,6 +33,20 @@ import "@/styles/ifwhat.css";
 
 const PAGE_SUBTITLE = RETENTION_HYPOTHESIS_TITLE;
 
+/* Compact number stepper for "N years or more" threshold levers (lock term,
+   loyalty tenure) — clearer than a slider for a single integer threshold. */
+function YearsStepper({ value, min, max, onChange, disabled }) {
+  const clamp = (v) => Math.max(min, Math.min(max, Math.round(Number(v) || min)));
+  return (
+    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+      <input type="number" min={min} max={max} step={1} value={value} disabled={disabled}
+        onChange={(e) => onChange(clamp(e.target.value))}
+        style={{ width: 66, padding: "6px 9px", borderRadius: 6, border: "1px solid var(--hair)", background: "var(--panel, #fff)", color: "var(--ink-1)", fontWeight: 700, fontSize: 13 }} />
+      <span style={{ fontSize: 12, color: "var(--ink-2)", fontWeight: 600 }}>years or more</span>
+    </div>
+  );
+}
+
 /* Micro-segment model for the deep-dive's "By micro-segment" tab. */
 const RET_SEG_MODEL = {
   segments: RETENTION_SEGMENTS,
@@ -516,7 +530,7 @@ export default function RetentionIfWhatView() {
   const [customNotice,    setCustomNotice]    = useState("");
   // Pricing-lever qualifiers (mirror the What-If view): the loyalty tier's
   // relationship (tenure) range and the deductible-adjusted offer's deductible %.
-  const [loyaltyTenure,   setLoyaltyTenure]   = useState([3, 10]);
+  const [loyaltyTenure,   setLoyaltyTenure]   = useState([3, 30]);
   const [deductiblePct,   setDeductiblePct]   = useState([10, 20]);
   const [lockYears,       setLockYears]       = useState([2, 4]);   // multi-year rate-lock term range
   const [multiTouch,      setMultiTouch]      = useState(true);
@@ -682,9 +696,9 @@ export default function RetentionIfWhatView() {
       { k: "Pricing", v: Object.entries(selected.picks.productOffers || {})
           .map(([id, bps]) => {
             let s = `${fmtProduct(id)} ${((PRODUCT_MARKET[id] ?? 0) + bps / 100).toFixed(2)}%`;
-            if (id === "smart_savings") s += ` (${loyaltyTenure[0]}–${loyaltyTenure[1]}y)`;
+            if (id === "smart_savings") s += ` (≥${loyaltyTenure[0]}y tenure)`;
             if (id === "elite_mma") s += ` (${deductiblePct[0]}–${deductiblePct[1]}% deductible)`;
-            if (id === "cd_trade_up_24") s += ` (${lockYears[0]}–${lockYears[1]}y lock)`;
+            if (id === "cd_trade_up_24") s += ` (≥${lockYears[0]}y lock)`;
             return s;
           })
           .join(" · ") || "—" },
@@ -1112,13 +1126,12 @@ export default function RetentionIfWhatView() {
                         {p.id === "smart_savings" && (
                           <div className="px-offer-qual" style={{ marginTop: 10, paddingTop: 10, borderTop: "1px dashed var(--hair)" }}>
                             <div style={{ fontSize: 11.5, color: "var(--ink-2)", marginBottom: 4, fontWeight: 600 }}>
-                              Relationship range — tenure band the optimizer may target with the loyalty discount
+                              Relationship threshold — minimum tenure the optimizer may target with the loyalty discount
                             </div>
-                            <DualRange min={0} max={20} step={1} unit="y"
-                              low={loyaltyTenure[0]} high={loyaltyTenure[1]}
-                              onChange={({ low, high }) => setLoyaltyTenure([low, high])} />
+                            <YearsStepper value={loyaltyTenure[0]} min={0} max={20}
+                              onChange={(v) => setLoyaltyTenure([v, 30])} />
                             <div style={{ fontSize: 11, color: "var(--ink-3)", marginTop: 4 }}>
-                              Applies to households with <b>{loyaltyTenure[0]}–{loyaltyTenure[1]} years</b> of relationship.
+                              Applies to households with <b>≥ {loyaltyTenure[0]} years</b> of relationship.
                             </div>
                           </div>
                         )}
@@ -1138,13 +1151,12 @@ export default function RetentionIfWhatView() {
                         {p.id === "cd_trade_up_24" && (
                           <div className="px-offer-qual" style={{ marginTop: 10, paddingTop: 10, borderTop: "1px dashed var(--hair)" }}>
                             <div style={{ fontSize: 11.5, color: "var(--ink-2)", marginBottom: 4, fontWeight: 600 }}>
-                              Lock term range — years the optimizer may lock the rate for
+                              Lock term — minimum years the optimizer may lock the rate for
                             </div>
-                            <DualRange min={1} max={5} step={1} unit="y"
-                              low={lockYears[0]} high={lockYears[1]}
-                              onChange={({ low, high }) => setLockYears([low, high])} />
+                            <YearsStepper value={lockYears[0]} min={1} max={5}
+                              onChange={(v) => setLockYears([v, 5])} />
                             <div style={{ fontSize: 11, color: "var(--ink-3)", marginTop: 4 }}>
-                              Rate locked for <b>{lockYears[0]}–{lockYears[1]} years</b> — the customer keeps it even if the market rises.
+                              Rate locked for <b>≥ {lockYears[0]} years</b> — the customer keeps it even if the market rises.
                             </div>
                           </div>
                         )}

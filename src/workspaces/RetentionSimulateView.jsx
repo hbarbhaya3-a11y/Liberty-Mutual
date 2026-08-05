@@ -91,6 +91,20 @@ function primaryNoticeDay(days) {
    equals RECOMMENDED.offerCeilingBps so the retention outcome math stays anchored. */
 const RECOMMENDED_OFFERS = { cd_12mo: 45, cd_6mo: 35 };
 
+/* Compact number stepper for "N years or more" threshold levers (lock term,
+   loyalty tenure) — clearer than a slider for a single integer threshold. */
+function YearsStepper({ value, min, max, onChange, disabled }) {
+  const clamp = (v) => Math.max(min, Math.min(max, Math.round(Number(v) || min)));
+  return (
+    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+      <input type="number" min={min} max={max} step={1} value={value} disabled={disabled}
+        onChange={(e) => onChange(clamp(e.target.value))}
+        style={{ width: 66, padding: "6px 9px", borderRadius: 6, border: "1px solid var(--hair)", background: "var(--panel, #fff)", color: "var(--ink-1)", fontWeight: 700, fontSize: 13 }} />
+      <span style={{ fontSize: 12, color: "var(--ink-2)", fontWeight: 600 }}>years or more</span>
+    </div>
+  );
+}
+
 /* ----------------------------------------------------------------------------
    Value-added retention services Liberty can add in lieu of (or alongside) a
    priced offer. Each is an actual offering — not a behavioural target. Strategy
@@ -440,7 +454,7 @@ export default function RetentionSimulateView() {
   const [customNotice,      setCustomNotice]      = useState("");
   // Pricing-lever qualifiers: the loyalty tier's relationship (tenure) band and
   // the deductible-adjusted offer's deductible % against coverage.
-  const [loyaltyTenure,     setLoyaltyTenure]     = useState([3, 10]);   // years of relationship
+  const [loyaltyTenure,     setLoyaltyTenure]     = useState([3, 30]);   // min years of relationship (threshold + open cap)
   const [deductiblePct,     setDeductiblePct]     = useState(10);        // % of coverage set as deductible
   const [lockYears,         setLockYears]         = useState(2);         // multi-year rate-lock term (years)
 
@@ -976,13 +990,12 @@ export default function RetentionSimulateView() {
                         {p.id === "smart_savings" && (
                           <div className="px-offer-qual" style={{ marginTop: 10, paddingTop: 10, borderTop: "1px dashed var(--hair)" }}>
                             <div style={{ fontSize: 11.5, color: "var(--ink-2)", marginBottom: 4, fontWeight: 600 }}>
-                              Relationship range — tenure the loyalty discount applies to
+                              Relationship threshold — minimum tenure the loyalty discount applies to
                             </div>
-                            <DualRange min={0} max={20} step={1} unit="y"
-                              low={loyaltyTenure[0]} high={loyaltyTenure[1]}
-                              onChange={({ low, high }) => setLoyaltyTenure([low, high])} />
+                            <YearsStepper value={loyaltyTenure[0]} min={0} max={20} disabled={isAutopilot}
+                              onChange={(v) => setLoyaltyTenure([v, 30])} />
                             <div style={{ fontSize: 11, color: "var(--ink-3)", marginTop: 4 }}>
-                              Households with <b>{loyaltyTenure[0]}–{loyaltyTenure[1]} years</b> of relationship qualify for this tier.
+                              Households with <b>≥ {loyaltyTenure[0]} years</b> of relationship qualify for this tier.
                             </div>
                           </div>
                         )}
@@ -1004,15 +1017,12 @@ export default function RetentionSimulateView() {
                         {p.id === "cd_trade_up_24" && (
                           <div className="px-offer-qual" style={{ marginTop: 10, paddingTop: 10, borderTop: "1px dashed var(--hair)" }}>
                             <div style={{ fontSize: 11.5, color: "var(--ink-2)", marginBottom: 4, fontWeight: 600 }}>
-                              Lock term — years the rate is locked for
+                              Lock term — minimum years the rate is locked for
                             </div>
-                            <RangeWithBubble min={1} max={5} step={1}
-                              value={lockYears}
-                              onChange={(e) => setLockYears(+e.target.value)}
-                              disabled={isAutopilot}
-                              formatter={(v) => `${v}-year lock`} />
+                            <YearsStepper value={lockYears} min={1} max={5} disabled={isAutopilot}
+                              onChange={(v) => setLockYears(v)} />
                             <div style={{ fontSize: 11, color: "var(--ink-3)", marginTop: 4 }}>
-                              Rate locked for <b>{lockYears} year{lockYears === 1 ? "" : "s"}</b> — the customer keeps it even if the market rises.
+                              Rate locked for <b>≥ {lockYears} years</b> — the customer keeps it even if the market rises.
                             </div>
                           </div>
                         )}
@@ -1355,9 +1365,9 @@ function ResultsReveal({ results, onReRun, onStage }) {
     { k: "Pricing", v: Object.entries(lever.productOffers || {})
         .map(([id, bps]) => {
           let s = `${(OFFER_PRODUCTS.find((p) => p.id === id) || {}).label || id} ${((PRODUCT_MARKET[id] ?? 0) + bps / 100).toFixed(2)}%`;
-          if (id === "smart_savings" && lever.loyaltyTenure) s += ` (${lever.loyaltyTenure[0]}–${lever.loyaltyTenure[1]}y)`;
+          if (id === "smart_savings" && lever.loyaltyTenure) s += ` (≥${lever.loyaltyTenure[0]}y tenure)`;
           if (id === "elite_mma" && lever.deductiblePct != null) s += ` (${lever.deductiblePct}% deductible)`;
-          if (id === "cd_trade_up_24" && lever.lockYears != null) s += ` (${lever.lockYears}y lock)`;
+          if (id === "cd_trade_up_24" && lever.lockYears != null) s += ` (≥${lever.lockYears}y lock)`;
           return s;
         })
         .join(" · ") || "—" },
