@@ -38,11 +38,11 @@ export const RETENTION_DEPLOY_HISTORY = [
     learnings: {
       headline: "Strategy A v1 landed inside CI on primary KPIs · promoted to 80% rollout · bundle-penetration overshot by +8pp (the surprise feeding the v2 priors)",
       actuals: [
-        { k: "NWP protected",             predicted: "+$138.2M / yr",  actual: "+$134M",    tone: "ok",   delta: "within CI" },
+        { k: "NWP protected",             predicted: "+$138.2M / 8 wk",  actual: "+$134M",    tone: "ok",   delta: "within CI" },
         { k: "Lapse-rate reduction",       predicted: "−19pp",         actual: "−18pp",     tone: "ok",   delta: "within CI" },
         { k: "Bundle-penetration lift",    predicted: "+6pp",          actual: "+14pp",      tone: "warn", delta: "OVERSHOOT · +8pp beyond predicted" },
         { k: "Fair-lending margin",        predicted: "0.93",          actual: "0.93",       tone: "ok",   delta: "held exact" },
-        { k: "Customer fatigue",           predicted: "+180 / qtr",    actual: "+162 / qtr", tone: "ok",   delta: "better than predicted" },
+        { k: "Customer fatigue",           predicted: "+180 / 8 wk",    actual: "+162 / 8 wk", tone: "ok",   delta: "better than predicted" },
       ],
       surprises: [
         "Bundle penetration overshot prediction by +8pp — removing renewal-shock anxiety apparently prompts a subset of treated customers to add a home or umbrella policy at the save moment. The elasticity model did not anticipate this secondary cross-sell mechanism.",
@@ -83,11 +83,11 @@ export const RETENTION_DEPLOY_HISTORY = [
     learnings: {
       headline: "Strategy B landed inside CI on NWP protected with zero discount spend · promoted to 80% rollout · engagement recovery led the result without a single dollar of giveback",
       actuals: [
-        { k: "NWP protected",             predicted: "+$16.1M / yr",  actual: "+$16.6M",    tone: "ok",   delta: "within CI" },
+        { k: "NWP protected",             predicted: "+$16.1M / 8 wk",  actual: "+$16.6M",    tone: "ok",   delta: "within CI" },
         { k: "Lapse-rate reduction",       predicted: "−1.9pp",        actual: "−2.0pp",     tone: "ok",   delta: "within CI" },
         { k: "Engagement recovery",        predicted: "+9pp",          actual: "+11pp",      tone: "ok",   delta: "better than predicted" },
         { k: "Fair-lending margin",        predicted: "0.93",          actual: "0.94",       tone: "ok",   delta: "held above floor" },
-        { k: "Customer fatigue",           predicted: "+150 / qtr",    actual: "+138 / qtr", tone: "ok",   delta: "better than predicted" },
+        { k: "Customer fatigue",           predicted: "+150 / 8 wk",    actual: "+138 / 8 wk", tone: "ok",   delta: "better than predicted" },
       ],
       surprises: [
         "The no-discount re-engagement recovered renewals at +11pp on engagement with zero giveback — re-engaging on value and service held policies that the discount pilot only reached with a priced offer. Mechanism, not money.",
