@@ -33,6 +33,11 @@ import "@/styles/ifwhat.css";
 
 const PAGE_SUBTITLE = RETENTION_HYPOTHESIS_TITLE;
 
+/* Dollar-discount equivalent of a bps offer on the ~$1,650 avg premium,
+   rounded to $5. Every offer except the capped renewal rate is shown as a
+   dollar discount rather than a rate. */
+const dollarOff = (bps) => Math.round(1650 * (Number(bps) || 0) / 1000 / 5) * 5;
+
 /* Compact number stepper for "N years or more" threshold levers (lock term,
    loyalty tenure) — clearer than a slider for a single integer threshold. */
 function YearsStepper({ value, min, max, onChange, disabled }) {
@@ -882,8 +887,9 @@ export default function RetentionIfWhatView() {
                   objective={objLabel}
                   valueLabel="NWP protected / yr"
                   productHeader="Offer"
-                  hideRateCap={true}
-                  rateLabel="Renewal rate"
+                  hideRateCap={false}
+                  offerLabel="Discount"
+                  rateLabel="Capped renewal rate"
                   segments={_seg}
                   policy={_policy}
                   charts={_chartsGrid}
@@ -1122,7 +1128,7 @@ export default function RetentionIfWhatView() {
                           low={rng[0]} high={rng[1]}
                           onChange={({ low, high }) => setProductRange(p.id, low, high)} />
                         <div className="px-offer-eff">
-                          <span className="rate-ref-item"><span className="rate-ref-l">discount</span><span className="rate-ref-v" style={{ color: "var(--green)", fontWeight: 700 }}>−{rng[0]}–{rng[1]} bps off renewal</span></span>
+                          <span className="rate-ref-item"><span className="rate-ref-l">discount</span><span className="rate-ref-v" style={{ color: "var(--green)", fontWeight: 700 }}>{p.id === "cd_6mo" ? `−${rng[0]}–${rng[1]} bps off renewal rate` : `−$${dollarOff(rng[0])}–$${dollarOff(rng[1])} off premium`}</span></span>
                         </div>
                         {p.id === "smart_savings" && (
                           <div className="px-offer-qual" style={{ marginTop: 10, paddingTop: 10, borderTop: "1px dashed var(--hair)" }}>

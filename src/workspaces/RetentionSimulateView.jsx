@@ -91,6 +91,11 @@ function primaryNoticeDay(days) {
    equals RECOMMENDED.offerCeilingBps so the retention outcome math stays anchored. */
 const RECOMMENDED_OFFERS = { cd_12mo: 45, cd_6mo: 35 };
 
+/* Dollar-discount equivalent of a bps offer on the ~$1,650 avg premium,
+   rounded to $5. Every offer except the capped renewal rate is shown to the
+   customer as a dollar discount rather than a rate. */
+const dollarOff = (bps) => Math.round(1650 * (Number(bps) || 0) / 1000 / 5) * 5;
+
 /* Compact number stepper for "N years or more" threshold levers (lock term,
    loyalty tenure) — clearer than a slider for a single integer threshold. */
 function YearsStepper({ value, min, max, onChange, disabled }) {
@@ -983,9 +988,9 @@ export default function RetentionSimulateView() {
                           value={bps}
                           onChange={(e) => setProductOffer(p.id, +e.target.value)}
                           disabled={isAutopilot}
-                          formatter={(v) => p.id === "cd_6mo" ? `−${v} bps capped increase` : `−${v} bps discount`} />
+                          formatter={(v) => p.id === "cd_6mo" ? `−${v} bps capped rate` : `−$${dollarOff(v)} off`} />
                         <div className="px-offer-eff">
-                          <span className="rate-ref-item"><span className="rate-ref-l">discount</span><span className="rate-ref-v" style={{ color: "var(--green)", fontWeight: 700 }}>−{bps} bps off renewal</span></span>
+                          <span className="rate-ref-item"><span className="rate-ref-l">discount</span><span className="rate-ref-v" style={{ color: "var(--green)", fontWeight: 700 }}>{p.id === "cd_6mo" ? `−${bps} bps off renewal rate` : `−$${dollarOff(bps)} off premium`}</span></span>
                         </div>
                         {p.id === "smart_savings" && (
                           <div className="px-offer-qual" style={{ marginTop: 10, paddingTop: 10, borderTop: "1px dashed var(--hair)" }}>
@@ -1443,8 +1448,8 @@ function ResultsReveal({ results, onReRun, onStage }) {
           kpis={kpis}
           accent="#ffb15a"
           valueLabel="NWP protected / yr"
-          offerLabel="Capped-increase move"
-          rateLabel="Renewal rate"
+          offerLabel="Discount"
+          rateLabel="Capped renewal rate"
           segments={seg}
           policy={policy}
           charts={chartsGrid}
