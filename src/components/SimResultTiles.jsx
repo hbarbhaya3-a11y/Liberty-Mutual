@@ -40,8 +40,8 @@ export function ResultTileNII({
   const W = 460, H = 200, PL = 52, PR = 16, PT = 14, PB = 36;
   const Wks = 8;
   const central = outcomes.NII_8wk_M;
-  const lower = central * 0.73;
-  const upper = central * 1.27;
+  const lower = central * 0.88;
+  const upper = central * 1.12;
   const f = (w) => 1 - Math.exp(-w / 2.2);
   const fmax = f(Wks);
   const samples = Array.from({ length: Wks + 1 }, (_, i) => ({
@@ -53,7 +53,7 @@ export function ResultTileNII({
   const visIdx = Math.max(0, Math.floor(Wks * progress));
   const vis = samples.slice(0, visIdx + 1);
 
-  const yMax = upper * 1.05;
+  const yMax = upper * 1.22;
   const X = (w) => PL + (w / Wks) * (W - PL - PR);
   const Y = (v) => PT + (1 - v / yMax) * (H - PT - PB);
 
