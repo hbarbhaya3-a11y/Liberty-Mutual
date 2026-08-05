@@ -27,7 +27,7 @@ const retentionSensedAssets = [
         { label: 'Policy observation events',    value: '4.2M over 18 months' },
         { label: 'Renewals entering window / mo', value: '~10,500' },
         { label: 'Coverage-reduction requests',   value: '847K over 90 days' },
-        { label: 'Cohort coverage',               value: '75,000 of 75,000 (100%)' },
+        { label: 'Cohort coverage',               value: '550,849 of 550,849 (100%)' },
       ],
       compositionChain: {
         feedsInto: ['Shopping-risk model', 'Engagement-decay index', 'Margin guardrail'],
@@ -66,7 +66,7 @@ const retentionSensedAssets = [
     group: 'data',
     name: 'Agent / CSW signals',
     subtitle: 'Comparion agent activity + service notes',
-    quickNumbers: '3K high-value · agent-active',
+    quickNumbers: '22K high-value · agent-active',
     informs: 'agent save-call eligibility + relationship context',
     drillDownLight: {
       provenance: {
@@ -106,7 +106,7 @@ const retentionSensedAssets = [
         { label: 'Drift state',                    value: 'STABLE (28 inj.)' },
         { label: 'Compare: raw_rate_reaction',     value: '380 injections · refused' },
         { label: 'Joint-signal precision',         value: '0.84 (quote-shop + engagement)' },
-        { label: 'Eligible pool after gate',       value: '22K of 75K' },
+        { label: 'Eligible pool after gate',       value: '550,849 in scope' },
       ],
       visualization: 'Drift-monitor stripchart — 28 injections this cycle vs 30 gate · flat trend',
       compositionChain: {
@@ -159,7 +159,7 @@ const retentionSensedAssets = [
       },
       forThisSignal: [
         { label: 'Threshold (prior shift)',      value: '0.65 → 0.70 (tightened)' },
-        { label: 'Eligible after gate',          value: '22K of cohort' },
+        { label: 'Eligible after gate',          value: 'all at-risk renewals' },
         { label: 'False-positive guard',         value: '~1 in 4 mis-flagged sticky' },
         { label: 'Fair-lending basis audit-ready', value: 'per-policy score logged' },
       ],

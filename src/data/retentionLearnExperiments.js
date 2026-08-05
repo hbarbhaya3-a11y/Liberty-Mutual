@@ -26,17 +26,17 @@ export const RETENTION_EXPERIMENTS = [
     outcome: "promoted",
     closedAt: dayBack(49),
     pilotDuration: 8,
-    treatmentN: 24000,
-    controlN: 6000,
+    treatmentN: 440679,
+    controlN: 110170,
     fidelityRows: [
-      { k: "NWP protected",           predicted: "+$19.3M / yr",  actual: "+$18.7M",    tone: "ok"   },
-      { k: "Lapse-rate reduction",     predicted: "−2.3pp",        actual: "−2.2pp",     tone: "ok"   },
+      { k: "NWP protected",           predicted: "+$138.2M / yr",  actual: "+$134M",    tone: "ok"   },
+      { k: "Lapse-rate reduction",     predicted: "−19pp",         actual: "−18pp",     tone: "ok"   },
       { k: "Bundle-penetration lift",  predicted: "+6pp",          actual: "+14pp",      tone: "warn" },   // OVERSHOOT
       { k: "Fair-lending margin",      predicted: "0.93",          actual: "0.93",       tone: "ok"   },
       { k: "Customer fatigue",         predicted: "+180 / qtr",    actual: "+162 / qtr", tone: "ok"   },
     ],
     writeback: [
-      "Sticky-bundled filter threshold validated at 0.70: gate confirmed across 24,000 treated policies — no fair-lending complaint generated",
+      "Sticky-bundled filter threshold validated at 0.70: gate confirmed across 440,679 treated policies — no fair-lending complaint generated",
       "Rate-elasticity model downgraded for silent-pre-shopper sub-segment; engagement-decay mechanism upgraded — bundle penetration overshot +8pp, confirming cross-sell-at-save is stronger than modelled",
       "Strategy B (Re-engage Before Shopping) promoted to its own concurrent pilot — drafted as H-RET-2026-06-01",
     ],

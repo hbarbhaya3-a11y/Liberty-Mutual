@@ -332,7 +332,7 @@ export default function RetentionAnalyzeView() {
           </div>
 
           <p className="aw-hero-desc" style={{ fontSize: 12.5, margin: "0 0 10px", lineHeight: 1.45, maxWidth: 960 }}>
-            <b>30,000 high-LTV auto customers · claims-free · competitor quote-shopping detected ~45 days before renewal.</b>{" "}
+            <b>550,849 high-LTV auto customers · claims-free · competitor quote-shopping detected ~45 days before renewal.</b>{" "}
             Hold genuinely price-elastic customers using the smallest targeted incentive that works (capped renewal rate + retention offer) — backed by an audit-defensible fair-lending elasticity gate (<b>≥0.70 stickiness threshold</b>) to protect margin and prevent unnecessary discounting of deeply-bundled households.
           </p>
 

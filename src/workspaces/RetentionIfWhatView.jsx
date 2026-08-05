@@ -33,10 +33,24 @@ import "@/styles/ifwhat.css";
 
 const PAGE_SUBTITLE = RETENTION_HYPOTHESIS_TITLE;
 
+/* Compact number stepper for "N years or more" threshold levers (lock term,
+   loyalty tenure) — clearer than a slider for a single integer threshold. */
+function YearsStepper({ value, min, max, onChange, disabled }) {
+  const clamp = (v) => Math.max(min, Math.min(max, Math.round(Number(v) || min)));
+  return (
+    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+      <input type="number" min={min} max={max} step={1} value={value} disabled={disabled}
+        onChange={(e) => onChange(clamp(e.target.value))}
+        style={{ width: 66, padding: "6px 9px", borderRadius: 6, border: "1px solid var(--hair)", background: "var(--panel, #fff)", color: "var(--ink-1)", fontWeight: 700, fontSize: 13 }} />
+      <span style={{ fontSize: 12, color: "var(--ink-2)", fontWeight: 600 }}>years or more</span>
+    </div>
+  );
+}
+
 /* Micro-segment model for the deep-dive's "By micro-segment" tab. */
 const RET_SEG_MODEL = {
   segments: RETENTION_SEGMENTS,
-  cohortCounts: { full: 75000, "rate-sensitive": 22000, "operating-decliner": 18000, "high-value": 3000, "long-tenured": 8000, "multi-product": 12000 },
+  cohortCounts: { full: 550849, "rate-sensitive": 161000, "operating-decliner": 132000, "high-value": 22000, "long-tenured": 59000, "multi-product": 88000 },
   heldBackLabel: "Will-stay & already-gone",
   heldBackShare: 0.06,
   productLabels: RETENTION_PRODUCT_LABEL,
@@ -50,12 +64,12 @@ const OBJECTIVES = [
 ];
 
 const COHORT_OPTIONS = [
-  { id: "full",               name: "Full cohort",              count: 75000, share: 0.095, sig: "Every customer showing one or more drift signals." },
-  { id: "rate-sensitive",     name: "Shopping-elastic eligible", count: 22000, share: 0.028, sig: "Engagement dropping >20% · price-elastic · not deeply bundled."  },
-  { id: "operating-decliner", name: "Silent Pre-Shopper", count: 18000, share: 0.023, sig: "Portal logins falling · paperless-opens decaying · no competitor quote yet."  },
-  { id: "high-value",         name: "High-value at-risk", count: 3000, share: 0.004, sig: "LTV >$12K · top shopping decile · single-line (unbundled)."  },
-  { id: "long-tenured",       name: "Long-tenured shoppers", count: 8000, share: 0.010, sig: "10+ years tenure · rate action landed in the last 6 months."  },
-  { id: "multi-product",      name: "Multi-policy shoppers", count: 12000, share: 0.015, sig: "3+ policies held · early shopping signals on the auto policy."  },
+  { id: "full",               name: "Full cohort",              count: 550849, share: 0.095, sig: "Every customer showing one or more drift signals." },
+  { id: "rate-sensitive",     name: "Shopping-elastic eligible", count: 161000, share: 0.028, sig: "Engagement dropping >20% · price-elastic · not deeply bundled."  },
+  { id: "operating-decliner", name: "Silent Pre-Shopper", count: 132000, share: 0.023, sig: "Portal logins falling · paperless-opens decaying · no competitor quote yet."  },
+  { id: "high-value",         name: "High-value at-risk", count: 22000, share: 0.004, sig: "LTV >$12K · top shopping decile · single-line (unbundled)."  },
+  { id: "long-tenured",       name: "Long-tenured shoppers", count: 59000, share: 0.010, sig: "10+ years tenure · rate action landed in the last 6 months."  },
+  { id: "multi-product",      name: "Multi-policy shoppers", count: 88000, share: 0.015, sig: "3+ policies held · early shopping signals on the auto policy."  },
 ];
 
 const OFFER_PRODUCT_OPTIONS = [
@@ -172,9 +186,9 @@ function runOptimizer(objective, ranges, productOffers, bundleOffers, allowedCov
     "full":               C.cohortTotal,
     "rate-sensitive":     C.eligibleAfterGate,
     "operating-decliner": C.operatingDeclinerN,
-    "high-value":         3000,
-    "long-tenured":       8000,
-    "multi-product":      12000,
+    "high-value":         22000,
+    "long-tenured":       59000,
+    "multi-product":      88000,
   };
   const list = Array.isArray(cohortPresets) ? cohortPresets : [cohortPresets];
   const cohortBase = list.includes("full")
@@ -219,7 +233,7 @@ function runOptimizer(objective, ranges, productOffers, bundleOffers, allowedCov
     const coverageLiftVal = (allowedCoverage || []).length * 0.03;
 
     let calcRetainedM = C.retainedDepositsAnnualM * (retainedScale + bundleLiftVal + coverageLiftVal) * (cohortBase / C.eligibleAfterGate);
-    if (isNaN(calcRetainedM) || calcRetainedM <= 0) calcRetainedM = 19.3 * retainedScale;
+    if (isNaN(calcRetainedM) || calcRetainedM <= 0) calcRetainedM = 6.7 * retainedScale;
 
     let calcRunoff = (C.runoffReductionPp * 100) * runoffScale;
     if (isNaN(calcRunoff) || calcRunoff <= 0) calcRunoff = 2.3 * runoffScale;
@@ -516,7 +530,7 @@ export default function RetentionIfWhatView() {
   const [customNotice,    setCustomNotice]    = useState("");
   // Pricing-lever qualifiers (mirror the What-If view): the loyalty tier's
   // relationship (tenure) range and the deductible-adjusted offer's deductible %.
-  const [loyaltyTenure,   setLoyaltyTenure]   = useState([3, 10]);
+  const [loyaltyTenure,   setLoyaltyTenure]   = useState([3, 30]);
   const [deductiblePct,   setDeductiblePct]   = useState([10, 20]);
   const [lockYears,       setLockYears]       = useState([2, 4]);   // multi-year rate-lock term range
   const [multiTouch,      setMultiTouch]      = useState(true);
@@ -664,17 +678,17 @@ export default function RetentionIfWhatView() {
     const _withPp = selected ? Math.max(_baseRunoffPp - _o.runoffReductionPp, 2) : _baseRunoffPp;
     // KPI strip — the LEAD KPI (Tier 1) MUST match the optimized objective and
     // the rank-card hero. The other three are supporting context.
-    const _mRet   = { label: "NWP protected", value: `+$${_o ? _o.retainedM.toFixed(1) : 0}M`, baseline: "$0" };
+    const _mRet   = { label: "NWP impact", value: `+$${_o ? _o.retainedM.toFixed(1) : 0}M`, baseline: "$0" };
     const _mLeave = { label: "% renewals lapsing", value: `${_withPp.toFixed(1)}%`, baseline: `${_baseRunoffPp.toFixed(1)}%` };
     const _mDD    = { label: "Bundle penetration", value: `+${_o ? _o.ddRecoveryPp : 0}pp`, baseline: "0pp" };
-    const _mRelVal   = { label: "Annualized relationship value", value: `+$${(_o ? _o.retainedM * 2.5 : 0).toFixed(1)}M`, baseline: "$0" };
-    const _mDefended = { label: "Customers retained", value: `${_o ? Math.round(_o.treatmentN * (_baseRunoffPp - _withPp) / 100).toLocaleString() : 0}`, baseline: "0" };
+    const _mRelVal   = { label: "CLV impact", value: `+$${(_o ? _o.retainedM * 2.5 : 0).toFixed(1)}M`, baseline: "$0" };
+    const _mDefended = { label: "Policies retained", value: `${_o ? Math.round(_o.treatmentN * (_baseRunoffPp - _withPp) / 100).toLocaleString() : 0}`, baseline: "0" };
     const _kpis = !selected ? [] :
       objective === "retained_deposits"
-        ? [_mRet, _mRelVal, _mLeave, _mDD, _mDefended]
+        ? [_mRet, _mRelVal, _mDefended, _mLeave, _mDD]
         : objective === "primacy_return"
-          ? [{ label: "Bundle adds", value: `+${_o.ddRecoveryPp}pp`, baseline: "0pp" }, _mRet, _mRelVal, _mLeave, _mDefended]
-          : [{ label: "Lapse-rate reduction", value: `−${_o.runoffReductionPp.toFixed(1)}pp`, baseline: `${_baseRunoffPp.toFixed(1)}%` }, _mRet, _mRelVal, _mDD, _mDefended];
+          ? [{ label: "Bundle adds", value: `+${_o.ddRecoveryPp}pp`, baseline: "0pp" }, _mRet, _mRelVal, _mDefended, _mLeave]
+          : [{ label: "Lapse-rate reduction", value: `−${_o.runoffReductionPp.toFixed(1)}pp`, baseline: `${_baseRunoffPp.toFixed(1)}%` }, _mRet, _mRelVal, _mDefended, _mDD];
     // Policy band (the levers that produced this) — shown atop the Aggregate tab.
     const _policy = selected ? [
       { k: "Cohort", v: (selected.picks.cohortPresets || []).map((id) => COHORT_OPTIONS.find((c) => c.id === id)?.name).filter(Boolean).join(", ") || "All" },
@@ -682,9 +696,9 @@ export default function RetentionIfWhatView() {
       { k: "Pricing", v: Object.entries(selected.picks.productOffers || {})
           .map(([id, bps]) => {
             let s = `${fmtProduct(id)} ${((PRODUCT_MARKET[id] ?? 0) + bps / 100).toFixed(2)}%`;
-            if (id === "smart_savings") s += ` (${loyaltyTenure[0]}–${loyaltyTenure[1]}y)`;
+            if (id === "smart_savings") s += ` (≥${loyaltyTenure[0]}y tenure)`;
             if (id === "elite_mma") s += ` (${deductiblePct[0]}–${deductiblePct[1]}% deductible)`;
-            if (id === "cd_trade_up_24") s += ` (${lockYears[0]}–${lockYears[1]}y lock)`;
+            if (id === "cd_trade_up_24") s += ` (≥${lockYears[0]}y lock)`;
             return s;
           })
           .join(" · ") || "—" },
@@ -738,7 +752,7 @@ export default function RetentionIfWhatView() {
             { id: "c", label: "High-value", pct: 14, color: "var(--cyan,#4fd1c5)" },
             { id: "d", label: "Will-stay", pct: 7, color: "var(--ink-3)" },
           ]}
-          treatedN={_o.treatmentN || 30000}
+          treatedN={_o.treatmentN || 440679}
           insight="Most of the value concentrates in the top two segments."
         />
       </div>
@@ -925,8 +939,8 @@ export default function RetentionIfWhatView() {
   // Threshold = the range's low value; higher floor → lower count.
   const minBalanceK = ranges.minBalanceK.low;
   const _cohortBase = (cohortPresets.includes("full")
-    ? 75000
-    : cohortPresets.reduce((s, id) => s + (COHORT_OPTIONS.find((c) => c.id === id)?.count || 0), 0)) || 75000;
+    ? 550849
+    : cohortPresets.reduce((s, id) => s + (COHORT_OPTIONS.find((c) => c.id === id)?.count || 0), 0)) || 550849;
   const _eligFrac = Math.max(0.2, Math.min(1, 1 - ((minBalanceK - 20) / (100 * 1.4))));
   const eligibleCount = Math.round(_cohortBase * _eligFrac);
   return (
@@ -1082,7 +1096,7 @@ export default function RetentionIfWhatView() {
           <div className="sim-lever-section-band">
             <span className="sim-lever-section-num">4</span>
             <span className="sim-lever-section-name">PRICING</span>
-            <span className="sim-lever-section-meta">Rate spreading by tenure × LTV · deductible swap · retention discount tiers — set each offer's range</span>
+            <span className="sim-lever-section-meta">Discount spreading by tenure × LTV · deductible swap · retention discount tiers — set each offer's range</span>
           </div>
           <div className="lever-row">
             <div className="lever-head">
@@ -1100,7 +1114,6 @@ export default function RetentionIfWhatView() {
                     <label className="px-offer-head">
                       <input type="checkbox" checked={sel} onChange={() => toggleProduct(p.id)} disabled={isAutopilot} />
                       <span className="px-offer-name"><span className="px-offer-l">{p.label}</span></span>
-                      {!sel && <span className="px-offer-mkt">competitor quote {mkt.toFixed(2)}%</span>}
                     </label>
                     {sel && (
                       <div className="px-offer-body">
@@ -1108,27 +1121,24 @@ export default function RetentionIfWhatView() {
                           low={rng[0]} high={rng[1]}
                           onChange={({ low, high }) => setProductRange(p.id, low, high)} />
                         <div className="px-offer-eff">
-                          <span className="rate-ref-item is-market"><span className="rate-ref-l">competitor quote</span><span className="rate-ref-v">{mkt.toFixed(2)}%</span></span>
-                          <span className="px-offer-arrow">→</span>
-                          <span className="rate-ref-item"><span className="rate-ref-l">offer range</span><span className="rate-ref-v">{(mkt - rng[1] / 100).toFixed(2)}–{(mkt - rng[0] / 100).toFixed(2)}%</span></span>
+                          <span className="rate-ref-item"><span className="rate-ref-l">discount</span><span className="rate-ref-v" style={{ color: "var(--green)", fontWeight: 700 }}>−{rng[0]}–{rng[1]} bps off renewal</span></span>
                         </div>
                         {p.id === "smart_savings" && (
                           <div className="px-offer-qual" style={{ marginTop: 10, paddingTop: 10, borderTop: "1px dashed var(--hair)" }}>
                             <div style={{ fontSize: 11.5, color: "var(--ink-2)", marginBottom: 4, fontWeight: 600 }}>
-                              Relationship range — tenure band the optimizer may target with the loyalty discount
+                              Relationship threshold — minimum tenure the optimizer may target with the loyalty discount
                             </div>
-                            <DualRange min={0} max={20} step={1} unit="y"
-                              low={loyaltyTenure[0]} high={loyaltyTenure[1]}
-                              onChange={({ low, high }) => setLoyaltyTenure([low, high])} />
+                            <YearsStepper value={loyaltyTenure[0]} min={0} max={20}
+                              onChange={(v) => setLoyaltyTenure([v, 30])} />
                             <div style={{ fontSize: 11, color: "var(--ink-3)", marginTop: 4 }}>
-                              Applies to households with <b>{loyaltyTenure[0]}–{loyaltyTenure[1]} years</b> of relationship.
+                              Applies to households with <b>≥ {loyaltyTenure[0]} years</b> of relationship.
                             </div>
                           </div>
                         )}
                         {p.id === "elite_mma" && (
                           <div className="px-offer-qual" style={{ marginTop: 10, paddingTop: 10, borderTop: "1px dashed var(--hair)" }}>
                             <div style={{ fontSize: 11.5, color: "var(--ink-2)", marginBottom: 4, fontWeight: 600 }}>
-                              Deductible range — % of coverage moved to the deductible to offset the rate
+                              Deductible range — % of coverage moved to the deductible to fund the discount
                             </div>
                             <DualRange min={5} max={25} step={5} unit="%"
                               low={deductiblePct[0]} high={deductiblePct[1]}
@@ -1141,13 +1151,12 @@ export default function RetentionIfWhatView() {
                         {p.id === "cd_trade_up_24" && (
                           <div className="px-offer-qual" style={{ marginTop: 10, paddingTop: 10, borderTop: "1px dashed var(--hair)" }}>
                             <div style={{ fontSize: 11.5, color: "var(--ink-2)", marginBottom: 4, fontWeight: 600 }}>
-                              Lock term range — years the optimizer may lock the rate for
+                              Lock term — minimum years the optimizer may lock the rate for
                             </div>
-                            <DualRange min={1} max={5} step={1} unit="y"
-                              low={lockYears[0]} high={lockYears[1]}
-                              onChange={({ low, high }) => setLockYears([low, high])} />
+                            <YearsStepper value={lockYears[0]} min={1} max={5}
+                              onChange={(v) => setLockYears([v, 5])} />
                             <div style={{ fontSize: 11, color: "var(--ink-3)", marginTop: 4 }}>
-                              Rate locked for <b>{lockYears[0]}–{lockYears[1]} years</b> — the customer keeps it even if the market rises.
+                              Rate locked for <b>≥ {lockYears[0]} years</b> — the customer keeps it even if the market rises.
                             </div>
                           </div>
                         )}

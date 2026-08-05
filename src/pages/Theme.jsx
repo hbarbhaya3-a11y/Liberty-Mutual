@@ -545,12 +545,12 @@ export default function Theme() {
                 <span className="odot" style={{ background: ACC, boxShadow: `0 0 13px ${ACC}` }} />
                 {RC.name}
               </div>
-              <div className="hero-sig">Three converging signals — balance slope, outbound ACH acceleration, and operating-balance erosion — mark a cohort whose primacy is weakening before rate-shopping begins.</div>
+              <div className="hero-sig">Three converging signals — digital-engagement decline, competitor quote-shopping, and coverage-reduction requests — mark a cohort of high-LTV auto customers whose renewal is at risk ~45 days before they shop for rate.</div>
             </div>
             <div className="hero-side">
-              <div className="hm"><span className="v ac" style={{ color: ACC }}>$2.1B</span><span className="l">deposits under observation</span></div>
-              <div className="hm"><span className="v">75,000</span><span className="l">customers in cohort</span></div>
-              <div className="hm"><span className="v">$28K</span><span className="l">avg deposit balance</span></div>
+              <div className="hm"><span className="v ac" style={{ color: ACC }}>$0.9B</span><span className="l">NWP under observation</span></div>
+              <div className="hm"><span className="v">550,849</span><span className="l">customers at risk</span></div>
+              <div className="hm"><span className="v">$1,650</span><span className="l">avg annual premium</span></div>
               <div className="hm"><span className="v">3</span><span className="l">hypotheses surfaced</span></div>
             </div>
           </div>

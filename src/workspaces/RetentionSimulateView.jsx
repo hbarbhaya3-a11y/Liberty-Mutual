@@ -28,7 +28,7 @@ import { RETENTION_SEGMENTS, deriveSegments, PRODUCT_MARKET, RETENTION_PRODUCT_L
    micro-segments and filters by what the user selected. */
 const RET_SEG_MODEL = {
   segments: RETENTION_SEGMENTS,
-  cohortCounts: { full: 75000, "rate-sensitive": 22000, "operating-decliner": 18000, "high-value": 3000, "long-tenured": 8000, "multi-product": 12000 },
+  cohortCounts: { full: 550849, "rate-sensitive": 161000, "operating-decliner": 132000, "high-value": 22000, "long-tenured": 59000, "multi-product": 88000 },
   heldBackLabel: "Will-stay & already-gone",
   heldBackShare: 0.06,
   // Insurance-context label overrides so the recommendation table speaks our
@@ -91,6 +91,20 @@ function primaryNoticeDay(days) {
    equals RECOMMENDED.offerCeilingBps so the retention outcome math stays anchored. */
 const RECOMMENDED_OFFERS = { cd_12mo: 45, cd_6mo: 35 };
 
+/* Compact number stepper for "N years or more" threshold levers (lock term,
+   loyalty tenure) — clearer than a slider for a single integer threshold. */
+function YearsStepper({ value, min, max, onChange, disabled }) {
+  const clamp = (v) => Math.max(min, Math.min(max, Math.round(Number(v) || min)));
+  return (
+    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+      <input type="number" min={min} max={max} step={1} value={value} disabled={disabled}
+        onChange={(e) => onChange(clamp(e.target.value))}
+        style={{ width: 66, padding: "6px 9px", borderRadius: 6, border: "1px solid var(--hair)", background: "var(--panel, #fff)", color: "var(--ink-1)", fontWeight: 700, fontSize: 13 }} />
+      <span style={{ fontSize: 12, color: "var(--ink-2)", fontWeight: 600 }}>years or more</span>
+    </div>
+  );
+}
+
 /* ----------------------------------------------------------------------------
    Value-added retention services Liberty can add in lieu of (or alongside) a
    priced offer. Each is an actual offering — not a behavioural target. Strategy
@@ -148,14 +162,12 @@ const PILOT_DEFAULTS = {
    simulateOutcomes — retention lever → outcome chain.
 
    Anchors at recommended defaults (per RETENTION_CALIBRATION):
-     - eligibleAfterGate = 22,000  (out of 75K cohort, gated by stickiness < 0.70)
-     - treatmentN/controlN = 17,600 / 4,400
-     - NWP protected annual = $10.5M
-     - Balance runoff: 6.5% (BAU) → 4.8% (with policy) → −1.7pp reduction
-     - Spread protected = $210K / yr
-     - Offer cost = $95K
+     - cohortTotal = 550,849 at-risk auto renewals (signal 1, run across all)
+     - treatmentN/controlN = 440,679 / 110,170  (80% / 20% holdout)
+     - NWP impact annual = $138.2M · CLV impact = $345M · ~83,700 policies retained
+     - Lapse: 30% (BAU) → 11% (with policy) → −19pp reduction
+     - Spread protected = $166K / yr · offer cost = $60K · net = $106K
      - Fair-lending margin = 0.93 (held constant by loyalty gate)
-     - Complaints delta = +120 / qtr
 ---------------------------------------------------------------------------- */
 function simulateOutcomes(opts) {
   const C = RETENTION_CALIBRATION;
@@ -173,9 +185,9 @@ function simulateOutcomes(opts) {
     "full":               C.cohortTotal,
     "rate-sensitive":     C.eligibleAfterGate,
     "operating-decliner": C.operatingDeclinerN,
-    "high-value":         3000,
-    "long-tenured":       8000,
-    "multi-product":      12000,
+    "high-value":         22000,
+    "long-tenured":       59000,
+    "multi-product":      88000,
   };
   const list = Array.isArray(cohortPresets) ? cohortPresets : [cohortPresets];
   const presetBase = list.includes("full")
@@ -442,7 +454,7 @@ export default function RetentionSimulateView() {
   const [customNotice,      setCustomNotice]      = useState("");
   // Pricing-lever qualifiers: the loyalty tier's relationship (tenure) band and
   // the deductible-adjusted offer's deductible % against coverage.
-  const [loyaltyTenure,     setLoyaltyTenure]     = useState([3, 10]);   // years of relationship
+  const [loyaltyTenure,     setLoyaltyTenure]     = useState([3, 30]);   // min years of relationship (threshold + open cap)
   const [deductiblePct,     setDeductiblePct]     = useState(10);        // % of coverage set as deductible
   const [lockYears,         setLockYears]         = useState(2);         // multi-year rate-lock term (years)
 
@@ -688,10 +700,10 @@ export default function RetentionSimulateView() {
 
   // ---- Live eligibility count (recomputes as the min-balance slider moves) ----
   // Cohort base from the selected presets; higher min-balance → lower count.
-  const ELIG_COHORT_COUNTS = { "rate-sensitive": 22000, "operating-decliner": 18000, "high-value": 3000, "long-tenured": 8000, "multi-product": 12000 };
+  const ELIG_COHORT_COUNTS = { "rate-sensitive": 161000, "operating-decliner": 132000, "high-value": 22000, "long-tenured": 59000, "multi-product": 88000 };
   const _cohortBase = (cohortPresets.includes("full")
-    ? 75000
-    : cohortPresets.reduce((s, id) => s + (ELIG_COHORT_COUNTS[id] || 0), 0)) || 75000;
+    ? 550849
+    : cohortPresets.reduce((s, id) => s + (ELIG_COHORT_COUNTS[id] || 0), 0)) || 550849;
   const _eligFrac = Math.max(0.2, Math.min(1, 1 - ((minBalanceK - 20) / (100 * 1.4))));
   const eligibleCount = Math.round(_cohortBase * _eligFrac);
 
@@ -780,12 +792,12 @@ export default function RetentionSimulateView() {
           </div>
           <div className="sim-lever-fieldset" style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 12 }}>
             {[
-              { id: "full",               count: 75000, signature: "Every customer showing one or more shopping-risk signals." },
-              { id: "rate-sensitive",     count: 22000, signature: "Engagement dropping >20% · price-elastic · not deeply bundled." },
-              { id: "operating-decliner", count: 18000, signature: "Portal logins falling · paperless-opens decaying · no competitor quote yet." },
-              { id: "high-value",         count:  3000, signature: "LTV >$12K · top shopping decile · single-line (unbundled)." },
-              { id: "long-tenured",       count:  8000, signature: "10+ years tenure · rate action landed in the last 6 months." },
-              { id: "multi-product",      count: 12000, signature: "3+ policies held · early shopping signals on the auto policy." },
+              { id: "full",               count: 550849, signature: "Every customer showing one or more shopping-risk signals." },
+              { id: "rate-sensitive",     count: 161000, signature: "Engagement dropping >20% · price-elastic · not deeply bundled." },
+              { id: "operating-decliner", count: 132000, signature: "Portal logins falling · paperless-opens decaying · no competitor quote yet." },
+              { id: "high-value",         count:  22000, signature: "LTV >$12K · top shopping decile · single-line (unbundled)." },
+              { id: "long-tenured",       count:  59000, signature: "10+ years tenure · rate action landed in the last 6 months." },
+              { id: "multi-product",      count:  88000, signature: "3+ policies held · early shopping signals on the auto policy." },
             ].map((c) => {
               const name = c.id === "full" ? "Full cohort"
                          : c.id === "rate-sensitive" ? "Shopping-elastic eligible"
@@ -941,7 +953,7 @@ export default function RetentionSimulateView() {
           <div className="sim-lever-section-band">
             <div className="sim-lever-section-num">3</div>
             <div className="sim-lever-section-name">PRICING</div>
-            <div className="sim-lever-section-meta">Rate spreading by tenure × LTV · deductible swap · retention discount tiers</div>
+            <div className="sim-lever-section-meta">Discount spreading by tenure × LTV · deductible swap · retention discount tiers</div>
           </div>
 
           <LeverRow
@@ -964,7 +976,6 @@ export default function RetentionSimulateView() {
                         <span className="px-offer-l">{p.label}</span>
                         <span className="px-offer-sub">{p.sub}</span>
                       </span>
-                      {!sel && <span className="px-offer-mkt">competitor quote {mkt.toFixed(2)}%</span>}
                     </label>
                     {sel && (
                       <div className="px-offer-body">
@@ -974,28 +985,24 @@ export default function RetentionSimulateView() {
                           disabled={isAutopilot}
                           formatter={(v) => p.id === "cd_6mo" ? `−${v} bps capped increase` : `−${v} bps discount`} />
                         <div className="px-offer-eff">
-                          <span className="rate-ref-item is-market"><span className="rate-ref-l">competitor quote</span><span className="rate-ref-v">{mkt.toFixed(2)}%</span></span>
-                          <span className="px-offer-arrow">→</span>
-                          <span className="rate-ref-item"><span className="rate-ref-l">our renewal rate</span><span className="rate-ref-v">{(mkt - bps / 100).toFixed(2)}%</span></span>
-                          <span className="rate-ref-item" style={{ marginLeft: "auto", color: "var(--green)", fontWeight: 700 }}>−{bps} bps savings</span>
+                          <span className="rate-ref-item"><span className="rate-ref-l">discount</span><span className="rate-ref-v" style={{ color: "var(--green)", fontWeight: 700 }}>−{bps} bps off renewal</span></span>
                         </div>
                         {p.id === "smart_savings" && (
                           <div className="px-offer-qual" style={{ marginTop: 10, paddingTop: 10, borderTop: "1px dashed var(--hair)" }}>
                             <div style={{ fontSize: 11.5, color: "var(--ink-2)", marginBottom: 4, fontWeight: 600 }}>
-                              Relationship range — tenure the loyalty discount applies to
+                              Relationship threshold — minimum tenure the loyalty discount applies to
                             </div>
-                            <DualRange min={0} max={20} step={1} unit="y"
-                              low={loyaltyTenure[0]} high={loyaltyTenure[1]}
-                              onChange={({ low, high }) => setLoyaltyTenure([low, high])} />
+                            <YearsStepper value={loyaltyTenure[0]} min={0} max={20} disabled={isAutopilot}
+                              onChange={(v) => setLoyaltyTenure([v, 30])} />
                             <div style={{ fontSize: 11, color: "var(--ink-3)", marginTop: 4 }}>
-                              Households with <b>{loyaltyTenure[0]}–{loyaltyTenure[1]} years</b> of relationship qualify for this tier.
+                              Households with <b>≥ {loyaltyTenure[0]} years</b> of relationship qualify for this tier.
                             </div>
                           </div>
                         )}
                         {p.id === "elite_mma" && (
                           <div className="px-offer-qual" style={{ marginTop: 10, paddingTop: 10, borderTop: "1px dashed var(--hair)" }}>
                             <div style={{ fontSize: 11.5, color: "var(--ink-2)", marginBottom: 4, fontWeight: 600 }}>
-                              Deductible level — % of coverage moved to the deductible to offset the rate
+                              Deductible level — % of coverage moved to the deductible to fund the discount
                             </div>
                             <RangeWithBubble min={5} max={25} step={5}
                               value={deductiblePct}
@@ -1010,15 +1017,12 @@ export default function RetentionSimulateView() {
                         {p.id === "cd_trade_up_24" && (
                           <div className="px-offer-qual" style={{ marginTop: 10, paddingTop: 10, borderTop: "1px dashed var(--hair)" }}>
                             <div style={{ fontSize: 11.5, color: "var(--ink-2)", marginBottom: 4, fontWeight: 600 }}>
-                              Lock term — years the rate is locked for
+                              Lock term — minimum years the rate is locked for
                             </div>
-                            <RangeWithBubble min={1} max={5} step={1}
-                              value={lockYears}
-                              onChange={(e) => setLockYears(+e.target.value)}
-                              disabled={isAutopilot}
-                              formatter={(v) => `${v}-year lock`} />
+                            <YearsStepper value={lockYears} min={1} max={5} disabled={isAutopilot}
+                              onChange={(v) => setLockYears(v)} />
                             <div style={{ fontSize: 11, color: "var(--ink-3)", marginTop: 4 }}>
-                              Rate locked for <b>{lockYears} year{lockYears === 1 ? "" : "s"}</b> — the customer keeps it even if the market rises.
+                              Rate locked for <b>≥ {lockYears} years</b> — the customer keeps it even if the market rises.
                             </div>
                           </div>
                         )}
@@ -1343,11 +1347,11 @@ function ResultsReveal({ results, onReRun, onStage }) {
   const lever = results.lever || { cohortPresets: ["rate-sensitive"], productOffers: RECOMMENDED_OFFERS, channels: ["app", "email", "banker"] };
   const seg = deriveSegments(RET_SEG_MODEL, lever, o);
   const kpis = [
-    { label: "NWP protected", value: `+$${o.retainedM.toFixed(1)}M`, baseline: "$0" },
-    { label: "Annualized relationship value", value: `+$${(o.retainedM * 2.5).toFixed(1)}M`, baseline: "$0" },
+    { label: "NWP impact", value: `+$${o.retainedM.toFixed(1)}M`, baseline: "$0" },
+    { label: "CLV impact", value: `+$${(o.retainedM * 2.5).toFixed(1)}M`, baseline: "$0" },
+    { label: "Policies retained", value: `${Math.round(o.treatmentN * (o.runoffBau - o.runoffWithPolicy)).toLocaleString()}`, baseline: "0" },
     { label: "% renewals lapsing", value: `${(o.runoffWithPolicy * 100).toFixed(1)}%`, baseline: `${(o.runoffBau * 100).toFixed(1)}%` },
     { label: "Bundle penetration", value: `+${o.ddRecoveryPp}pp`, baseline: "0pp" },
-    { label: "Policies retained", value: `${Math.round(o.treatmentN * (o.runoffBau - o.runoffWithPolicy)).toLocaleString()}`, baseline: "0" },
   ];
 
   // Policy band (the levers that produced this) — shown atop the Aggregate tab.
@@ -1361,9 +1365,9 @@ function ResultsReveal({ results, onReRun, onStage }) {
     { k: "Pricing", v: Object.entries(lever.productOffers || {})
         .map(([id, bps]) => {
           let s = `${(OFFER_PRODUCTS.find((p) => p.id === id) || {}).label || id} ${((PRODUCT_MARKET[id] ?? 0) + bps / 100).toFixed(2)}%`;
-          if (id === "smart_savings" && lever.loyaltyTenure) s += ` (${lever.loyaltyTenure[0]}–${lever.loyaltyTenure[1]}y)`;
+          if (id === "smart_savings" && lever.loyaltyTenure) s += ` (≥${lever.loyaltyTenure[0]}y tenure)`;
           if (id === "elite_mma" && lever.deductiblePct != null) s += ` (${lever.deductiblePct}% deductible)`;
-          if (id === "cd_trade_up_24" && lever.lockYears != null) s += ` (${lever.lockYears}y lock)`;
+          if (id === "cd_trade_up_24" && lever.lockYears != null) s += ` (≥${lever.lockYears}y lock)`;
           return s;
         })
         .join(" · ") || "—" },
