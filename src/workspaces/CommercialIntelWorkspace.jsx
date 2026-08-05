@@ -212,7 +212,11 @@ function Scatter({ points, xLab, yLab }) {
 }
 
 function Radar({ dims }) {
-  const W = 240, H = 210, cx = W / 2, cy = H / 2 + 4, r = 74, n = dims.length;
+  // viewBox fits the content tightly: max drawn radius is the label ring
+  // (labelF × r); pad just enough for the label text. No dead margin.
+  const n = dims.length, r = 96, labelF = 1.16, M = 20;
+  const maxR = r * labelF, C = maxR + M, S = C * 2;
+  const cx = C, cy = C;
   const pt = (i, val) => {
     const a = (Math.PI * 2 * i) / n - Math.PI / 2;
     const rr = (val / 100) * r;
@@ -221,13 +225,13 @@ function Radar({ dims }) {
   const ring = (f) => dims.map((_, i) => pt(i, f).join(",")).join(" ");
   const poly = dims.map((d, i) => pt(i, d.v).join(",")).join(" ");
   return (
-    <svg viewBox={`0 0 ${W} ${H}`} className="ci-svg">
+    <svg viewBox={`0 0 ${S} ${S}`} className="ci-svg">
       {[100, 66, 33].map((f) => <polygon key={f} points={ring(f)} fill="none" stroke={GRID} />)}
       {dims.map((d, i) => { const [x, y] = pt(i, 100); return <line key={d.k} x1={cx} y1={cy} x2={x} y2={y} stroke={GRID} />; })}
       <polygon points={poly} fill={ACC} fillOpacity="0.18" stroke={ACC} strokeWidth="2" />
       {dims.map((d, i) => {
-        const [x, y] = pt(i, 118);
-        return <text key={d.k} x={x} y={y} fontSize="8.5" fill={INK3} textAnchor="middle" dominantBaseline="middle">{d.k}</text>;
+        const [x, y] = pt(i, 100 * labelF);
+        return <text key={d.k} x={x} y={y} fontSize="10.5" fill={INK3} textAnchor="middle" dominantBaseline="middle">{d.k}</text>;
       })}
     </svg>
   );
