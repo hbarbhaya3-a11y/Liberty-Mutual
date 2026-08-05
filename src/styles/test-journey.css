@@ -2931,7 +2931,7 @@ html.theme-light .sim-result-tile-tip {
 }
 .sim-result-tile-num-v {
   font-family: var(--mono);
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 700;
   color: var(--ink);
   font-feature-settings: "tnum";
