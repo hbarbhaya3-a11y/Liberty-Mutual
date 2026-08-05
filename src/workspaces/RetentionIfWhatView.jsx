@@ -683,12 +683,13 @@ export default function RetentionIfWhatView() {
     const _mDD    = { label: "Bundle penetration", value: `+${_o ? _o.ddRecoveryPp : 0}pp`, baseline: "0pp" };
     const _mRelVal   = { label: "CLV impact", value: `+$${(_o ? _o.retainedM * 2.5 : 0).toFixed(1)}M`, baseline: "$0" };
     const _mDefended = { label: "Policies retained", value: `${_o ? Math.round(_o.treatmentN * (_baseRunoffPp - _withPp) / 100).toLocaleString() : 0}`, baseline: "0" };
+    const _mPct   = { label: "At-risk retained", value: `${_o ? (_o.treatmentN * (_baseRunoffPp - _withPp) / 100 / RETENTION_CALIBRATION.cohortTotal * 100).toFixed(1) : 0}%`, baseline: "0%" };
     const _kpis = !selected ? [] :
       objective === "retained_deposits"
-        ? [_mRet, _mRelVal, _mDefended, _mLeave, _mDD]
+        ? [_mRet, _mRelVal, _mDefended, _mPct, _mLeave, _mDD]
         : objective === "primacy_return"
-          ? [{ label: "Bundle adds", value: `+${_o.ddRecoveryPp}pp`, baseline: "0pp" }, _mRet, _mRelVal, _mDefended, _mLeave]
-          : [{ label: "Lapse-rate reduction", value: `−${_o.runoffReductionPp.toFixed(1)}pp`, baseline: `${_baseRunoffPp.toFixed(1)}%` }, _mRet, _mRelVal, _mDefended, _mDD];
+          ? [{ label: "Bundle adds", value: `+${_o.ddRecoveryPp}pp`, baseline: "0pp" }, _mRet, _mRelVal, _mDefended, _mPct, _mLeave]
+          : [{ label: "Lapse-rate reduction", value: `−${_o.runoffReductionPp.toFixed(1)}pp`, baseline: `${_baseRunoffPp.toFixed(1)}%` }, _mRet, _mRelVal, _mDefended, _mPct, _mDD];
     // Policy band (the levers that produced this) — shown atop the Aggregate tab.
     const _policy = selected ? [
       { k: "Cohort", v: (selected.picks.cohortPresets || []).map((id) => COHORT_OPTIONS.find((c) => c.id === id)?.name).filter(Boolean).join(", ") || "All" },
