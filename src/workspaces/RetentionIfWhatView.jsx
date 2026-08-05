@@ -729,19 +729,6 @@ export default function RetentionIfWhatView() {
           insight="Most of the effect lands inside the first 4 weeks."
         />
         <ResultTileBars
-          title="% renewals lapsing / wk"
-          subhead={`${_baseRunoffPp.toFixed(1)}% today → ${_withPp.toFixed(1)}% with policy`}
-          steady={_o.runoffReductionPp / 8}
-          baselinePerWk={_baseRunoffPp / 8}
-          progress={1}
-          format={(n) => `${n.toFixed(2)}%`}
-          rampWeeks={2}
-          seed={11}
-          numbers={[{ k: "reduction vs today", v: `−${_o.runoffReductionPp.toFixed(1)}%` }]}
-          insight="Effect builds from week 3 once customers act on the offer."
-          accent="var(--acc,#ffb15a)"
-        />
-        <ResultTileBars
           title="Bundle penetration / wk"
           subhead="projected ramp"
           steady={_o.ddRecoveryPp / 8}
@@ -894,6 +881,7 @@ export default function RetentionIfWhatView() {
                   offerLabel="Discount"
                   rateLabel="Capped renewal rate"
                   hideBaseline={true}
+                  singleView={true}
                   segments={_seg}
                   policy={_policy}
                   charts={_chartsGrid}

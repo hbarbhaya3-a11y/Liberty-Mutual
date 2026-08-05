@@ -18,7 +18,7 @@ export default function SegmentedResults({
   kpis = [], charts, segments, policy = [], objective, valueLabel = "Value", accent = "#5b9dff",
   anchorRate = null, valueScale = 1,
   offerLabel = "Offer increment", rateLabel = "Recommended APY", productHeader, hideRateCap = false,
-  isRetail = false, defaultTab, hideBaseline = false,
+  isRetail = false, defaultTab, hideBaseline = false, singleView = false,
 }) {
   const rows = (segments && segments.rows) || (Array.isArray(segments) ? segments : []);
   const hasBundle = rows.some((r) => r.bundle != null);
@@ -74,7 +74,8 @@ export default function SegmentedResults({
         </div>
       )}
 
-      {/* 2 · Tab strip */}
+      {/* 2 · Tab strip — hidden in single-view (charts on top, segments below) */}
+      {!singleView && (
       <div className="seg-tabs" role="tablist">
         <button className={"seg-tab" + (tab === "segment" ? " on" : "")} onClick={() => setTab("segment")}>
           By micro-segment
@@ -86,9 +87,10 @@ export default function SegmentedResults({
           {tab === "aggregate" ? "The policy and its blended result" : retailActive ? "Click any micro-segment to view customer details in tabular form & view content" : "The same policy, broken out by segment"}
         </span>
       </div>
+      )}
 
       {/* 3a · Aggregate — POLICY band (cause) then charts or summary (effect) */}
-      {tab === "aggregate" && (
+      {(singleView || tab === "aggregate") && (
         <div className="seg-pane">
           {policy.length > 0 && (
             <div className="seg-policy">
@@ -136,7 +138,7 @@ export default function SegmentedResults({
       )}
 
       {/* 3b · By micro-segment — table (each row = its own configuration) */}
-      {tab === "segment" && (
+      {(singleView || tab === "segment") && (
         <div className="seg-pane">
           <div className={"seg-table" + (isConversion ? "" : " seg-table-rated")} role="table">
             <div className="seg-tr seg-thead" role="row">
