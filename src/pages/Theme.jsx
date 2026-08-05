@@ -549,7 +549,7 @@ export default function Theme() {
             </div>
             <div className="hero-side">
               <div className="hm"><span className="v ac" style={{ color: ACC }}>$0.9B</span><span className="l">NWP under observation</span></div>
-              <div className="hm"><span className="v">550,000</span><span className="l">customers at risk</span></div>
+              <div className="hm"><span className="v">550,849</span><span className="l">customers at risk</span></div>
               <div className="hm"><span className="v">$1,650</span><span className="l">avg annual premium</span></div>
               <div className="hm"><span className="v">3</span><span className="l">hypotheses surfaced</span></div>
             </div>

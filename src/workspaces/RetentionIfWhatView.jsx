@@ -36,7 +36,7 @@ const PAGE_SUBTITLE = RETENTION_HYPOTHESIS_TITLE;
 /* Micro-segment model for the deep-dive's "By micro-segment" tab. */
 const RET_SEG_MODEL = {
   segments: RETENTION_SEGMENTS,
-  cohortCounts: { full: 550000, "rate-sensitive": 161000, "operating-decliner": 132000, "high-value": 22000, "long-tenured": 59000, "multi-product": 88000 },
+  cohortCounts: { full: 550849, "rate-sensitive": 161000, "operating-decliner": 132000, "high-value": 22000, "long-tenured": 59000, "multi-product": 88000 },
   heldBackLabel: "Will-stay & already-gone",
   heldBackShare: 0.06,
   productLabels: RETENTION_PRODUCT_LABEL,
@@ -50,7 +50,7 @@ const OBJECTIVES = [
 ];
 
 const COHORT_OPTIONS = [
-  { id: "full",               name: "Full cohort",              count: 550000, share: 0.095, sig: "Every customer showing one or more drift signals." },
+  { id: "full",               name: "Full cohort",              count: 550849, share: 0.095, sig: "Every customer showing one or more drift signals." },
   { id: "rate-sensitive",     name: "Shopping-elastic eligible", count: 161000, share: 0.028, sig: "Engagement dropping >20% · price-elastic · not deeply bundled."  },
   { id: "operating-decliner", name: "Silent Pre-Shopper", count: 132000, share: 0.023, sig: "Portal logins falling · paperless-opens decaying · no competitor quote yet."  },
   { id: "high-value",         name: "High-value at-risk", count: 22000, share: 0.004, sig: "LTV >$12K · top shopping decile · single-line (unbundled)."  },
@@ -738,7 +738,7 @@ export default function RetentionIfWhatView() {
             { id: "c", label: "High-value", pct: 14, color: "var(--cyan,#4fd1c5)" },
             { id: "d", label: "Will-stay", pct: 7, color: "var(--ink-3)" },
           ]}
-          treatedN={_o.treatmentN || 176000}
+          treatedN={_o.treatmentN || 440679}
           insight="Most of the value concentrates in the top two segments."
         />
       </div>
@@ -925,8 +925,8 @@ export default function RetentionIfWhatView() {
   // Threshold = the range's low value; higher floor → lower count.
   const minBalanceK = ranges.minBalanceK.low;
   const _cohortBase = (cohortPresets.includes("full")
-    ? 550000
-    : cohortPresets.reduce((s, id) => s + (COHORT_OPTIONS.find((c) => c.id === id)?.count || 0), 0)) || 550000;
+    ? 550849
+    : cohortPresets.reduce((s, id) => s + (COHORT_OPTIONS.find((c) => c.id === id)?.count || 0), 0)) || 550849;
   const _eligFrac = Math.max(0.2, Math.min(1, 1 - ((minBalanceK - 20) / (100 * 1.4))));
   const eligibleCount = Math.round(_cohortBase * _eligFrac);
   return (
@@ -1082,7 +1082,7 @@ export default function RetentionIfWhatView() {
           <div className="sim-lever-section-band">
             <span className="sim-lever-section-num">4</span>
             <span className="sim-lever-section-name">PRICING</span>
-            <span className="sim-lever-section-meta">Rate spreading by tenure × LTV · deductible swap · retention discount tiers — set each offer's range</span>
+            <span className="sim-lever-section-meta">Discount spreading by tenure × LTV · deductible swap · retention discount tiers — set each offer's range</span>
           </div>
           <div className="lever-row">
             <div className="lever-head">
@@ -1100,7 +1100,6 @@ export default function RetentionIfWhatView() {
                     <label className="px-offer-head">
                       <input type="checkbox" checked={sel} onChange={() => toggleProduct(p.id)} disabled={isAutopilot} />
                       <span className="px-offer-name"><span className="px-offer-l">{p.label}</span></span>
-                      {!sel && <span className="px-offer-mkt">competitor quote {mkt.toFixed(2)}%</span>}
                     </label>
                     {sel && (
                       <div className="px-offer-body">
@@ -1108,9 +1107,7 @@ export default function RetentionIfWhatView() {
                           low={rng[0]} high={rng[1]}
                           onChange={({ low, high }) => setProductRange(p.id, low, high)} />
                         <div className="px-offer-eff">
-                          <span className="rate-ref-item is-market"><span className="rate-ref-l">competitor quote</span><span className="rate-ref-v">{mkt.toFixed(2)}%</span></span>
-                          <span className="px-offer-arrow">→</span>
-                          <span className="rate-ref-item"><span className="rate-ref-l">offer range</span><span className="rate-ref-v">{(mkt - rng[1] / 100).toFixed(2)}–{(mkt - rng[0] / 100).toFixed(2)}%</span></span>
+                          <span className="rate-ref-item"><span className="rate-ref-l">discount</span><span className="rate-ref-v" style={{ color: "var(--green)", fontWeight: 700 }}>−{rng[0]}–{rng[1]} bps off renewal</span></span>
                         </div>
                         {p.id === "smart_savings" && (
                           <div className="px-offer-qual" style={{ marginTop: 10, paddingTop: 10, borderTop: "1px dashed var(--hair)" }}>
@@ -1128,7 +1125,7 @@ export default function RetentionIfWhatView() {
                         {p.id === "elite_mma" && (
                           <div className="px-offer-qual" style={{ marginTop: 10, paddingTop: 10, borderTop: "1px dashed var(--hair)" }}>
                             <div style={{ fontSize: 11.5, color: "var(--ink-2)", marginBottom: 4, fontWeight: 600 }}>
-                              Deductible range — % of coverage moved to the deductible to offset the rate
+                              Deductible range — % of coverage moved to the deductible to fund the discount
                             </div>
                             <DualRange min={5} max={25} step={5} unit="%"
                               low={deductiblePct[0]} high={deductiblePct[1]}

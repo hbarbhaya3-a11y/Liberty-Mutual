@@ -4,7 +4,7 @@
    Three strategies for the renewal-shopping cohort, each addressing a different
    likely reason for churn: price elasticity (A), engagement decay (B), or
    high-value thinness (C). Numbers aligned to the demo narrative — 550K at-risk
-   customers, 220K eligible policies, $6.7M NWP protected at Strategy A defaults.
+   renewals, run across all 550,849, $138.2M NWP protected at Strategy A defaults.
 
    All WHO rows in plain English — describe the customer, not the demo.
    ========================================================================= */
@@ -15,14 +15,14 @@ const retentionSignals = [
     status: { label: 'Active now', tone: 'amber', sub: 'accelerating' },
     title: 'Defend at-risk renewals',
     statement: {
-      who: '550K high-LTV auto customers at risk · claims-free · shopping their renewal.',
+      who: '550,849 high-LTV auto renewals at risk · claims-free · shopping their renewal.',
       what: 'Price-elastic cohort · hold the renewal with the smallest targeted incentive that works (capped rate + retention offer).',
       why: 'Highest-leverage churn cause to act on, with a fair-lending filter to keep it defensible.',
     },
     kpis: [
-      { kind: 'scale',  label: 'Scope',         value: '220K',      unit: 'eligible policies',                        context: 'after fair-lending filter' },
+      { kind: 'scale',  label: 'Scope',         value: '550,849',   unit: 'at-risk renewals',                         context: 'run across the full at-risk book' },
       { kind: 'gate',   label: 'Fairness gate', value: '≥0.70',     unit: 'sticky-bundled filter',                    context: 'audit-defensible basis' },
-      { kind: 'stakes', label: 'Stakes (est.)', value: '+$5–8M',    unit: 'NWP protected / yr · est. range',          context: '−2.3pp lapse rate' },
+      { kind: 'stakes', label: 'Stakes (est.)', value: '+$130–145M', unit: 'NWP protected / yr · est. range',         context: '~83K renewals held' },
     ],
     recommended: { star: true, name: 'Defend at-risk renewals' },
     ctaLabel: 'Open the Decision Loop →',
@@ -40,7 +40,7 @@ const retentionSignals = [
     kpis: [
       { kind: 'scale',  label: 'Scope',         value: '161K',    unit: 'customers showing engagement decay',      context: 'before shopping starts' },
       { kind: 'gate',   label: 'Trigger',       value: '60d',     unit: 'decay window',                            context: 'pre-shopping intervention' },
-      { kind: 'stakes', label: 'Stakes (est.)', value: '+$4–7M',  unit: 'NWP protected / yr · est. range',         context: 'no rate concession needed' },
+      { kind: 'stakes', label: 'Stakes (est.)', value: '+$35–45M', unit: 'NWP protected / yr · est. range',         context: 'no rate concession needed' },
     ],
     recommended: { star: false, name: 'Re-engage before shopping' },
     ctaLabel: 'Open the Decision Loop →',
@@ -58,7 +58,7 @@ const retentionSignals = [
     kpis: [
       { kind: 'scale',  label: 'Scope',         value: '22K',     unit: 'high-value households',                context: 'LTV over $12K' },
       { kind: 'gate',   label: 'LTV',           value: '≥$12K',   unit: 'minimum household LTV',                context: 'relationship economics work here' },
-      { kind: 'stakes', label: 'Stakes (est.)', value: '+$2–4M',  unit: 'NWP protected / yr · est. range',      context: 'small cohort, high per-household value' },
+      { kind: 'stakes', label: 'Stakes (est.)', value: '+$8–12M', unit: 'NWP protected / yr · est. range',      context: 'small cohort, high per-household value' },
     ],
     recommended: { star: false, name: 'Agent save call' },
     ctaLabel: 'Open the Decision Loop →',

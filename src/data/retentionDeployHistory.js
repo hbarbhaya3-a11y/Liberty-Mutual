@@ -32,14 +32,14 @@ export const RETENTION_DEPLOY_HISTORY = [
     pilotWeek: 8,
     pilotTotal: 8,
     pilotEndReason: "duration-complete",
-    treatmentN: 176000,
-    controlN: 44000,
+    treatmentN: 440679,
+    controlN: 110170,
     blurb: "Capped rate + retention offer to price-elastic shopping customers · fair-lending-filtered · 20% control arm · 8-week pilot. Promoted to 80% rollout.",
     learnings: {
       headline: "Strategy A v1 landed inside CI on primary KPIs · promoted to 80% rollout · bundle-penetration overshot by +8pp (the surprise feeding the v2 priors)",
       actuals: [
-        { k: "NWP protected",             predicted: "+$6.7M / yr",  actual: "+$6.5M",    tone: "ok",   delta: "within CI" },
-        { k: "Lapse-rate reduction",       predicted: "−2.3pp",        actual: "−2.2pp",     tone: "ok",   delta: "within CI" },
+        { k: "NWP protected",             predicted: "+$138.2M / yr",  actual: "+$134M",    tone: "ok",   delta: "within CI" },
+        { k: "Lapse-rate reduction",       predicted: "−19pp",         actual: "−18pp",     tone: "ok",   delta: "within CI" },
         { k: "Bundle-penetration lift",    predicted: "+6pp",          actual: "+14pp",      tone: "warn", delta: "OVERSHOOT · +8pp beyond predicted" },
         { k: "Fair-lending margin",        predicted: "0.93",          actual: "0.93",       tone: "ok",   delta: "held exact" },
         { k: "Customer fatigue",           predicted: "+180 / qtr",    actual: "+162 / qtr", tone: "ok",   delta: "better than predicted" },

@@ -28,7 +28,7 @@ import { RETENTION_SEGMENTS, deriveSegments, PRODUCT_MARKET, RETENTION_PRODUCT_L
    micro-segments and filters by what the user selected. */
 const RET_SEG_MODEL = {
   segments: RETENTION_SEGMENTS,
-  cohortCounts: { full: 550000, "rate-sensitive": 161000, "operating-decliner": 132000, "high-value": 22000, "long-tenured": 59000, "multi-product": 88000 },
+  cohortCounts: { full: 550849, "rate-sensitive": 161000, "operating-decliner": 132000, "high-value": 22000, "long-tenured": 59000, "multi-product": 88000 },
   heldBackLabel: "Will-stay & already-gone",
   heldBackShare: 0.06,
   // Insurance-context label overrides so the recommendation table speaks our
@@ -148,11 +148,10 @@ const PILOT_DEFAULTS = {
    simulateOutcomes — retention lever → outcome chain.
 
    Anchors at recommended defaults (per RETENTION_CALIBRATION):
-     - cohortTotal = 550,000 at-risk auto customers (signal 1)
-     - eligibleAfterGate = 220,000  (40% clear the stickiness/fairness gate)
-     - treatmentN/controlN = 176,000 / 44,000
-     - NWP impact annual = $6.7M · CLV impact = $16.7M · ~4,050 policies retained
-     - Lapse: 7.5% (BAU) → 5.2% (with policy) → −2.3pp reduction
+     - cohortTotal = 550,849 at-risk auto renewals (signal 1, run across all)
+     - treatmentN/controlN = 440,679 / 110,170  (80% / 20% holdout)
+     - NWP impact annual = $138.2M · CLV impact = $345M · ~83,700 policies retained
+     - Lapse: 30% (BAU) → 11% (with policy) → −19pp reduction
      - Spread protected = $166K / yr · offer cost = $60K · net = $106K
      - Fair-lending margin = 0.93 (held constant by loyalty gate)
 ---------------------------------------------------------------------------- */
@@ -689,8 +688,8 @@ export default function RetentionSimulateView() {
   // Cohort base from the selected presets; higher min-balance → lower count.
   const ELIG_COHORT_COUNTS = { "rate-sensitive": 161000, "operating-decliner": 132000, "high-value": 22000, "long-tenured": 59000, "multi-product": 88000 };
   const _cohortBase = (cohortPresets.includes("full")
-    ? 550000
-    : cohortPresets.reduce((s, id) => s + (ELIG_COHORT_COUNTS[id] || 0), 0)) || 550000;
+    ? 550849
+    : cohortPresets.reduce((s, id) => s + (ELIG_COHORT_COUNTS[id] || 0), 0)) || 550849;
   const _eligFrac = Math.max(0.2, Math.min(1, 1 - ((minBalanceK - 20) / (100 * 1.4))));
   const eligibleCount = Math.round(_cohortBase * _eligFrac);
 
@@ -779,7 +778,7 @@ export default function RetentionSimulateView() {
           </div>
           <div className="sim-lever-fieldset" style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 12 }}>
             {[
-              { id: "full",               count: 550000, signature: "Every customer showing one or more shopping-risk signals." },
+              { id: "full",               count: 550849, signature: "Every customer showing one or more shopping-risk signals." },
               { id: "rate-sensitive",     count: 161000, signature: "Engagement dropping >20% · price-elastic · not deeply bundled." },
               { id: "operating-decliner", count: 132000, signature: "Portal logins falling · paperless-opens decaying · no competitor quote yet." },
               { id: "high-value",         count:  22000, signature: "LTV >$12K · top shopping decile · single-line (unbundled)." },
@@ -940,7 +939,7 @@ export default function RetentionSimulateView() {
           <div className="sim-lever-section-band">
             <div className="sim-lever-section-num">3</div>
             <div className="sim-lever-section-name">PRICING</div>
-            <div className="sim-lever-section-meta">Rate spreading by tenure × LTV · deductible swap · retention discount tiers</div>
+            <div className="sim-lever-section-meta">Discount spreading by tenure × LTV · deductible swap · retention discount tiers</div>
           </div>
 
           <LeverRow
@@ -963,7 +962,6 @@ export default function RetentionSimulateView() {
                         <span className="px-offer-l">{p.label}</span>
                         <span className="px-offer-sub">{p.sub}</span>
                       </span>
-                      {!sel && <span className="px-offer-mkt">competitor quote {mkt.toFixed(2)}%</span>}
                     </label>
                     {sel && (
                       <div className="px-offer-body">
@@ -973,10 +971,7 @@ export default function RetentionSimulateView() {
                           disabled={isAutopilot}
                           formatter={(v) => p.id === "cd_6mo" ? `−${v} bps capped increase` : `−${v} bps discount`} />
                         <div className="px-offer-eff">
-                          <span className="rate-ref-item is-market"><span className="rate-ref-l">competitor quote</span><span className="rate-ref-v">{mkt.toFixed(2)}%</span></span>
-                          <span className="px-offer-arrow">→</span>
-                          <span className="rate-ref-item"><span className="rate-ref-l">our renewal rate</span><span className="rate-ref-v">{(mkt - bps / 100).toFixed(2)}%</span></span>
-                          <span className="rate-ref-item" style={{ marginLeft: "auto", color: "var(--green)", fontWeight: 700 }}>−{bps} bps savings</span>
+                          <span className="rate-ref-item"><span className="rate-ref-l">discount</span><span className="rate-ref-v" style={{ color: "var(--green)", fontWeight: 700 }}>−{bps} bps off renewal</span></span>
                         </div>
                         {p.id === "smart_savings" && (
                           <div className="px-offer-qual" style={{ marginTop: 10, paddingTop: 10, borderTop: "1px dashed var(--hair)" }}>
@@ -994,7 +989,7 @@ export default function RetentionSimulateView() {
                         {p.id === "elite_mma" && (
                           <div className="px-offer-qual" style={{ marginTop: 10, paddingTop: 10, borderTop: "1px dashed var(--hair)" }}>
                             <div style={{ fontSize: 11.5, color: "var(--ink-2)", marginBottom: 4, fontWeight: 600 }}>
-                              Deductible level — % of coverage moved to the deductible to offset the rate
+                              Deductible level — % of coverage moved to the deductible to fund the discount
                             </div>
                             <RangeWithBubble min={5} max={25} step={5}
                               value={deductiblePct}

@@ -21,9 +21,9 @@ export const RETENTION_CONFIG = {
   valueLever: "Defend/retain renewals",
   buyer: "Retention Ops / Personal Lines Pricing",
   valueBridge: {
-    retainedDeposits: "+$6.7M",
-    spreadProtected:  "+$166K",
-    runoffReduction:  "−2.3pp",
+    retainedDeposits: "+$138.2M",
+    spreadProtected:  "+$3.45M",
+    runoffReduction:  "−19pp",
     headline:         "protected NWP + retention lift",
   },
   bindingConstraint: {
@@ -31,7 +31,7 @@ export const RETENTION_CONFIG = {
     text:  "Differential renewal offers without an auditable, consistent basis risk disparate-impact / fair-lending exposure under NAIC Model Bulletin 24-08. The elasticity model is the required evidence that targeted customers are genuinely price-elastic, not operationally-loyal bundled households being discounted needlessly.",
   },
   teeth: ["fairlending", "shopping"],
-  pop: 550000,
+  pop: 550849,
   share: 0.095,
   macro: {
     state: "Record 57% auto shopping (JD Power 2025) + Progressive/GEICO rate pressure",
@@ -89,31 +89,33 @@ export const RETENTION_PERSONAS = {
 export const RETENTION_ARCHETYPE_ORDER = ["drifting_saver", "operating_decliner", "anchored_saver"];
 
 /* Numerical calibration anchors for retention's simulateOutcomes() function.
-   Aligned to the demo narrative — 220K policies eligible, $363M NWP under test,
-   BAU lapse 7.5% → 5.2% with policy, $6.7M protected premium. */
-/* Signal-1 base: 550,000 high-LTV auto customers flagged at renewal-shopping
-   risk (~9.5% of the ~5.8M in-force auto book). Every number below derives
-   from this cohort at an avg annual premium of ~$1,650:
-     · eligibleAfterGate = 40% of cohort clears the fairness/stickiness gate
-     · NWP under test     = eligible × $1,650  ≈ $363M
-     · Policies retained  = treatmentN × 2.3pp lapse reduction ≈ 4,050 / yr
-     · NWP impact         = policies retained × $1,650 ≈ $6.7M / yr
-     · CLV impact         = NWP impact × 2.5 relationship multiple ≈ $16.7M   */
+   Aligned to the demo narrative — 550,849 at-risk renewals, $909M NWP under
+   observation, BAU lapse 30% → 11% with policy, $138.2M protected premium. */
+/* Signal-1 base: 550,849 high-LTV auto renewals flagged at renewal-shopping
+   risk (~9.5% of the ~5.8M in-force auto book). The hypothesis is run across
+   ALL 550,849 at-risk renewals (not a gated subset). Every number below
+   derives from this cohort at an avg annual premium of ~$1,650:
+     · treatmentN        = 80% of the cohort (20% measurement holdout)
+     · Policies retained = treatmentN × 19pp lapse reduction ≈ 83,700 / yr
+                           (≈ one-sixth of the at-risk book held)
+     · NWP under obs     = 550,849 × $1,650 ≈ $909M
+     · NWP impact        = policies retained × $1,650 ≈ $138M / yr
+     · CLV impact        = NWP impact × 2.5 relationship multiple ≈ $345M    */
 export const RETENTION_CALIBRATION = {
-  cohortTotal:           550000,    // 550K at-risk auto customers (signal 1)
-  eligibleAfterGate:     220000,    // 40% clear the fairness gate
+  cohortTotal:           550849,    // 550,849 at-risk auto renewals (signal 1)
+  eligibleAfterGate:     550849,    // hypothesis runs across all at-risk renewals
   operatingDeclinerN:    161000,
   highValueN:             22000,
-  balancesUnderTestM:       363,    // $363M NWP under test (220K × $1,650)
-  runoffBau:              0.075,    // 7.5% BAU lapse
-  runoffWithPolicy:       0.052,    // 5.2% with policy
-  runoffReductionPp:      0.023,    // -2.3pp
-  retainedDepositsAnnualM:  6.7,    // $6.7M NWP impact (protected premium)
-  offerCostM:             0.060,    // $60K retention-offer cost
-  spreadProtectedK:         166,    // $166K underwriting margin protected
-  netAnnualisedK:           106,    // $106K net annualised
-  treatmentN:            176000,    // 80% of 220K
-  controlN:               44000,    // 20% holdout
+  balancesUnderTestM:       909,    // $909M NWP under observation (550,849 × $1,650)
+  runoffBau:              0.300,    // 30% BAU lapse for actively-shopping at-risk book
+  runoffWithPolicy:       0.110,    // 11% with policy
+  runoffReductionPp:      0.190,    // -19pp
+  retainedDepositsAnnualM: 138.2,   // $138.2M NWP impact (protected premium)
+  offerCostM:             2.000,    // $2.0M retention-offer cost
+  spreadProtectedK:        3450,    // $3.45M underwriting margin protected
+  netAnnualisedK:          1450,    // $1.45M net annualised
+  treatmentN:            440679,    // 80% of 550,849
+  controlN:              110170,    // 20% holdout
   complaintsBaseline:       590,
   complaintsDelta:         1320,    // medium customer fatigue
   udaapMargin:             0.93,    // fair-lending headroom
@@ -123,11 +125,11 @@ export const RETENTION_CALIBRATION = {
 
 /* Pre-simulation range strings for Analyze hero KPIs (aligned with Signal Card 1). */
 export const RETENTION_PRESIM_RANGES = [
-  { label: "NWP impact",                    value: "+$5–8M",   unit: "/ yr · est. range",           tone: "g" },
-  { label: "CLV impact",                    value: "+$14–19M", unit: "/ yr · est. range",           tone: "g" },
-  { label: "Policies retained",             value: "3.5–4.5K", unit: "/ yr · after fairness gate",  tone: "g" },
-  { label: "Eligible policies",             value: "220,000",  unit: "after fairness gate",         tone: "g" },
-  { label: "Lapse reduction",               value: "−2.3pp",   unit: "vs 7.5% today · est. range",   tone: "g" },
+  { label: "NWP impact",                    value: "+$130–145M", unit: "/ yr · est. range",         tone: "g" },
+  { label: "CLV impact",                    value: "+$325–360M", unit: "/ yr · est. range",         tone: "g" },
+  { label: "Policies retained",             value: "82–85K",     unit: "/ yr · of at-risk renewals", tone: "g" },
+  { label: "At-risk renewals",              value: "550,849",    unit: "in scope",                   tone: "g" },
+  { label: "Lapse reduction",               value: "−19pp",      unit: "/ yr · est. range",          tone: "g" },
 ];
 
 
