@@ -688,7 +688,7 @@ export default function RetentionIfWhatView() {
     // the rank-card hero. The other three are supporting context.
     const _mRet   = { label: "NWP impact", value: `+$${_o ? _o.retainedM.toFixed(1) : 0}M`, baseline: "$0" };
     const _mLeave = { label: "% renewals lapsing", value: `${_withPp.toFixed(1)}%`, baseline: `${_baseRunoffPp.toFixed(1)}%` };
-    const _mDD    = { label: "Bundle penetration", value: `+${_o ? _o.ddRecoveryPp : 0}pp`, baseline: "0pp" };
+    const _mDD    = { label: "Bundle penetration", value: `+${_o ? _o.ddRecoveryPp : 0}%`, baseline: "0pp" };
     const _mRelVal   = { label: "CLV impact", value: `+$${(_o ? _o.retainedM * 2.5 : 0).toFixed(1)}M`, baseline: "$0" };
     const _mDefended = { label: "Policies retained", value: `${_o ? Math.round(_o.treatmentN * (_baseRunoffPp - _withPp) / 100).toLocaleString() : 0}`, baseline: "0" };
     const _mPct   = { label: "At-risk retained", value: `${_o ? (_o.treatmentN * (_baseRunoffPp - _withPp) / 100 / RETENTION_CALIBRATION.cohortTotal * 100).toFixed(1) : 0}%`, baseline: "0%" };
@@ -697,7 +697,7 @@ export default function RetentionIfWhatView() {
         ? [_mRet, _mRelVal, _mDefended, _mPct, _mLeave]
         : objective === "primacy_return"
           ? [_mRet, _mRelVal, _mDefended, _mPct, _mLeave]
-          : [{ label: "Lapse-rate reduction", value: `${_o.runoffReductionPp.toFixed(1)}pp`, baseline: `${_baseRunoffPp.toFixed(1)}%` }, _mRet, _mRelVal, _mDefended, _mPct];
+          : [{ label: "Lapse-rate reduction", value: `${_o.runoffReductionPp.toFixed(1)}%`, baseline: `${_baseRunoffPp.toFixed(1)}%` }, _mRet, _mRelVal, _mDefended, _mPct];
     // Policy band (the levers that produced this) — shown atop the Aggregate tab.
     const _policy = selected ? [
       { k: "Cohort", v: (selected.picks.cohortPresets || []).map((id) => COHORT_OPTIONS.find((c) => c.id === id)?.name).filter(Boolean).join(", ") || "All" },
@@ -734,10 +734,10 @@ export default function RetentionIfWhatView() {
           steady={_o.runoffReductionPp / 8}
           baselinePerWk={_baseRunoffPp / 8}
           progress={1}
-          format={(n) => `${n.toFixed(2)}pp`}
+          format={(n) => `${n.toFixed(2)}%`}
           rampWeeks={2}
           seed={11}
-          numbers={[{ k: "reduction vs today", v: `−${_o.runoffReductionPp.toFixed(1)}pp` }]}
+          numbers={[{ k: "reduction vs today", v: `−${_o.runoffReductionPp.toFixed(1)}%` }]}
           insight="Effect builds from week 3 once customers act on the offer."
           accent="var(--acc,#ffb15a)"
         />
@@ -747,10 +747,10 @@ export default function RetentionIfWhatView() {
           steady={_o.ddRecoveryPp / 8}
           baselinePerWk={0}
           progress={1}
-          format={(n) => `${n.toFixed(2)}pp`}
+          format={(n) => `${n.toFixed(2)}%`}
           rampWeeks={4}
           seed={23}
-          numbers={[{ k: "8-wk total", v: `+${_o.ddRecoveryPp}pp` }]}
+          numbers={[{ k: "8-wk total", v: `+${_o.ddRecoveryPp}%` }]}
           insight="Lags the offer by ~3 weeks."
           accent="var(--violet,#b794f6)"
         />
@@ -824,8 +824,8 @@ export default function RetentionIfWhatView() {
                       </div>
                       <div className="iw-rank-hero-v">
                         {objective === "retained_deposits" ? `+$${rec.outcomes.retainedM.toFixed(1)}M`
-                         : objective === "runoff_reduction" ? `−${rec.outcomes.runoffReductionPp.toFixed(2)}pp`
-                         : `+${rec.outcomes.ddRecoveryPp}pp`}
+                         : objective === "runoff_reduction" ? `−${rec.outcomes.runoffReductionPp.toFixed(2)}%`
+                         : `+${rec.outcomes.ddRecoveryPp}%`}
                         <span className="iw-rank-kpi-est">est.</span>
                       </div>
                     </div>
