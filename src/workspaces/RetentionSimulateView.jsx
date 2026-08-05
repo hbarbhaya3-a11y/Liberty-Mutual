@@ -1350,6 +1350,7 @@ function ResultsReveal({ results, onReRun, onStage }) {
     { label: "NWP impact", value: `+$${o.retainedM.toFixed(1)}M`, baseline: "$0" },
     { label: "CLV impact", value: `+$${(o.retainedM * 2.5).toFixed(1)}M`, baseline: "$0" },
     { label: "Policies retained", value: `${Math.round(o.treatmentN * (o.runoffBau - o.runoffWithPolicy)).toLocaleString()}`, baseline: "0" },
+    { label: "At-risk retained", value: `${(o.treatmentN * (o.runoffBau - o.runoffWithPolicy) / o.cohortTotal * 100).toFixed(1)}%`, baseline: "0%" },
     { label: "% renewals lapsing", value: `${(o.runoffWithPolicy * 100).toFixed(1)}%`, baseline: `${(o.runoffBau * 100).toFixed(1)}%` },
     { label: "Bundle penetration", value: `+${o.ddRecoveryPp}pp`, baseline: "0pp" },
   ];
