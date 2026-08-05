@@ -228,6 +228,7 @@ html.theme-light .aw-btn.primary { color: #ffffff; }
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 10px;
+  align-items: start;
 }
 @media (max-width: 920px) {
   .reason-list { grid-template-columns: 1fr; }
