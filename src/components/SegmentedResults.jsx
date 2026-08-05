@@ -200,7 +200,7 @@ export default function SegmentedResults({
                       <span className="seg-td seg-col-num seg-offer"><span className="seg-offer-bps">{r.convPct.toFixed(1)}%</span></span>
                     ) : (
                       <>
-                        {!hideRateCap && <span className="seg-td seg-col-num seg-offer">{r.noRate ? "—" : <span className="seg-offer-bps" style={{ color: "var(--green)" }}>{r.productId === "cd_6mo" ? (r.rate || (r.rateBps ? `−${r.rateBps} bps` : "—")) : (r.dollarOff ? `−$${r.dollarOff}` : "—")}</span>}</span>}
+                        {!hideRateCap && <span className="seg-td seg-col-num seg-offer">{r.noRate ? "—" : <span className="seg-offer-bps" style={{ color: "var(--green)" }}>{r.productId === "cd_6mo" ? (r.rate || (r.rateBps ? `${r.rateBps} bps` : "—")) : (r.dollarOff ? `$${r.dollarOff}` : "—")}</span>}</span>}
                         <span className="seg-td seg-col-num seg-offer">{r.noRate ? "—" : <span className="seg-offer-apy">{r.productId === "cd_6mo" ? (r.rate ? r.rate : ((r.marketRate != null ? r.marketRate : (anchorRate || 4.75)) - (r.rateBps || 0) / 100).toFixed(2) + "%") : "—"}</span>}</span>
                       </>
                     )}

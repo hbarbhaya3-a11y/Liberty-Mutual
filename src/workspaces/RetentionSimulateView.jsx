@@ -988,9 +988,9 @@ export default function RetentionSimulateView() {
                           value={bps}
                           onChange={(e) => setProductOffer(p.id, +e.target.value)}
                           disabled={isAutopilot}
-                          formatter={(v) => p.id === "cd_6mo" ? `−${v} bps capped rate` : `−$${dollarOff(v)} off`} />
+                          formatter={(v) => p.id === "cd_6mo" ? `${v} bps capped rate` : `$${dollarOff(v)} off`} />
                         <div className="px-offer-eff">
-                          <span className="rate-ref-item"><span className="rate-ref-l">discount</span><span className="rate-ref-v" style={{ color: "var(--green)", fontWeight: 700 }}>{p.id === "cd_6mo" ? `−${bps} bps off renewal rate` : `−$${dollarOff(bps)} off premium`}</span></span>
+                          <span className="rate-ref-item"><span className="rate-ref-l">discount</span><span className="rate-ref-v" style={{ color: "var(--green)", fontWeight: 700 }}>{p.id === "cd_6mo" ? `${bps} bps off renewal rate` : `$${dollarOff(bps)} off premium`}</span></span>
                         </div>
                         {p.id === "smart_savings" && (
                           <div className="px-offer-qual" style={{ marginTop: 10, paddingTop: 10, borderTop: "1px dashed var(--hair)" }}>
@@ -1092,7 +1092,7 @@ export default function RetentionSimulateView() {
 
           <LeverRow
             label="Bundle plays &amp; contingent discount ranges"
-            caption="Cross-line offers that turn a single-line renewal into a multi-line household. Set the contingent discount range (bps) for each allowed bundle play."
+            caption="Cross-line offers that turn a single-line renewal into a multi-line household. Set the contingent discount range (%) for each allowed bundle play."
             value={Object.keys(bundleOffers).length === 0 ? "none selected" : `${Object.keys(bundleOffers).length} of ${BUNDLE_OPTIONS.length}`}
             offDefault={Object.keys(bundleOffers).length === 0}
           >
@@ -1109,11 +1109,11 @@ export default function RetentionSimulateView() {
                     <div style={{ fontSize: 11.5, color: "var(--ink-3)", marginTop: 2, marginLeft: 24 }}>{b.sub}</div>
                     {sel && (
                       <div className="px-offer-body" style={{ marginTop: 8, marginLeft: 24 }}>
-                        <DualRange min={0} max={80} step={5} unit=" bps"
+                        <DualRange min={0} max={80} step={5} unit="%"
                           low={rng[0]} high={rng[1]}
                           onChange={({ low, high }) => setBundleRange(b.id, low, high)} />
                         <div className="px-offer-eff" style={{ fontSize: 11, color: "var(--ink-2)", marginTop: 4 }}>
-                          <span className="rate-ref-item"><span className="rate-ref-l">contingent discount range: </span><b>{rng[0]}–{rng[1]} bps</b></span>
+                          <span className="rate-ref-item"><span className="rate-ref-l">contingent discount range: </span><b>{rng[0]}–{rng[1]}%</b></span>
                         </div>
                       </div>
                     )}
@@ -1357,7 +1357,6 @@ function ResultsReveal({ results, onReRun, onStage }) {
     { label: "Policies retained", value: `${Math.round(o.treatmentN * (o.runoffBau - o.runoffWithPolicy)).toLocaleString()}`, baseline: "0" },
     { label: "At-risk retained", value: `${(o.treatmentN * (o.runoffBau - o.runoffWithPolicy) / o.cohortTotal * 100).toFixed(1)}%`, baseline: "0%" },
     { label: "% renewals lapsing", value: `${(o.runoffWithPolicy * 100).toFixed(1)}%`, baseline: `${(o.runoffBau * 100).toFixed(1)}%` },
-    { label: "Bundle penetration", value: `+${o.ddRecoveryPp}pp`, baseline: "0pp" },
   ];
 
   // Policy band (the levers that produced this) — shown atop the Aggregate tab.
