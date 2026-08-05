@@ -720,7 +720,7 @@ export default function RetentionIfWhatView() {
       { k: "Treated", v: `${(_seg ? _seg.rollup.reach : 0).toLocaleString()} customers` },
     ] : [];
     const _chartsGrid = selected ? (
-      <div className="sim-result-grid">
+      <div className="sim-result-grid" style={{ gridTemplateColumns: "repeat(3, 1fr)" }}>
         <ResultTileNII
           outcomes={{ NII_8wk_M: _o.retainedM }}
           progress={1}

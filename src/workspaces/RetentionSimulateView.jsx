@@ -1385,7 +1385,7 @@ function ResultsReveal({ results, onReRun, onStage }) {
   ];
 
   const chartsGrid = (
-    <div className="sim-result-grid">
+    <div className="sim-result-grid" style={{ gridTemplateColumns: "repeat(3, 1fr)" }}>
       <ResultTileNII
         outcomes={tileOutcomes}
         progress={progress}
