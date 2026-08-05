@@ -1128,11 +1128,11 @@ export default function RetentionIfWhatView() {
                     </label>
                     {sel && (
                       <div className="px-offer-body">
-                        <DualRange min={0} max={80} step={5} unit=" bps"
+                        <DualRange min={0} max={80} step={5} unit=""
                           low={rng[0]} high={rng[1]}
                           onChange={({ low, high }) => setProductRange(p.id, low, high)} />
                         <div className="px-offer-eff">
-                          <span className="rate-ref-item"><span className="rate-ref-l">discount</span><span className="rate-ref-v" style={{ color: "var(--green)", fontWeight: 700 }}>{p.id === "cd_6mo" ? `${rng[0]}–${rng[1]} bps off renewal rate` : `$${dollarOff(rng[0])}–$${dollarOff(rng[1])} off premium`}</span></span>
+                          <span className="rate-ref-item"><span className="rate-ref-l">discount</span><span className="rate-ref-v" style={{ color: "var(--green)", fontWeight: 700 }}>{p.id === "cd_6mo" ? "— (renewal rate capped)" : `$${dollarOff(rng[0])}–$${dollarOff(rng[1])} off premium`}</span></span>
                         </div>
                         {p.id === "smart_savings" && (
                           <div className="px-offer-qual" style={{ marginTop: 10, paddingTop: 10, borderTop: "1px dashed var(--hair)" }}>
