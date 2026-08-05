@@ -50,7 +50,7 @@ export default function SegmentedResults({
   };
 
   return (
-    <div className="seg-results" style={{ "--seg-acc": accent }}>
+    <div className={"seg-results" + (singleView ? " seg-single" : "")} style={{ "--seg-acc": accent }}>
       {/* 0 · Objective — ties the result back to the optimized input */}
       {objective && (
         <div className="seg-obj">
