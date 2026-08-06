@@ -484,12 +484,13 @@ function LeadWizard({ onBack, uploaded = [] }) {
   const [ciAcc] = useAccount();          // account context for the embedded Quote & Negotiation views
   const [step, setStep] = useState(1);
   const [running, setRunning] = useState(false);
+  const [sent, setSent] = useState(false);
   const [leadId, setLeadId] = useState(() => {
     try { return localStorage.getItem(LEAD_KEY) || LEADS[0].id; } catch { return LEADS[0].id; }
   });
   const allLeads = [...uploaded, ...LEADS];
   const LEAD = allLeads.find((r) => r.id === leadId) || allLeads[0];
-  const pickLead = (v) => { setLeadId(v); setStep(1); try { localStorage.setItem(LEAD_KEY, v); } catch { /* ignore */ } };
+  const pickLead = (v) => { setLeadId(v); setStep(1); setSent(false); try { localStorage.setItem(LEAD_KEY, v); } catch { /* ignore */ } };
   const rfp = rfpDetail(LEAD);
   const [rfpTab, setRfpTab] = useState(0);
   // goal + levers
@@ -842,6 +843,35 @@ function LeadWizard({ onBack, uploaded = [] }) {
 
           <div className="ci-cta">
             <button className="ci-btn ghost" onClick={() => setStep(3)}>← Quote & Intelligence</button>
+            {sent ? (
+              <span className="sr-sent">✓ Final quote sent to {LEAD.source.split(" — ")[0]}</span>
+            ) : (
+              <button className="ci-btn ci-btn-ok" onClick={() => {
+                downloadDummy(
+                  slug(LEAD.account) + "_Final_Quote.pdf",
+`FINAL QUOTE — ${LEAD.account}
+${LEAD.industry} · Class ${LEAD.classCode} · ${LEAD.state}
+Lines: ${LEAD.lines}
+Broker: ${LEAD.source.split(" — ")[0]}
+
+STRUCTURE
+  Quote:            ${price >= 0 ? "+" : ""}${price.toFixed(1)}% vs filed
+  Offer:            ${OFFERS.find((o) => o.id === offer)?.label}${nonprice.length ? " · " + nonprice.map((id) => NONPRICE.find((n) => n.id === id).label).join(" + ") : ""}
+  Packaging:        ${PACKAGING.find((p) => p.id === pkg)?.label} · $${ded}K deductible
+  Est. premium:     ${money(LEAD.estPremium)}
+  Bind probability: ${bind.toFixed(0)}%
+  NWP won:          ${money(nwpWon)}
+  Margin:           ${margin.toFixed(1)}%
+  Rate adequacy:    ${adequate ? "adequate" : "under floor"}
+
+Guardrails: rate-adequacy floor · loss-ratio limit · NAIC 24-08 fair-pricing
+Sent to broker for binding.
+
+(Illustrative dummy document.)`
+                );
+                setSent(true);
+              }}>Send final quote →</button>
+            )}
           </div>
         </>
       )}
