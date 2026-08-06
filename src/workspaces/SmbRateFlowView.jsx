@@ -12,6 +12,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import RangeWithBubble from "@/components/RangeWithBubble";
+import { QuoteView, NegotiationView, useAccount } from "@/workspaces/CommercialIntelWorkspace";
 import "@/styles/commercial-intel.css";
 import "@/styles/ifwhat.css";
 
@@ -480,6 +481,7 @@ function makePdf(title, textLines) {
 
 function LeadWizard({ onBack, uploaded = [] }) {
   const nav = useNavigate();
+  const [ciAcc] = useAccount();          // account context for the embedded Quote & Negotiation views
   const [step, setStep] = useState(1);
   const [running, setRunning] = useState(false);
   const [leadId, setLeadId] = useState(() => {
@@ -807,13 +809,10 @@ function LeadWizard({ onBack, uploaded = [] }) {
             </div>
           </section>
 
-          <section className="ci-panel">
-            <h3>Open the Quote &amp; Price workbench</h3>
-            <p className="ci-sub">Take this lead into the full account view — multi-scenario quotes, win-probability, expected value, the Sensitivity Lab, elasticity and competitor-reaction.</p>
-            <div className="ci-cta">
-              <button className="ci-btn" onClick={() => nav("/?seed_route=quoteintel")}>Open Quote &amp; Price →</button>
-            </div>
-          </section>
+          <div className="ci-embed">
+            <h3 className="ci-embed-h">Quote &amp; Price workbench</h3>
+            <QuoteView acc={ciAcc} nav={nav} />
+          </div>
 
           <div className="ci-cta">
             <button className="ci-btn ghost" onClick={() => setStep(2)}>← Goals, Guardrails & Levers</button>
@@ -836,13 +835,10 @@ function LeadWizard({ onBack, uploaded = [] }) {
             </ul>
           </section>
 
-          <section className="ci-panel">
-            <h3>Open the Negotiation workbench</h3>
-            <p className="ci-sub">Broker playbook, concession optimizer and alternative structures — priced to bind without breaking adequacy.</p>
-            <div className="ci-cta">
-              <button className="ci-btn" onClick={() => nav("/?seed_route=negotiation")}>Open Negotiation →</button>
-            </div>
-          </section>
+          <div className="ci-embed">
+            <h3 className="ci-embed-h">Negotiation workbench</h3>
+            <NegotiationView acc={ciAcc} nav={nav} />
+          </div>
 
           <div className="ci-cta">
             <button className="ci-btn ghost" onClick={() => setStep(3)}>← Quote & Intelligence</button>

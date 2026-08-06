@@ -401,7 +401,7 @@ function ConcessionChart({ ladder }) {
 }
 
 /* ---- shared account state via localStorage ---- */
-function useAccount() {
+export function useAccount() {
   const [id, setId] = useState(() => {
     try { return localStorage.getItem(ACC_KEY) || ACCOUNTS[0].id; } catch { return ACCOUNTS[0].id; }
   });
@@ -569,7 +569,7 @@ function AuditTrail() {
   );
 }
 
-function QuoteView({ acc, nav }) {
+export function QuoteView({ acc, nav }) {
   const winner = acc.quotes.find((q) => q.rec);
   const scatter = acc.quotes.map((q) => ({ x: q.win, y: q.margin, label: q.label.split("-")[0].split(" ")[0], rec: q.rec }));
   const portBars = acc.quotes.map((q) => ({ k: q.label.split(" ")[0], v: q.prem, c: q.rec ? ACC : "var(--acq)" }));
@@ -740,7 +740,7 @@ function QuoteView({ acc, nav }) {
 }
 
 /* ---------- 3 · NEGOTIATION INTELLIGENCE ---------- */
-function NegotiationView({ acc, nav }) {
+export function NegotiationView({ acc, nav }) {
   const n = acc.negotiation;
   const winner = acc.quotes.find((q) => q.rec);
   const endMargin = n.bridge.start + n.bridge.steps.reduce((s, x) => s + x.d, 0);

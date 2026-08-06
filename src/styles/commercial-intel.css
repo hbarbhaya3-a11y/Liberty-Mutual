@@ -376,3 +376,8 @@
 
 /* Compact, centered radar — keep it from filling the whole half-panel */
 .ci-radar { max-width: 300px; margin: 4px auto 0; }
+
+/* Embedded Quote & Price / Negotiation workbench inside the lead wizard */
+.ci-embed { border: 1px solid var(--hair); border-radius: 12px; padding: 6px 14px 14px; margin-bottom: 14px; background: var(--bg-2); }
+.ci-embed-h { font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: var(--ink-3);
+  font-weight: 700; margin: 12px 4px 8px; }
