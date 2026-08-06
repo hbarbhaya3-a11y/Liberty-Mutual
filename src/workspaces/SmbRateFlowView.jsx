@@ -3,11 +3,11 @@
    Guided lead/RFP-level new-business simulation wizard.
 
    Flow (3 steps + running interstitial):
-     1. Signal Details    — lead, competitor pitch intel, TwinX lead insights
+     1. Lead details      — lead, competitor pitch intel, TwinX lead insights
      2. Goals, Guardrails & Levers — objective + guardrails + full lever set
      ⟳  Simulating…       — running/loading interstitial (as in the normal flow)
-     3. Intelligence      — simulation results + recommendation + the
-                            account-intelligence flow (Quote & Price → Negotiation)
+     3. Quote & Intelligence — simulation results + recommendation + Quote & Price
+     4. Negotiation       — prepared position + Negotiation workbench
    ========================================================================= */
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -122,7 +122,7 @@ function interp(anchors, x) {
 }
 
 function Steps({ step, setStep }) {
-  const labels = ["Signal Details", "Goals, Guardrails & Levers", "Intelligence"];
+  const labels = ["Lead details", "Goals, Guardrails & Levers", "Quote & Intelligence", "Negotiation"];
   return (
     <div className="ci-flow">
       {labels.map((l, i) => (
@@ -551,11 +551,11 @@ function LeadWizard({ onBack, uploaded = [] }) {
       {/* RUNNING INTERSTITIAL */}
       {running && <RunLoader />}
 
-      {/* STEP 1 · SIGNAL DETAILS (the lead) */}
+      {/* STEP 1 · LEAD DETAILS */}
       {!running && step === 1 && (
         <>
           <section className="ci-panel">
-            <h3>Signal · why this lead surfaced</h3>
+            <h3>Lead · why this lead surfaced</h3>
             <p className="ci-sub">{LEAD.signal}</p>
             <ul className="ci-kv">
               <li><b>Lead</b><span>{LEAD.account} · {LEAD.industry}</span></li>
@@ -759,7 +759,7 @@ function LeadWizard({ onBack, uploaded = [] }) {
         </>
       )}
 
-      {/* STEP 3 · INTELLIGENCE — results + recommendation + 3 workbenches */}
+      {/* STEP 3 · QUOTE & INTELLIGENCE — results + recommendation + quote/price */}
       {!running && step === 3 && (
         <>
           <div className="ci-grid2">
@@ -808,15 +808,44 @@ function LeadWizard({ onBack, uploaded = [] }) {
           </section>
 
           <section className="ci-panel">
-            <h3>Take this lead into account intelligence</h3>
-            <p className="ci-sub">Price the account and prepare the broker negotiation — scenarios, win-probability, expected value, the Sensitivity Lab, elasticity and competitor-reaction, then the negotiation playbook.</p>
+            <h3>Open the Quote &amp; Price workbench</h3>
+            <p className="ci-sub">Take this lead into the full account view — multi-scenario quotes, win-probability, expected value, the Sensitivity Lab, elasticity and competitor-reaction.</p>
             <div className="ci-cta">
-              <button className="ci-btn" onClick={() => nav("/?seed_route=quoteintel")}>Open account intelligence →</button>
+              <button className="ci-btn" onClick={() => nav("/?seed_route=quoteintel")}>Open Quote &amp; Price →</button>
             </div>
           </section>
 
           <div className="ci-cta">
             <button className="ci-btn ghost" onClick={() => setStep(2)}>← Goals, Guardrails & Levers</button>
+            <button className="ci-btn" onClick={() => setStep(4)}>Prepare negotiation →</button>
+          </div>
+        </>
+      )}
+
+      {/* STEP 4 · NEGOTIATION — prepared position + open negotiation workbench */}
+      {!running && step === 4 && (
+        <>
+          <section className="ci-panel">
+            <h3>Negotiation readiness</h3>
+            <p className="ci-sub">Prepared position for the broker conversation on {LEAD.account}</p>
+            <ul className="ci-kv">
+              <li><b>Recommended quote</b><span>Quote {price >= 0 ? "+" : ""}{price.toFixed(1)}% vs filed · bind {bind.toFixed(0)}% · {money(nwpWon)} NWP · margin {margin.toFixed(1)}%</span></li>
+              <li><b>Competitor pitch</b><span>{LEAD.competitor.n} at {money(LEAD.competitor.offer)}</span></li>
+              <li><b>Walk-away</b><span>rate-adequacy floor — hold above the indicated +{LEAD.indicated}% vs filed</span></li>
+              <li><b>Non-price levers</b><span>risk-control services · safety / loss-prevention program · multi-year rate lock</span></li>
+            </ul>
+          </section>
+
+          <section className="ci-panel">
+            <h3>Open the Negotiation workbench</h3>
+            <p className="ci-sub">Broker playbook, concession optimizer and alternative structures — priced to bind without breaking adequacy.</p>
+            <div className="ci-cta">
+              <button className="ci-btn" onClick={() => nav("/?seed_route=negotiation")}>Open Negotiation →</button>
+            </div>
+          </section>
+
+          <div className="ci-cta">
+            <button className="ci-btn ghost" onClick={() => setStep(3)}>← Quote & Intelligence</button>
           </div>
         </>
       )}
