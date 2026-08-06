@@ -809,18 +809,9 @@ function LeadWizard({ onBack, uploaded = [] }) {
 
           <section className="ci-panel">
             <h3>Take this lead into account intelligence</h3>
-            <p className="ci-sub">Price the account, then prepare the broker negotiation</p>
-            <div className="ci-grid2">
-              <div className="ci-intel-card">
-                <h4>1 · Quote &amp; Price</h4>
-                <p>Multi-scenario quotes with win probability, expected value and margin, the Sensitivity Lab (bind + expected value), 5-dimensional elasticity and competitor-reaction.</p>
-                <button className="ci-btn" onClick={() => nav("/?seed_route=quoteintel")}>Open →</button>
-              </div>
-              <div className="ci-intel-card">
-                <h4>2 · Negotiation</h4>
-                <p>Broker playbook, concession optimizer and alternative structures — priced to bind without breaking adequacy.</p>
-                <button className="ci-btn" onClick={() => nav("/?seed_route=negotiation")}>Open →</button>
-              </div>
+            <p className="ci-sub">Price the account and prepare the broker negotiation — scenarios, win-probability, expected value, the Sensitivity Lab, elasticity and competitor-reaction, then the negotiation playbook.</p>
+            <div className="ci-cta">
+              <button className="ci-btn" onClick={() => nav("/?seed_route=quoteintel")}>Open account intelligence →</button>
             </div>
           </section>
 
