@@ -82,10 +82,8 @@ export const NAV = [
 export const ACCOUNT_INTEL = [
   { id: "book", iconName: "sense", verb: "Book Cockpit", sub: "Portfolio P&L + pipeline",
     path: "/?seed_route=book", match: (l) => l.search.includes("seed_route=book") },
-  { id: "quoteintel", iconName: "hypothesize", verb: "Quote Intel", sub: "Multi-scenario quotes",
-    path: "/?seed_route=quoteintel", match: (l) => l.search.includes("seed_route=quoteintel") },
-  { id: "elasticity", iconName: "test", verb: "Elasticity & Win-Prob", sub: "Price vs the market",
-    path: "/?seed_route=elasticity", match: (l) => l.search.includes("seed_route=elasticity") },
+  { id: "quoteintel", iconName: "hypothesize", verb: "Quote & Price", sub: "Scenarios + win-prob + elasticity",
+    path: "/?seed_route=quoteintel", match: (l) => l.search.includes("seed_route=quoteintel") || l.search.includes("seed_route=elasticity") },
   { id: "negotiation", iconName: "deploy", verb: "Negotiation Intel", sub: "Playbook + concessions",
     path: "/?seed_route=negotiation", match: (l) => l.search.includes("seed_route=negotiation") },
 ];
