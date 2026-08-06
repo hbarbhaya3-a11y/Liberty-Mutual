@@ -569,7 +569,7 @@ function AuditTrail() {
   );
 }
 
-export function QuoteView({ acc, nav }) {
+export function QuoteView({ acc, nav, embedded }) {
   const winner = acc.quotes.find((q) => q.rec);
   const scatter = acc.quotes.map((q) => ({ x: q.win, y: q.margin, label: q.label.split("-")[0].split(" ")[0], rec: q.rec }));
   const portBars = acc.quotes.map((q) => ({ k: q.label.split(" ")[0], v: q.prem, c: q.rec ? ACC : "var(--acq)" }));
@@ -731,16 +731,18 @@ export function QuoteView({ acc, nav }) {
       <ReadinessPanel winner={winner} acc={acc} />
       <AuditTrail />
 
-      <div className="ci-cta">
-        <button className="ci-btn ghost" onClick={() => go(nav, "book")}>← Book</button>
-        <button className="ci-btn" onClick={() => go(nav, "negotiation")}>Prepare negotiation →</button>
-      </div>
+      {!embedded && (
+        <div className="ci-cta">
+          <button className="ci-btn ghost" onClick={() => go(nav, "book")}>← Book</button>
+          <button className="ci-btn" onClick={() => go(nav, "negotiation")}>Prepare negotiation →</button>
+        </div>
+      )}
     </>
   );
 }
 
 /* ---------- 3 · NEGOTIATION INTELLIGENCE ---------- */
-export function NegotiationView({ acc, nav }) {
+export function NegotiationView({ acc, nav, embedded }) {
   const n = acc.negotiation;
   const winner = acc.quotes.find((q) => q.rec);
   const endMargin = n.bridge.start + n.bridge.steps.reduce((s, x) => s + x.d, 0);
@@ -842,9 +844,11 @@ Guardrails: rate-adequacy floor · loss-ratio limit · NAIC 24-08 fair-pricing
 
       <AuditTrail />
 
-      <div className="ci-cta">
-        <button className="ci-btn ghost" onClick={() => go(nav, "quoteintel")}>← Quote & Price</button>
-      </div>
+      {!embedded && (
+        <div className="ci-cta">
+          <button className="ci-btn ghost" onClick={() => go(nav, "quoteintel")}>← Quote & Price</button>
+        </div>
+      )}
     </>
   );
 }
