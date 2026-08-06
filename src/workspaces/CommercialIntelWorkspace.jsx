@@ -430,7 +430,7 @@ function AccountBar({ acc, onPick }) {
 }
 
 function FlowNav({ view, nav }) {
-  const steps = [["book", "Book"], ["quoteintel", "Quote"], ["elasticity", "Elasticity & Win-Prob"], ["negotiation", "Negotiation"]];
+  const steps = [["book", "Book"], ["quoteintel", "Quote & Price"], ["negotiation", "Negotiation"]];
   return (
     <div className="ci-flow">
       {steps.map(([v, l], i) => (
@@ -640,59 +640,6 @@ function QuoteView({ acc, nav }) {
         </div>
       </section>
 
-      <section className="ci-panel">
-        <h3>Deal → book bridge</h3>
-        <p className="ci-sub">How the recommended quote earns its rate and what binding it does to the book</p>
-        <div className="ci-grid2">
-          <div className="ci-bridgebox">
-            <div className="ci-bridge-t">This deal · rate adequacy</div>
-            <ul className="ci-kv">
-              <li><b>Technical premium</b><span>{e.technicalPrem ? money(e.technicalPrem) : "—"}</span></li>
-              <li><b>Quoted premium</b><span>{money(winner.prem)}</span></li>
-              <li><b>Rate to technical</b><span style={{ color: gap >= 0 ? "var(--green)" : "var(--red)" }}>{gap == null ? "—" : (gap >= 0 ? "+" : "") + gap.toFixed(1) + "%"}</span></li>
-              <li><b>Expected value</b><span>{money(Math.round(evOf(winner)))} <i style={{ color: "var(--ink-3)" }}>(win% × margin$)</i></span></li>
-              <li><b>Cost to serve</b><span>{e.costToServe ? money(e.costToServe) : "—"} · {e.channel || "—"}</span></li>
-              <li><b>3-yr lifetime value</b><span>{e.ltv ? money(e.ltv.value) : "—"} <i style={{ color: "var(--ink-3)" }}>{e.ltv?.note}</i></span></li>
-              <li><b>Cross-line attach EV</b><span>{e.attach ? `${money(e.attach.ev)} @ ${Math.round(e.attach.prob * 100)}% · ${e.attach.line}` : "—"}</span></li>
-            </ul>
-          </div>
-          <div className="ci-bridgebox">
-            <div className="ci-bridge-t">Marginal book impact</div>
-            {acc.concentration && (
-              <div className="ci-conc-row">
-                <div className="ci-conc-h"><span>{acc.concentration.seg} concentration</span>
-                  <b>{acc.concentration.before}% → {acc.concentration.after}%</b><i>cap {acc.concentration.cap}%</i></div>
-                <div className="ci-conc-track">
-                  <span className="ci-conc-cap" style={{ left: `${(acc.concentration.cap / (acc.concentration.cap * 1.25)) * 100}%` }} />
-                  <i className="ci-conc-before" style={{ width: `${(acc.concentration.before / (acc.concentration.cap * 1.25)) * 100}%` }} />
-                  <i className="ci-conc-add" style={{ left: `${(acc.concentration.before / (acc.concentration.cap * 1.25)) * 100}%`, width: `${((acc.concentration.after - acc.concentration.before) / (acc.concentration.cap * 1.25)) * 100}%` }} />
-                </div>
-                <p className="ci-conc-note">{acc.concentration.after <= acc.concentration.cap ? "Within appetite cap — safe to add." : "Exceeds cap — refer / decline growth here."}</p>
-              </div>
-            )}
-            <ul className="ci-kv" style={{ marginTop: 12 }}>
-              <li><b>Blended loss ratio</b><span>{acc.blendedLR ? `${acc.blendedLR.before}% → ${acc.blendedLR.after}%` : "—"} <i style={{ color: "var(--ink-3)" }}>book {BOOK.lossRatio}% · target {BOOK.lossTarget}%</i></span></li>
-              <li><b>Combined ratio (deal)</b><span>{combined.toFixed(1)}% <i style={{ color: "var(--ink-3)" }}>loss {acc.projLR} + expense {e.expenseRatio}%</i></span></li>
-              <li><b>Contribution to plan</b><span>{money(winner.prem)} NWP toward the ${BOOK.nwpPlan.toFixed(1)}M quarter plan</span></li>
-            </ul>
-          </div>
-        </div>
-      </section>
-
-      <ReadinessPanel winner={winner} acc={acc} />
-      <AuditTrail />
-
-      <div className="ci-cta">
-        <button className="ci-btn" onClick={() => go(nav, "elasticity")}>Price it → Elasticity & Win-Probability</button>
-      </div>
-    </>
-  );
-}
-
-/* ---------- 2 · ELASTICITY & WIN PROBABILITY ---------- */
-function ElasticityView({ acc, nav }) {
-  return (
-    <>
       <div className="ci-grid2">
         <section className="ci-panel">
           <h3>Win probability · {acc.winScore}% <span className="ci-ci">{acc.winCI}</span></h3>
@@ -743,13 +690,49 @@ function ElasticityView({ acc, nav }) {
       )}
 
       <section className="ci-panel">
-        <h3>Competitive positioning</h3>
-        <BarRow data={acc.competitors.map((c) => ({ k: c.n, v: c.pv, c: "var(--acq)" }))} fmt={money} />
-        <p className="ci-pos">Liberty · <b>{acc.position}</b></p>
+        <h3>Deal → book bridge</h3>
+        <p className="ci-sub">How the recommended quote earns its rate and what binding it does to the book</p>
+        <div className="ci-grid2">
+          <div className="ci-bridgebox">
+            <div className="ci-bridge-t">This deal · rate adequacy</div>
+            <ul className="ci-kv">
+              <li><b>Technical premium</b><span>{e.technicalPrem ? money(e.technicalPrem) : "—"}</span></li>
+              <li><b>Quoted premium</b><span>{money(winner.prem)}</span></li>
+              <li><b>Rate to technical</b><span style={{ color: gap >= 0 ? "var(--green)" : "var(--red)" }}>{gap == null ? "—" : (gap >= 0 ? "+" : "") + gap.toFixed(1) + "%"}</span></li>
+              <li><b>Expected value</b><span>{money(Math.round(evOf(winner)))} <i style={{ color: "var(--ink-3)" }}>(win% × margin$)</i></span></li>
+              <li><b>Cost to serve</b><span>{e.costToServe ? money(e.costToServe) : "—"} · {e.channel || "—"}</span></li>
+              <li><b>3-yr lifetime value</b><span>{e.ltv ? money(e.ltv.value) : "—"} <i style={{ color: "var(--ink-3)" }}>{e.ltv?.note}</i></span></li>
+              <li><b>Cross-line attach EV</b><span>{e.attach ? `${money(e.attach.ev)} @ ${Math.round(e.attach.prob * 100)}% · ${e.attach.line}` : "—"}</span></li>
+            </ul>
+          </div>
+          <div className="ci-bridgebox">
+            <div className="ci-bridge-t">Marginal book impact</div>
+            {acc.concentration && (
+              <div className="ci-conc-row">
+                <div className="ci-conc-h"><span>{acc.concentration.seg} concentration</span>
+                  <b>{acc.concentration.before}% → {acc.concentration.after}%</b><i>cap {acc.concentration.cap}%</i></div>
+                <div className="ci-conc-track">
+                  <span className="ci-conc-cap" style={{ left: `${(acc.concentration.cap / (acc.concentration.cap * 1.25)) * 100}%` }} />
+                  <i className="ci-conc-before" style={{ width: `${(acc.concentration.before / (acc.concentration.cap * 1.25)) * 100}%` }} />
+                  <i className="ci-conc-add" style={{ left: `${(acc.concentration.before / (acc.concentration.cap * 1.25)) * 100}%`, width: `${((acc.concentration.after - acc.concentration.before) / (acc.concentration.cap * 1.25)) * 100}%` }} />
+                </div>
+                <p className="ci-conc-note">{acc.concentration.after <= acc.concentration.cap ? "Within appetite cap — safe to add." : "Exceeds cap — refer / decline growth here."}</p>
+              </div>
+            )}
+            <ul className="ci-kv" style={{ marginTop: 12 }}>
+              <li><b>Blended loss ratio</b><span>{acc.blendedLR ? `${acc.blendedLR.before}% → ${acc.blendedLR.after}%` : "—"} <i style={{ color: "var(--ink-3)" }}>book {BOOK.lossRatio}% · target {BOOK.lossTarget}%</i></span></li>
+              <li><b>Combined ratio (deal)</b><span>{combined.toFixed(1)}% <i style={{ color: "var(--ink-3)" }}>loss {acc.projLR} + expense {e.expenseRatio}%</i></span></li>
+              <li><b>Contribution to plan</b><span>{money(winner.prem)} NWP toward the ${BOOK.nwpPlan.toFixed(1)}M quarter plan</span></li>
+            </ul>
+          </div>
+        </div>
       </section>
 
+      <ReadinessPanel winner={winner} acc={acc} />
+      <AuditTrail />
+
       <div className="ci-cta">
-        <button className="ci-btn ghost" onClick={() => go(nav, "quoteintel")}>← Quote</button>
+        <button className="ci-btn ghost" onClick={() => go(nav, "book")}>← Book</button>
         <button className="ci-btn" onClick={() => go(nav, "negotiation")}>Prepare negotiation →</button>
       </div>
     </>
@@ -802,7 +785,11 @@ Guardrails: rate-adequacy floor · loss-ratio limit · NAIC 24-08 fair-pricing
           <h3>Broker negotiation context</h3>
           <ul className="ci-kv">
             <li><b>Broker</b><span>{acc.broker.name} · {acc.broker.tier} · bind {acc.broker.bindRate}</span></li>
+            <li><b>Book quality</b><span>{acc.broker.book}</span></li>
             <li><b>Flexibility</b><span>{n.flex}</span></li>
+            <li><b>Opening</b><span>{n.opening}</span></li>
+            <li><b>Anticipated counter</b><span>{n.counter}</span></li>
+            <li><b>Non-price levers</b><span>{n.nonprice.join(" · ")}</span></li>
             <li><b>Walk-away</b><span>{money(n.walkaway)} — rate-adequacy floor</span></li>
           </ul>
         </section>
@@ -856,7 +843,7 @@ Guardrails: rate-adequacy floor · loss-ratio limit · NAIC 24-08 fair-pricing
       <AuditTrail />
 
       <div className="ci-cta">
-        <button className="ci-btn ghost" onClick={() => go(nav, "elasticity")}>← Elasticity & Win-Prob</button>
+        <button className="ci-btn ghost" onClick={() => go(nav, "quoteintel")}>← Quote & Price</button>
       </div>
     </>
   );
@@ -986,8 +973,8 @@ function BookCockpit({ onOpen }) {
 
 const TITLES = {
   book: ["Book Cockpit", "Portfolio P&L · pipeline, mix, concentration and the learn loop"],
-  quoteintel: ["Quote Intelligence", "Multi-scenario quote generation · account / RFP level"],
-  elasticity: ["Elasticity & Win Probability", "Sensitivity Lab · price the account against the market"],
+  quoteintel: ["Quote & Price", "Multi-scenario quotes · win-probability, elasticity and the sensitivity lab"],
+  elasticity: ["Quote & Price", "Multi-scenario quotes · win-probability, elasticity and the sensitivity lab"],
   negotiation: ["Negotiation Intelligence", "Playbook + concession strategy per broker"],
 };
 
@@ -1008,7 +995,6 @@ export default function CommercialIntelWorkspace({ view = "quoteintel" }) {
       </header>
       {view !== "book" && <AccountBar acc={acc} onPick={setAcc} />}
       {view === "book" ? <BookCockpit onOpen={(id) => { setAcc(id); go(nav, "quoteintel"); }} />
-        : view === "elasticity" ? <ElasticityView key={acc.id} acc={acc} nav={nav} />
         : view === "negotiation" ? <NegotiationView key={acc.id} acc={acc} nav={nav} />
         : <QuoteView key={acc.id} acc={acc} nav={nav} />}
     </div>
