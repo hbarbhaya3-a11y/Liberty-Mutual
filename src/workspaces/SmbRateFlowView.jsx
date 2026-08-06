@@ -811,7 +811,7 @@ function LeadWizard({ onBack, uploaded = [] }) {
 
           <div className="ci-embed">
             <h3 className="ci-embed-h">Quote &amp; Price workbench</h3>
-            <QuoteView acc={ciAcc} nav={nav} />
+            <QuoteView acc={ciAcc} nav={nav} embedded />
           </div>
 
           <div className="ci-cta">
@@ -837,7 +837,7 @@ function LeadWizard({ onBack, uploaded = [] }) {
 
           <div className="ci-embed">
             <h3 className="ci-embed-h">Negotiation workbench</h3>
-            <NegotiationView acc={ciAcc} nav={nav} />
+            <NegotiationView acc={ciAcc} nav={nav} embedded />
           </div>
 
           <div className="ci-cta">
