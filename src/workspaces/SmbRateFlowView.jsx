@@ -153,7 +153,7 @@ function accountFromLead(l, cfg) {
   });
   const quotes = [
     q("Baseline", `${l.lines} · filed rate`, 1.0, 14.8, Math.max(40, win - 12), false),
-    q("Recommended", `${l.lines} · onboarding credit`, 0.90, 11.6, win, true),
+    q("Price-to-win", `${l.lines} · onboarding credit`, 0.90, 11.6, win, true),
     q("Coverage-restructured", "+ enhanced limits", 1.04, 15.2, Math.max(35, win - 19), false),
     q("Bundle-contingent", "+ cross-line", 1.14, 17.4, Math.max(30, win - 26), false),
   ];
