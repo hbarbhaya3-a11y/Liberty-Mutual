@@ -4,7 +4,8 @@ import React from "react";
    DualRange — two-thumb min/max slider.
    Shared between If-What and What-If simulation workspaces.
 ---------------------------------------------------------------------------- */
-export default function DualRange({ min, max, step, low, high, onChange, unit = "", marker, markers }) {
+export default function DualRange({ min, max, step, low, high, onChange, unit = "", marker, markers, format }) {
+  const fmt = format || ((v) => `${v}${unit}`);
   low = Number(low); high = Number(high);
   const setLow = (v) => onChange({ low: Math.min(Number(v), high - step), high });
   const setHigh = (v) => onChange({ low, high: Math.max(Number(v), low + step) });
@@ -31,8 +32,8 @@ export default function DualRange({ min, max, step, low, high, onChange, unit = 
       ))}
       <div className="iw-dual-thumb iw-dual-thumb-low"  style={{ left: lowAt }} />
       <div className="iw-dual-thumb iw-dual-thumb-high" style={{ left: highAt }} />
-      <div className="iw-dual-bubble iw-dual-bubble-low"  style={{ left: lowAt }}>{low}{unit}</div>
-      <div className="iw-dual-bubble iw-dual-bubble-high" style={{ left: highAt }}>{high}{unit}</div>
+      <div className="iw-dual-bubble iw-dual-bubble-low"  style={{ left: lowAt }}>{fmt(low)}</div>
+      <div className="iw-dual-bubble iw-dual-bubble-high" style={{ left: highAt }}>{fmt(high)}</div>
       <input
         type="range" min={min} max={max} step={step} value={low}
         onChange={(e) => setLow(e.target.value)}
