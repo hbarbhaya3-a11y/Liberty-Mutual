@@ -98,6 +98,19 @@ export const ACCOUNTS = [
         { req: "Waive first-year fee", resp: "Offer safety credit instead", cost: "−0.4pp margin", win: "+3pp", port: "LR ↓ (safety)" },
       ],
       alts: ["Deductible-optimized ($10K)", "Bundle-contingent (WC + Auto)", "Multi-year (2-yr rate lock)"],
+      // Structured non-price levers — each recomputes the live simulator.
+      levers: [
+        { id: "ded",    label: "Deductible ↑ to $10K",  dMargin: 1.3,  dBind: 6, dLR: 0,    note: "Higher deductible funds the rate; retention holds" },
+        { id: "safety", label: "Fleet safety credit",   dMargin: -0.3, dBind: 4, dLR: -1.5, note: "Small margin cost, improves loss ratio" },
+        { id: "lock",   label: "Multi-year rate lock",  dMargin: 0.4,  dBind: 3, dLR: 0,    note: "Locks the account for two years" },
+        { id: "bind",   label: "Same-day bind + COI",   dMargin: 0,    dBind: 5, dLR: 0,    note: "Speed & certainty — what Lockton values most" },
+      ],
+      // Selectable strategies — each sets a target premium + preselected levers.
+      strategies: [
+        { id: "hold",  label: "Hold firm",       tagline: "Defend rate, win on non-price value", price: 18000, levers: ["bind", "lock"] },
+        { id: "match", label: "Match & recover", tagline: "Match biBERK, claw margin back via deductible + safety", price: 17400, levers: ["ded", "safety"], rec: true },
+        { id: "trade", label: "Trade to floor",  tagline: "Concede to the adequacy floor for the bind + cross-line", price: 16600, levers: ["ded", "safety", "bind"] },
+      ],
     },
   },
   {
@@ -162,6 +175,17 @@ export const ACCOUNTS = [
         { req: "Drop deductible", resp: "Hold — raises severity", cost: "n/a", win: "—", port: "reject (LR risk)" },
       ],
       alts: ["Coverage + safety ($139K)", "Deductible-optimized ($5K)", "Bundle (Inland Marine + Umbrella)"],
+      levers: [
+        { id: "ded",    label: "Deductible ↑ to $5K",     dMargin: 1.4,  dBind: 5, dLR: 0,    note: "Funds the rate on the fleet" },
+        { id: "tele",   label: "Telematics safety credit", dMargin: 0.6,  dBind: 6, dLR: -2.5, note: "Best loss-ratio lever for fleet CA" },
+        { id: "train",  label: "Driver-training credit",   dMargin: -0.2, dBind: 3, dLR: -1.5, note: "Improves frequency, small margin cost" },
+        { id: "bundle", label: "Bundle Inland Marine",     dMargin: 0.9,  dBind: 2, dLR: 0,    note: "Cross-line margin lift" },
+      ],
+      strategies: [
+        { id: "hold",  label: "Hold firm",       tagline: "Defend rate on the service + safety story", price: 145000, levers: ["tele"] },
+        { id: "match", label: "Match & recover", tagline: "Match Progressive, recover via deductible + telematics", price: 139000, levers: ["ded", "tele"], rec: true },
+        { id: "trade", label: "Trade to floor",  tagline: "Concede to the fleet-CA floor with a training credit", price: 134000, levers: ["ded", "train"] },
+      ],
     },
   },
 ];
@@ -373,33 +397,6 @@ function SensitivityLab({ e }) {
   );
 }
 
-/* dual-line concession chart: premium ↓ vs win% ↑ across the ladder */
-function ConcessionChart({ ladder }) {
-  const W = 540, H = 210, pad = 40;
-  const prems = ladder.map((l) => l.prem), wins = ladder.map((l) => l.win);
-  const p0 = Math.min(...prems) * 0.98, p1 = Math.max(...prems) * 1.02;
-  const sx = (i) => pad + (i / (ladder.length - 1)) * (W - pad - 40);
-  const syP = (v) => 14 + (1 - (v - p0) / (p1 - p0)) * (H - pad - 14);
-  const syW = (v) => 14 + (1 - v / 100) * (H - pad - 14);
-  const line = (f) => ladder.map((l, i) => `${i ? "L" : "M"}${sx(i)},${f(l).toFixed(1)}`).join(" ");
-  return (
-    <svg viewBox={`0 0 ${W} ${H}`} className="ci-svg">
-      <line x1={pad} y1={H - pad} x2={W - 40} y2={H - pad} stroke={AXIS} />
-      <path d={line((l) => syP(l.prem))} fill="none" stroke="var(--acq)" strokeWidth="2.5" />
-      <path d={line((l) => syW(l.win))} fill="none" stroke={ACC} strokeWidth="2.5" />
-      {ladder.map((l, i) => (
-        <g key={i}>
-          <circle cx={sx(i)} cy={syP(l.prem)} r="4" fill="var(--acq)" />
-          <circle cx={sx(i)} cy={syW(l.win)} r="4" fill={ACC} />
-          <text x={sx(i)} y={H - pad + 14} fontSize="8" fill={INK3} textAnchor="middle">{l.label}</text>
-        </g>
-      ))}
-      <text x={pad} y={12} fontSize="9" fill="var(--acq)">premium</text>
-      <text x={pad + 70} y={12} fontSize="9" fill={ACC}>win %</text>
-    </svg>
-  );
-}
-
 /* ---- shared account state via localStorage ---- */
 export function useAccount() {
   const [id, setId] = useState(() => {
@@ -579,12 +576,14 @@ export function QuoteView({ acc, nav, embedded }) {
   const gap = e.technicalPrem ? ((winner.prem - e.technicalPrem) / e.technicalPrem) * 100 : null;
   return (
     <>
-      <KpiRibbon cols={4} items={[
-        { label: "Win probability", value: winner.win + "%", icon: "↗", sub: "recommended structure", color: "var(--acc)" },
-        { label: "Expected value", value: money(Math.round(evOf(winner))), icon: "$", sub: "win% × margin$", color: "var(--green)" },
-        { label: "Margin", value: winner.margin + "%", icon: "%", sub: "on premium" },
-        { label: "Combined ratio", value: combined.toFixed(1) + "%", icon: "Σ", sub: `target < ${BOOK.combinedTarget}%`, color: combined < BOOK.combinedTarget ? "var(--green)" : "var(--ret)" },
-      ]} />
+      {!embedded && (
+        <KpiRibbon cols={4} items={[
+          { label: "Win probability", value: winner.win + "%", icon: "↗", sub: "recommended structure", color: "var(--acc)" },
+          { label: "Expected value", value: money(Math.round(evOf(winner))), icon: "$", sub: "win% × margin$", color: "var(--green)" },
+          { label: "Margin", value: winner.margin + "%", icon: "%", sub: "on premium" },
+          { label: "Combined ratio", value: combined.toFixed(1) + "%", icon: "Σ", sub: `target < ${BOOK.combinedTarget}%`, color: combined < BOOK.combinedTarget ? "var(--green)" : "var(--ret)" },
+        ]} />
+      )}
       <div className="ci-grid2">
         <section className="ci-panel">
           <h3>Account intelligence</h3>
@@ -661,13 +660,15 @@ export function QuoteView({ acc, nav, embedded }) {
         </section>
       </div>
 
-      <section className="ci-panel">
-        <h3>Sensitivity Lab · bind probability &amp; expected value vs premium</h3>
-        <p className="ci-sub">Drag the slider — live bind %, margin, and expected value (win% × margin$). Solid = bind probability; dashed green = expected value. Shaded band is the recommended zone within adequacy. Recommended price <b>{money(acc.elasticity.rec)}</b>.</p>
-        <SensitivityLab e={acc.elasticity} />
-      </section>
+      {!embedded && (
+        <section className="ci-panel">
+          <h3>Sensitivity Lab · bind probability &amp; expected value vs premium</h3>
+          <p className="ci-sub">Drag the slider — live bind %, margin, and expected value (win% × margin$). Solid = bind probability; dashed green = expected value. Shaded band is the recommended zone within adequacy. Recommended price <b>{money(acc.elasticity.rec)}</b>.</p>
+          <SensitivityLab e={acc.elasticity} />
+        </section>
+      )}
 
-      {acc.compReaction && (
+      {!embedded && acc.compReaction && (
         <section className="ci-panel">
           <h3>Competitor-reaction simulation · Market Twin</h3>
           <p className="ci-sub">What {acc.compReaction.competitor} likely does back if we move — the win probability shown is <i>after</i> their response.</p>
@@ -728,8 +729,8 @@ export function QuoteView({ acc, nav, embedded }) {
         </div>
       </section>
 
-      <ReadinessPanel winner={winner} acc={acc} />
-      <AuditTrail />
+      {!embedded && <ReadinessPanel winner={winner} acc={acc} />}
+      {!embedded && <AuditTrail />}
 
       {!embedded && (
         <div className="ci-cta">
@@ -737,6 +738,157 @@ export function QuoteView({ acc, nav, embedded }) {
           <button className="ci-btn" onClick={() => go(nav, "negotiation")}>Prepare negotiation →</button>
         </div>
       )}
+    </>
+  );
+}
+
+/* Interactive negotiation simulator — selectable strategies (#2) driving a
+   live concession model (#1). Premium slider + non-price lever chips recompute
+   bind %, margin, loss ratio, combined ratio, EV, and distance-to-walk-away
+   against the account's elasticity curve; a live margin bridge follows. */
+function NegotiationSimulator({ acc }) {
+  const n = acc.negotiation;
+  const el = acc.elasticity;
+  const lo = el.curve[0][0], hi = el.curve[el.curve.length - 1][0];
+  const baseLR = parseFloat(acc.projLR) || 0;
+  const expense = acc.econ?.expenseRatio || 0;
+  const openPrem = (n.ladder && n.ladder[0] && n.ladder[0].prem) || hi;
+  const marginAt = (p) => el.marginLo + ((el.marginHi - el.marginLo) * (p - lo)) / (hi - lo);
+  const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+
+  const levers = n.levers || [];
+  const strategies = n.strategies || [];
+  const rec = strategies.find((s) => s.rec) || strategies[0];
+
+  const [price, setPrice] = useState(rec ? rec.price : n.walkaway);
+  const [active, setActive] = useState(() => new Set(rec ? rec.levers : []));
+  const [stratId, setStratId] = useState(rec ? rec.id : null);
+
+  const applyStrategy = (s) => { setPrice(s.price); setActive(new Set(s.levers)); setStratId(s.id); };
+  const toggleLever = (id) => {
+    setActive((cur) => { const nx = new Set(cur); if (nx.has(id)) nx.delete(id); else nx.add(id); return nx; });
+    setStratId(null); // manual edit → custom configuration
+  };
+
+  const compute = (p, ids) => {
+    const ls = levers.filter((l) => ids.includes(l.id));
+    const dB = ls.reduce((a, l) => a + l.dBind, 0);
+    const dM = ls.reduce((a, l) => a + l.dMargin, 0);
+    const dL = ls.reduce((a, l) => a + l.dLR, 0);
+    const bind = clamp(bindAt(el.curve, p) + dB, 0, 100);
+    const margin = marginAt(p) + dM;
+    const lr = baseLR + dL;
+    return { bind, margin, lr, combined: lr + expense, ev: (bind / 100) * p * (margin / 100) };
+  };
+
+  const activeIds = [...active];
+  const cur = compute(price, activeIds);
+  const belowFloor = price < n.walkaway;
+  const distToFloor = price - n.walkaway;
+  const activeLevers = levers.filter((l) => active.has(l.id));
+
+  // live margin bridge: opening margin → rate move → each selected lever
+  const liveBridge = {
+    start: marginAt(openPrem),
+    steps: [
+      { k: `Rate to ${money(Math.round(price))}`, d: marginAt(price) - marginAt(openPrem) },
+      ...activeLevers.map((l) => ({ k: l.label, d: l.dMargin })),
+    ],
+  };
+
+  // bind-vs-price curve geometry
+  const W = 920, H = 240, pad = 44;
+  const sx = (x) => pad + ((x - lo) / (hi - lo)) * (W - pad - 16);
+  const sy = (y) => H - pad - (y / 100) * (H - pad - 16);
+  const d = el.curve.map((p, i) => `${i ? "L" : "M"}${sx(p[0]).toFixed(1)},${sy(p[1]).toFixed(1)}`).join(" ");
+  const mx = sx(price), my = sy(cur.bind);
+
+  const scatter = strategies.map((s) => {
+    const m = compute(s.price, s.levers);
+    return { x: Math.round(m.bind), y: +m.margin.toFixed(1), label: s.label.split(" ")[0], rec: s.rec };
+  });
+
+  return (
+    <>
+      <section className="ci-panel">
+        <h3>Negotiation strategies</h3>
+        <p className="ci-sub">Pick a posture — it sets a target premium and the non-price levers, then tune it live below</p>
+        <div className="neg-strats">
+          {strategies.map((s) => {
+            const m = compute(s.price, s.levers);
+            return (
+              <button key={s.id} type="button"
+                className={"ci-quote neg-strat" + (s.rec ? " rec" : "") + (stratId === s.id ? " is-active" : "")}
+                onClick={() => applyStrategy(s)}>
+                {s.rec && <span className="ci-badge">Recommended</span>}
+                <div className="ci-quote-h">{s.label}</div>
+                <div className="ci-quote-prem">{money(s.price)}</div>
+                <div className="neg-strat-tag">{s.tagline}</div>
+                <div className="neg-strat-m"><span>Bind <b>{m.bind.toFixed(0)}%</b></span><span>Margin <b>{m.margin.toFixed(1)}%</b></span><span>Comb <b>{m.combined.toFixed(0)}%</b></span></div>
+              </button>
+            );
+          })}
+        </div>
+        <div className="ci-grid2" style={{ marginTop: 14 }}>
+          <div className="ci-chartbox">
+            <h4>Bind probability × margin, by strategy</h4>
+            <Scatter points={scatter} xLab="bind probability %" yLab="margin %" />
+          </div>
+          <div className="ci-chartbox">
+            <h4>Margin bridge · live</h4>
+            <MarginBridge bridge={liveBridge} />
+          </div>
+        </div>
+      </section>
+
+      <section className="ci-panel">
+        <h3>Live concession simulator</h3>
+        <p className="ci-sub">Drag the premium and toggle non-price levers — bind %, margin, loss ratio and expected value recompute against the elasticity curve. The red line is the rate-adequacy walk-away.</p>
+        <svg viewBox={`0 0 ${W} ${H}`} className="ci-svg ci-lab-svg">
+          <rect x={sx(el.zone[0])} y={12} width={sx(el.zone[1]) - sx(el.zone[0])} height={H - pad - 12} fill={ACC} opacity="0.10" />
+          {[25, 50, 75, 100].map((g) => (
+            <g key={g}>
+              <line x1={pad} y1={sy(g)} x2={W - 16} y2={sy(g)} stroke={GRID} />
+              <text x={pad - 6} y={sy(g) + 3} fontSize="9" fill={INK3} textAnchor="end">{g}</text>
+            </g>
+          ))}
+          <path d={d} fill="none" stroke={ACC} strokeWidth="2.5" />
+          <line x1={sx(n.walkaway)} y1={12} x2={sx(n.walkaway)} y2={H - pad} stroke="var(--red)" strokeWidth="1.5" strokeDasharray="5 3" />
+          <text x={sx(n.walkaway)} y={9} fontSize="8.5" fill="var(--red)" textAnchor="middle" fontWeight="700">walk-away {money(n.walkaway)}</text>
+          <line x1={mx} y1={12} x2={mx} y2={H - pad} stroke="var(--acq)" strokeDasharray="4 3" />
+          <line x1={pad} y1={my} x2={mx} y2={my} stroke="var(--acq)" strokeDasharray="4 3" />
+          <circle cx={mx} cy={my} r="6" fill={belowFloor ? "var(--red)" : "var(--acq)"} stroke="var(--panel)" strokeWidth="2" />
+          <text x={pad} y={sy(100) - 3} fontSize="8" fill={ACC}>bind % (incl. non-price lift)</text>
+          <text x={W - 90} y={H - pad + 14} fontSize="9" fill={INK3}>{money(hi)} premium →</text>
+          <text x={pad} y={H - pad + 14} fontSize="9" fill={INK3}>{money(lo)}</text>
+        </svg>
+        <RangeWithBubble min={lo} max={hi} step={Math.max(1, Math.round((hi - lo) / 120))} value={price}
+          onChange={(e) => { setPrice(+e.target.value); setStratId(null); }}
+          formatter={(v) => money(Math.round(v))}
+          markers={[{ value: n.walkaway, label: "walk-away", strong: true }, { value: el.rec, label: "rec" }]} />
+        <div className="neg-chips">
+          {levers.map((l) => (
+            <span key={l.id} className={"neg-chip" + (active.has(l.id) ? " on" : "")} onClick={() => toggleLever(l.id)} title={l.note}>
+              {active.has(l.id) ? "✓ " : "+ "}{l.label}
+              <small>{l.dMargin >= 0 ? "+" : ""}{l.dMargin}pp m · +{l.dBind} bind{l.dLR ? ` · ${l.dLR} LR` : ""}</small>
+            </span>
+          ))}
+        </div>
+        <div className="ci-lab-read">
+          <div><span>Premium</span><b>{money(Math.round(price))}</b></div>
+          <div><span>Bind probability</span><b>{cur.bind.toFixed(0)}%</b></div>
+          <div><span>Margin</span><b>{cur.margin.toFixed(1)}%</b></div>
+          <div><span>Loss ratio</span><b>{cur.lr.toFixed(1)}%</b></div>
+          <div><span>Combined ratio</span><b style={{ color: cur.combined < BOOK.combinedTarget ? "var(--green)" : "var(--ret)" }}>{cur.combined.toFixed(1)}%</b></div>
+          <div><span>Expected value</span><b>{money(Math.round(cur.ev))}</b></div>
+          <div className={belowFloor ? "ci-zone warn" : "ci-zone ok"}>{belowFloor ? `${money(Math.abs(Math.round(distToFloor)))} below floor` : `${money(Math.round(distToFloor))} above floor`}</div>
+        </div>
+        <div className="ci-evnote">
+          {belowFloor
+            ? <><b style={{ color: "var(--ret)" }}>Below the rate-adequacy walk-away.</b> This structure breaches the pricing floor — refer or hold rather than bind at {money(Math.round(price))}.</>
+            : <><b>{stratId ? strategies.find((s) => s.id === stratId).label : "Custom"} · {money(Math.round(price))}</b> — {cur.bind.toFixed(0)}% bind at {cur.margin.toFixed(1)}% margin, combined {cur.combined.toFixed(1)}%, {money(Math.round(cur.ev))} expected value. {distToFloor <= (hi - lo) * 0.03 ? "Close to the floor — little room left to concede." : "Room remains above the floor if the broker pushes."}</>}
+        </div>
+      </section>
     </>
   );
 }
@@ -782,25 +934,19 @@ Guardrails: rate-adequacy floor · loss-ratio limit · NAIC 24-08 fair-pricing
         { label: "Price position", value: acc.position.split(" (")[0], icon: "≈", sub: acc.position.match(/\(([^)]+)\)/)?.[1] || "" },
       ]} />
 
-      <div className="ci-grid2">
-        <section className="ci-panel">
-          <h3>Broker negotiation context</h3>
-          <ul className="ci-kv">
-            <li><b>Broker</b><span>{acc.broker.name} · {acc.broker.tier} · bind {acc.broker.bindRate}</span></li>
-            <li><b>Book quality</b><span>{acc.broker.book}</span></li>
-            <li><b>Flexibility</b><span>{n.flex}</span></li>
-            <li><b>Opening</b><span>{n.opening}</span></li>
-            <li><b>Anticipated counter</b><span>{n.counter}</span></li>
-            <li><b>Non-price levers</b><span>{n.nonprice.join(" · ")}</span></li>
-            <li><b>Walk-away</b><span>{money(n.walkaway)} — rate-adequacy floor</span></li>
-          </ul>
-        </section>
-        <section className="ci-panel">
-          <h3>Concession path · premium vs win</h3>
-          <p className="ci-sub">Each concession step trades premium for bind probability</p>
-          <ConcessionChart ladder={n.ladder} />
-        </section>
-      </div>
+      <section className="ci-panel">
+        <h3>Broker negotiation context</h3>
+        <ul className="ci-kv ci-kv-2col">
+          <li><b>Broker</b><span>{acc.broker.name} · {acc.broker.tier} · bind {acc.broker.bindRate}</span></li>
+          <li><b>Book quality</b><span>{acc.broker.book}</span></li>
+          <li><b>Flexibility</b><span>{n.flex}</span></li>
+          <li><b>Opening</b><span>{n.opening}</span></li>
+          <li><b>Anticipated counter</b><span>{n.counter}</span></li>
+          <li><b>Walk-away</b><span>{money(n.walkaway)} — rate-adequacy floor</span></li>
+        </ul>
+      </section>
+
+      <NegotiationSimulator acc={acc} />
 
       <section className="ci-panel">
         <h3>Negotiation playbook</h3>
@@ -828,19 +974,12 @@ Guardrails: rate-adequacy floor · loss-ratio limit · NAIC 24-08 fair-pricing
         <p className="ci-sub" style={{ marginTop: 12 }}>Alternative structures if price stalls: {n.alts.join(" · ")}</p>
       </section>
 
-      <div className="ci-grid2">
-        <section className="ci-panel">
-          <h3>Margin bridge</h3>
-          <p className="ci-sub">How each concession lever moves margin, start → end</p>
-          <MarginBridge bridge={n.bridge} />
-        </section>
-        <section className="ci-panel ci-propose">
-          <div className="ci-propose-ic">🛡️</div>
-          <h3>Ready to propose?</h3>
-          <p className="ci-sub">Improved win probability to <b>{acc.winScore}%</b> at a margin of <b>{endMargin.toFixed(1)}%</b>, held to loss ratio.</p>
-          <button className="ci-btn" onClick={genTermSheet}>Save &amp; generate term sheet →</button>
-        </section>
-      </div>
+      <section className="ci-panel ci-propose">
+        <div className="ci-propose-ic">🛡️</div>
+        <h3>Ready to propose?</h3>
+        <p className="ci-sub">Improved win probability to <b>{acc.winScore}%</b> at a margin of <b>{endMargin.toFixed(1)}%</b>, held to loss ratio.</p>
+        <button className="ci-btn" onClick={genTermSheet}>Save &amp; generate term sheet →</button>
+      </section>
 
       <AuditTrail />
 
