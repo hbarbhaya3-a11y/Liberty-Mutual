@@ -262,29 +262,6 @@ function RunLoader() {
   );
 }
 
-/* bind-probability curve with marker */
-function BindCurve({ price, boost }) {
-  const W = 520, H = 190, pad = 34, lo = -5, hi = 12;
-  const sx = (x) => pad + ((x - lo) / (hi - lo)) * (W - pad - 12);
-  const sy = (y) => H - pad - (y / 100) * (H - pad - 12);
-  const pts = [];
-  for (let r = lo; r <= hi; r += 0.5) pts.push([r, Math.min(96, interp(BIND_ANCHORS, r) + boost)]);
-  const d = pts.map((p, i) => `${i ? "L" : "M"}${sx(p[0]).toFixed(1)},${sy(p[1]).toFixed(1)}`).join(" ");
-  const ry = Math.min(96, interp(BIND_ANCHORS, price) + boost);
-  return (
-    <svg viewBox={`0 0 ${W} ${H}`} className="ci-svg ci-lab-svg">
-      {[25, 50, 75, 100].map((g) => <line key={g} x1={pad} y1={sy(g)} x2={W - 12} y2={sy(g)} stroke="var(--hair)" />)}
-      <rect x={sx(-3)} y={12} width={sx(hi) - sx(-3)} height={H - pad - 12} fill="var(--green)" opacity="0.07" />
-      <path d={d} fill="none" stroke="var(--acc)" strokeWidth="2.5" />
-      <line x1={sx(price)} y1={12} x2={sx(price)} y2={H - pad} stroke="var(--acq)" strokeDasharray="4 3" />
-      <circle cx={sx(price)} cy={sy(ry)} r="6" fill="var(--acq)" stroke="var(--panel)" strokeWidth="2" />
-      <text x={pad} y={sy(100) - 3} fontSize="8" fill="var(--ink-3)">bind %</text>
-      <text x={sx(-3) + 3} y={H - pad - 4} fontSize="8" fill="var(--green)">rate-adequate →</text>
-      <text x={W - 96} y={H - pad + 14} fontSize="9" fill="var(--ink-3)">price vs filed → +{hi}%</text>
-    </svg>
-  );
-}
-
 const LEAD_KEY = "twinx-smbrate-lead";
 
 /* trigger a browser download of a dummy text file with a proper name */
@@ -886,24 +863,17 @@ function LeadWizard({ onBack, uploaded = [] }) {
               ? `Priced within adequacy — quote ${price >= 0 ? "+" : ""}${price.toFixed(1)}% vs filed, bind ${bind.toFixed(0)}%.`
               : `Below rate-adequacy or appetite-boundary — recommend refer / decline rather than bind.`}</b>
           </div>
-          <div className="ci-grid2">
-            <section className="ci-panel">
-              <h3>Simulation results</h3>
-              <div className="sr-metrics">
-                <div><span>Bind probability</span><b>{bind.toFixed(0)}%</b></div>
-                <div><span>Expected value</span><b className="ok">{money(Math.round(ev))}</b></div>
-                <div><span>Margin</span><b>{margin.toFixed(1)}%</b></div>
-                <div><span>Combined ratio</span><b className={combined < 96 ? "ok" : "bad"}>{combined.toFixed(1)}%</b></div>
-                <div><span>NWP won</span><b>{money(nwpWon)}</b></div>
-                <div><span>Rate adequacy</span><b className={adequate ? "ok" : "bad"}>{adequate ? "adequate" : "under"}</b></div>
-              </div>
-            </section>
-            <section className="ci-panel">
-              <h3>Bind probability vs quote price</h3>
-              <p className="ci-sub">Offer + non-price value lift the curve · shaded band is rate-adequate</p>
-              <BindCurve price={price} boost={boost} />
-            </section>
-          </div>
+          <section className="ci-panel">
+            <h3>Simulation results</h3>
+            <div className="sr-metrics">
+              <div><span>Bind probability</span><b>{bind.toFixed(0)}%</b></div>
+              <div><span>Expected value</span><b className="ok">{money(Math.round(ev))}</b></div>
+              <div><span>Margin</span><b>{margin.toFixed(1)}%</b></div>
+              <div><span>Combined ratio</span><b className={combined < 96 ? "ok" : "bad"}>{combined.toFixed(1)}%</b></div>
+              <div><span>NWP won</span><b>{money(nwpWon)}</b></div>
+              <div><span>Rate adequacy</span><b className={adequate ? "ok" : "bad"}>{adequate ? "adequate" : "under"}</b></div>
+            </div>
+          </section>
 
           <section className="ci-panel">
             <h3>TwinX recommendation</h3>
@@ -912,16 +882,6 @@ function LeadWizard({ onBack, uploaded = [] }) {
               {" "}— bind {bind.toFixed(0)}%, {money(nwpWon)} NWP won, margin {margin.toFixed(1)}%, loss ratio held. {cross !== "none" ? "Bundle " + CROSS.find((c) => c.id === cross).label + "." : ""}
             </div>
             <p className="ci-sub" style={{ marginTop: 10 }}>Alternative structures weighed against this pick are in the Multi-scenario quote generator below.</p>
-            <div className="ci-cta" style={{ justifyContent: "flex-start", marginTop: 14 }}>
-              <button className="ci-btn" onClick={() => downloadDummy(
-                slug(LEAD.account) + "_Price_Sheet.pdf",
-                `PRICE SHEET — ${LEAD.account}\nClass ${LEAD.classCode} · ${LEAD.state}\n\nQuote: ${price >= 0 ? "+" : ""}${price.toFixed(1)}% vs filed\nEst. premium: ${money(LEAD.estPremium)}\nBind probability: ${bind.toFixed(0)}%\nNWP won: ${money(nwpWon)}\nMargin: ${margin.toFixed(1)}%\nRate adequacy: ${adequate ? "adequate" : "under floor"}\n\n(Illustrative dummy document.)`
-              )}>⬇ Price sheet (PDF)</button>
-              <button className="ci-btn" onClick={() => downloadDummy(
-                slug(LEAD.account) + "_Term_Sheet.pdf",
-                `TERM SHEET — ${LEAD.account}\n${LEAD.industry}\nLines: ${LEAD.lines}\n\nStructure: Quote ${price >= 0 ? "+" : ""}${price.toFixed(1)}% vs filed · ${OFFERS.find((o) => o.id === offer)?.label} · ${PACKAGING.find((p) => p.id === pkg)?.label}\nDeductible: $${ded}K\nBind: ${bind.toFixed(0)}% · NWP won: ${money(nwpWon)} · Margin: ${margin.toFixed(1)}%\nGuardrails: rate-adequacy floor · loss-ratio limit · NAIC 24-08\n\n(Illustrative dummy document.)`
-              )}>⬇ Term sheet (PDF)</button>
-            </div>
           </section>
 
           <section className="ci-panel">

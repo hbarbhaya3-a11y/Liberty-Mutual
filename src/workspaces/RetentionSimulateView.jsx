@@ -984,13 +984,14 @@ export default function RetentionSimulateView() {
                     </label>
                     {sel && (
                       <div className="px-offer-body">
-                        <RangeWithBubble min={0} max={80} step={5}
+                        <RangeWithBubble
+                          min={0} max={p.id === "cd_6mo" ? 500 : 80} step={p.id === "cd_6mo" ? 10 : 5}
                           value={bps}
                           onChange={(e) => setProductOffer(p.id, +e.target.value)}
                           disabled={isAutopilot}
-                          formatter={(v) => p.id === "cd_6mo" ? `${(v / 100).toFixed(2)}% rate cap` : `$${dollarOff(v)} off`} />
+                          formatter={(v) => p.id === "cd_6mo" ? `${(v / 100).toFixed(1)}% rate cap` : `$${dollarOff(v)} off`} />
                         <div className="px-offer-eff">
-                          <span className="rate-ref-item"><span className="rate-ref-l">{p.id === "cd_6mo" ? "capped renewal rate" : "discount"}</span><span className="rate-ref-v" style={{ color: "var(--green)", fontWeight: 700 }}>{p.id === "cd_6mo" ? `${(mkt + bps / 100).toFixed(2)}% (${(bps / 100).toFixed(2)}% cap on renewal)` : `$${dollarOff(bps)} off premium`}</span></span>
+                          <span className="rate-ref-item"><span className="rate-ref-l">{p.id === "cd_6mo" ? "capped renewal rate" : "discount"}</span><span className="rate-ref-v" style={{ color: "var(--green)", fontWeight: 700 }}>{p.id === "cd_6mo" ? `${(mkt + bps / 100).toFixed(2)}% (${(bps / 100).toFixed(1)}% cap on renewal)` : `$${dollarOff(bps)} off premium`}</span></span>
                         </div>
                         {p.id === "smart_savings" && (
                           <div className="px-offer-qual" style={{ marginTop: 10, paddingTop: 10, borderTop: "1px dashed var(--hair)" }}>
