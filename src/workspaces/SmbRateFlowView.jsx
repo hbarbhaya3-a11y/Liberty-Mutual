@@ -911,14 +911,7 @@ function LeadWizard({ onBack, uploaded = [] }) {
               <b>Quote {price >= 0 ? "+" : ""}{price.toFixed(1)}% vs filed · {OFFERS.find((o) => o.id === offer)?.label}{nonprice.length ? " · " + nonprice.map((id) => NONPRICE.find((n) => n.id === id).label).join(" + ") : ""}</b>
               {" "}— bind {bind.toFixed(0)}%, {money(nwpWon)} NWP won, margin {margin.toFixed(1)}%, loss ratio held. {cross !== "none" ? "Bundle " + CROSS.find((c) => c.id === cross).label + "." : ""}
             </div>
-            <table className="ci-conc" style={{ marginTop: 12 }}>
-              <thead><tr><th>Structure</th><th>Bind</th><th>NWP won</th><th>Margin</th></tr></thead>
-              <tbody>
-                <tr><td>−3% + onboarding credit + risk-control</td><td className="up">88%</td><td>{money(LEAD.estPremium * 0.97 * 0.88)}</td><td>8.6%</td></tr>
-                <tr><td>Filed rate + multi-year lock</td><td className="up">83%</td><td>{money(LEAD.estPremium * 0.83)}</td><td>11.0%</td></tr>
-                <tr><td>+5% · standard</td><td>60%</td><td>{money(LEAD.estPremium * 1.05 * 0.60)}</td><td>15.0%</td></tr>
-              </tbody>
-            </table>
+            <p className="ci-sub" style={{ marginTop: 10 }}>Alternative structures weighed against this pick are in the Multi-scenario quote generator below.</p>
             <div className="ci-cta" style={{ justifyContent: "flex-start", marginTop: 14 }}>
               <button className="ci-btn" onClick={() => downloadDummy(
                 slug(LEAD.account) + "_Price_Sheet.pdf",

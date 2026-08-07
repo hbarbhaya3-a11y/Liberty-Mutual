@@ -579,12 +579,14 @@ export function QuoteView({ acc, nav, embedded }) {
   const gap = e.technicalPrem ? ((winner.prem - e.technicalPrem) / e.technicalPrem) * 100 : null;
   return (
     <>
-      <KpiRibbon cols={4} items={[
-        { label: "Win probability", value: winner.win + "%", icon: "↗", sub: "recommended structure", color: "var(--acc)" },
-        { label: "Expected value", value: money(Math.round(evOf(winner))), icon: "$", sub: "win% × margin$", color: "var(--green)" },
-        { label: "Margin", value: winner.margin + "%", icon: "%", sub: "on premium" },
-        { label: "Combined ratio", value: combined.toFixed(1) + "%", icon: "Σ", sub: `target < ${BOOK.combinedTarget}%`, color: combined < BOOK.combinedTarget ? "var(--green)" : "var(--ret)" },
-      ]} />
+      {!embedded && (
+        <KpiRibbon cols={4} items={[
+          { label: "Win probability", value: winner.win + "%", icon: "↗", sub: "recommended structure", color: "var(--acc)" },
+          { label: "Expected value", value: money(Math.round(evOf(winner))), icon: "$", sub: "win% × margin$", color: "var(--green)" },
+          { label: "Margin", value: winner.margin + "%", icon: "%", sub: "on premium" },
+          { label: "Combined ratio", value: combined.toFixed(1) + "%", icon: "Σ", sub: `target < ${BOOK.combinedTarget}%`, color: combined < BOOK.combinedTarget ? "var(--green)" : "var(--ret)" },
+        ]} />
+      )}
       <div className="ci-grid2">
         <section className="ci-panel">
           <h3>Account intelligence</h3>
@@ -661,13 +663,15 @@ export function QuoteView({ acc, nav, embedded }) {
         </section>
       </div>
 
-      <section className="ci-panel">
-        <h3>Sensitivity Lab · bind probability &amp; expected value vs premium</h3>
-        <p className="ci-sub">Drag the slider — live bind %, margin, and expected value (win% × margin$). Solid = bind probability; dashed green = expected value. Shaded band is the recommended zone within adequacy. Recommended price <b>{money(acc.elasticity.rec)}</b>.</p>
-        <SensitivityLab e={acc.elasticity} />
-      </section>
+      {!embedded && (
+        <section className="ci-panel">
+          <h3>Sensitivity Lab · bind probability &amp; expected value vs premium</h3>
+          <p className="ci-sub">Drag the slider — live bind %, margin, and expected value (win% × margin$). Solid = bind probability; dashed green = expected value. Shaded band is the recommended zone within adequacy. Recommended price <b>{money(acc.elasticity.rec)}</b>.</p>
+          <SensitivityLab e={acc.elasticity} />
+        </section>
+      )}
 
-      {acc.compReaction && (
+      {!embedded && acc.compReaction && (
         <section className="ci-panel">
           <h3>Competitor-reaction simulation · Market Twin</h3>
           <p className="ci-sub">What {acc.compReaction.competitor} likely does back if we move — the win probability shown is <i>after</i> their response.</p>
@@ -728,8 +732,8 @@ export function QuoteView({ acc, nav, embedded }) {
         </div>
       </section>
 
-      <ReadinessPanel winner={winner} acc={acc} />
-      <AuditTrail />
+      {!embedded && <ReadinessPanel winner={winner} acc={acc} />}
+      {!embedded && <AuditTrail />}
 
       {!embedded && (
         <div className="ci-cta">
