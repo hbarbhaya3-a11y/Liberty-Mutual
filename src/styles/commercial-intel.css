@@ -386,3 +386,33 @@
 .sr-sent { display: inline-flex; align-items: center; font-size: 13px; font-weight: 700; color: var(--green);
   padding: 9px 14px; border-radius: 9px; background: color-mix(in srgb, var(--green) 12%, transparent);
   border: 1px solid color-mix(in srgb, var(--green) 30%, var(--hair)); }
+
+/* Signal-2 redesign: triage pills, scatter, live guardrails, verdict, per-lever */
+.sr-triage-auto-quote { background: color-mix(in srgb, var(--green) 15%, transparent); color: var(--green); }
+.sr-triage-refer { background: color-mix(in srgb, var(--ret) 16%, transparent); color: var(--ret); }
+.sr-triage-decline { background: color-mix(in srgb, var(--red) 16%, transparent); color: var(--red); }
+.sr-scatterwrap { width: 100%; overflow-x: auto; }
+.sr-scatter { width: 100%; height: auto; display: block; }
+
+.sr-guard { display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  font-size: 12.5px; padding: 8px 0; border-bottom: 1px dashed var(--hair); }
+.sr-guard:last-child { border-bottom: 0; }
+.sr-gflag { font-size: 10.5px; font-weight: 700; padding: 3px 9px; border-radius: 999px; border: 1px solid transparent; white-space: nowrap; }
+.sr-gflag.pass { color: var(--green); background: color-mix(in srgb, var(--green) 12%, transparent); border-color: color-mix(in srgb, var(--green) 30%, transparent); }
+.sr-gflag.warn { color: var(--ret); background: color-mix(in srgb, var(--ret) 12%, transparent); border-color: color-mix(in srgb, var(--ret) 30%, transparent); }
+.sr-gflag.breach { color: var(--red); background: color-mix(in srgb, var(--red) 12%, transparent); border-color: color-mix(in srgb, var(--red) 30%, transparent); }
+
+.sr-verdict { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 12px;
+  padding: 11px 14px; border-radius: 10px; border: 1px solid var(--hair); background: var(--panel); }
+.sr-verdict.ok { border-color: color-mix(in srgb, var(--green) 40%, var(--hair)); background: color-mix(in srgb, var(--green) 8%, var(--panel)); }
+.sr-verdict.no { border-color: color-mix(in srgb, var(--red) 40%, var(--hair)); background: color-mix(in srgb, var(--red) 8%, var(--panel)); }
+.sr-verdict-pill { font-size: 11px; font-weight: 800; font-family: var(--mono); letter-spacing: .04em; text-transform: uppercase; padding: 4px 10px; border-radius: 20px; }
+.sr-verdict.ok .sr-verdict-pill { color: var(--green); background: color-mix(in srgb, var(--green) 15%, transparent); }
+.sr-verdict.no .sr-verdict-pill { color: var(--red); background: color-mix(in srgb, var(--red) 15%, transparent); }
+
+.sr-levbars { display: flex; flex-direction: column; gap: 8px; }
+.sr-levbar { display: grid; grid-template-columns: 150px 1fr 54px; align-items: center; gap: 10px; font-size: 12px; }
+.sr-levbar .k { color: var(--ink-2); }
+.sr-levbar .track { height: 8px; border-radius: 5px; background: var(--bg-2); overflow: hidden; }
+.sr-levbar .track i { display: block; height: 100%; border-radius: 5px; }
+.sr-levbar .v { text-align: right; font-family: var(--mono); font-weight: 600; }

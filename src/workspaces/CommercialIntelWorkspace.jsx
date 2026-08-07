@@ -33,7 +33,7 @@ function downloadDoc(filename, body) {
 const slug = (s) => (s || "account").replace(/[^a-z0-9]+/gi, "-").replace(/^-|-$/g, "").toLowerCase();
 
 /* ---- Sample RFP / lead-level accounts (derived from the growth cohort) ---- */
-const ACCOUNTS = [
+export const ACCOUNTS = [
   {
     id: "ironline", name: "Ironline Fabrication LLC", industry: "Metal fabrication",
     classCode: "GL 59482", state: "TX", revenue: "$4.2M", employees: 34, tenure: "New business",

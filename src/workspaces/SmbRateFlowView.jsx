@@ -12,7 +12,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import RangeWithBubble from "@/components/RangeWithBubble";
-import { QuoteView, NegotiationView, useAccount } from "@/workspaces/CommercialIntelWorkspace";
+import { QuoteView, NegotiationView, ACCOUNTS } from "@/workspaces/CommercialIntelWorkspace";
 import "@/styles/commercial-intel.css";
 import "@/styles/ifwhat.css";
 
@@ -120,6 +120,105 @@ function interp(anchors, x) {
     if (x <= x1) return y0 + ((y1 - y0) * (x - x0)) / (x1 - x0);
   }
   return anchors[anchors.length - 1][1];
+}
+
+/* ---- triage gate: auto-quote / refer / decline from win-likelihood + loss ratio ---- */
+const EXPENSE_RATIO = 27;                 // book expense ratio → combined = loss + expense
+function triageOf(l) {
+  if (l.leadScore < 0.55 || l.lossRatio >= 78) return "decline";
+  if (l.leadScore >= 0.65 && l.lossRatio < 72) return "auto-quote";
+  return "refer";
+}
+const TRIAGE_LABEL = { "auto-quote": "Auto-quote", refer: "Refer", decline: "Decline" };
+/* expected value of a lead at its indicated position: win × (premium × margin%) */
+function leadEV(l) {
+  const prem = l.estPremium * (1 + (l.indicated || 0) / 100);
+  const marginPct = 12;                    // book-level margin proxy for ranking
+  return (l.leadScore) * prem * (marginPct / 100);
+}
+
+/* ---- Lead → account synthesizer: renders the embedded Quote/Negotiation
+   workbenches against THIS lead (identity, premium scale, competitors, broker),
+   instead of a stand-in Commercial-Intel account. Uses ACCOUNTS[0] as a shape
+   template so every field the views read is present, then overrides. ---- */
+function accountFromLead(l, cfg) {
+  const T = ACCOUNTS[0];
+  const P = l.estPremium;
+  const win = Math.round((l.leadScore || 0.6) * 100);
+  const brokerName = (l.source || "Broker").split(" — ")[0];
+  const comps = (l.pitches || []).map((p) => ({ n: p.n, pv: p.price }));
+  const q = (label, cov, factor, margin, w, rec) => ({
+    id: label.toLowerCase().replace(/[^a-z]+/g, "-"), label, cov,
+    prem: Math.round(P * factor), margin, win: w, rec: !!rec,
+  });
+  const quotes = [
+    q("Baseline", `${l.lines} · filed rate`, 1.0, 14.8, Math.max(40, win - 12), false),
+    q("Recommended", `${l.lines} · onboarding credit`, 0.90, 11.6, win, true),
+    q("Coverage-restructured", "+ enhanced limits", 1.04, 15.2, Math.max(35, win - 19), false),
+    q("Bundle-contingent", "+ cross-line", 1.14, 17.4, Math.max(30, win - 26), false),
+  ];
+  const lo = Math.round(P * 0.83), hi = Math.round(P * 1.18), rec = Math.round(P * 0.9);
+  return {
+    ...T,
+    name: l.account, industry: l.industry, classCode: l.classCode, state: l.state,
+    revenue: l.revenue, employees: T.employees, tenure: "New business",
+    segment: l.segment, growth: l.signal,
+    broker: { name: brokerName, tier: "Elite", bindRate: "31%", book: `${(l.lossRatio / 100).toFixed(2)} loss ratio` },
+    triage: triageOf(l), triageWhy: l.signal,
+    loss: `LR ${l.lossRatio}% · indicated +${l.indicated}% vs filed`,
+    portfolio: `${l.state} ${l.segment} · within appetite`,
+    competitors: comps.length ? comps : T.competitors,
+    lines: (l.lines || "").split(" + "), crossLine: ["Umbrella", "Cyber", "Workers Comp"],
+    quotes,
+    projLR: l.lossRatio + "%", winScore: win, winCI: "±6pp",
+    position: comps.length ? "At / below market" : T.position,
+    econ: {
+      technicalPrem: Math.round(P * (1 + (l.indicated || 6) / 100) / 1.1),
+      expenseRatio: EXPENSE_RATIO, costToServe: Math.round(P * 0.004),
+      channel: "Broker", ltv: { years: 3, value: Math.round(P * 2.6), note: "3-yr expected value" },
+      attach: { line: "Umbrella + Cyber", prob: 0.4, ev: Math.round(P * 0.05) },
+    },
+    concentration: { seg: `${l.state} ${l.segment}`, before: 5.2, after: 5.4, cap: 6.0 },
+    blendedLR: { before: 63.2, after: 63.1 },
+    compReaction: l.competitor ? {
+      competitor: l.competitor.n, theirPrice: l.competitor.offer,
+      ifMatch: { ourPrice: l.competitor.offer, theirResp: "Holds — thin service model", netWin: Math.min(92, win + 6) },
+      ifHold: { ourPrice: Math.round(P * 0.9), theirResp: `Broker leans ${l.competitor.n} on price`, netWin: win },
+      note: `Matching ${l.competitor.n} is safe; hold on service value.`,
+    } : T.compReaction,
+    elasticity: {
+      rec, zone: [Math.round(P * 0.86), Math.round(P * 0.95)], marginLo: 8, marginHi: 20,
+      curve: [[lo, 90], [Math.round(P * 0.9), 82], [rec, win], [P, Math.max(40, win - 12)], [hi, Math.max(24, win - 30)]],
+      dims: [{ k: "Segment", v: 74 }, { k: "Broker", v: 62 }, { k: "Industry", v: 55 }, { k: "Competitor", v: 84 }, { k: "Coverage", v: 40 }],
+    },
+    negotiation: {
+      flex: "High — broker values speed + certainty",
+      bridge: { start: 14.8, steps: [{ k: "Rate concession", d: -1.3 }, { k: "Deductible ↑", d: 1.5 }, { k: "Safety credit", d: -0.3 }, { k: "Cross-line", d: 1.0 }] },
+      opening: `${money(P)} baseline · filed rate`,
+      counter: l.competitor ? `Broker cites ${l.competitor.n} at ${money(l.competitor.offer)}` : "Broker asks for a match",
+      fallbacks: [`${money(Math.round(P * 0.95))} at higher deductible`, `${money(rec)} + safety credit`, `${money(rec)} floor — rate-adequacy limit`],
+      nonprice: ["Faster bind (same-day COI)", "Safety-program credit", "Multi-year term lock"],
+      walkaway: rec,
+      ladder: [
+        { label: "Open", prem: P, win: Math.max(40, win - 12), margin: 14.8 },
+        { label: "Match", prem: Math.round(P * 0.95), win: win, margin: 12.6 },
+        { label: "+ credit", prem: rec, win: Math.min(92, win + 6), margin: 11.6 },
+        { label: "Floor", prem: rec, win: Math.min(92, win + 6), margin: 11.6 },
+      ],
+      concessions: [
+        { req: `Match ${l.competitor ? l.competitor.n : "market"}`, resp: "Counter with higher deductible", cost: "−1.3pp margin", win: "+9pp", port: "LR neutral" },
+        { req: "Waive first-year fee", resp: "Offer safety credit instead", cost: "−0.4pp margin", win: "+3pp", port: "LR ↓" },
+      ],
+      alts: ["Deductible-optimized", "Bundle-contingent", "Multi-year lock"],
+    },
+    winFactors: [
+      { k: `Broker Twin — ${brokerName} bind rate`, w: 30, v: 12 },
+      { k: "Account Twin — shopping propensity", w: 20, v: -4 },
+      { k: "Market Twin — insurtech pressure", w: 20, v: -7 },
+      { k: `Historical similarity — ${l.state} class`, w: 15, v: 6 },
+      { k: "Price position vs competitor median", w: 15, v: 9 },
+    ],
+  };
 }
 
 function Steps({ step, setStep }) {
@@ -481,7 +580,6 @@ function makePdf(title, textLines) {
 
 function LeadWizard({ onBack, uploaded = [] }) {
   const nav = useNavigate();
-  const [ciAcc] = useAccount();          // account context for the embedded Quote & Negotiation views
   const [step, setStep] = useState(1);
   const [running, setRunning] = useState(false);
   const [sent, setSent] = useState(false);
@@ -491,6 +589,7 @@ function LeadWizard({ onBack, uploaded = [] }) {
   const allLeads = [...uploaded, ...LEADS];
   const LEAD = allLeads.find((r) => r.id === leadId) || allLeads[0];
   const pickLead = (v) => { setLeadId(v); setStep(1); setSent(false); try { localStorage.setItem(LEAD_KEY, v); } catch { /* ignore */ } };
+  const leadAcc = accountFromLead(LEAD);   // lead-bound account for the embedded workbenches
   const rfp = rfpDetail(LEAD);
   const [rfpTab, setRfpTab] = useState(0);
   // goal + levers
@@ -515,6 +614,11 @@ function LeadWizard({ onBack, uploaded = [] }) {
   const adequate = price >= -3;
   const margin = 11 + price * 0.8 + ded * 0.12;
   const linesPer = cross === "none" ? 3.0 : 3.3;
+  // Expected value (win% × margin$), combined ratio, and the bind/no-bid verdict
+  const marginDollars = LEAD.estPremium * (1 + price / 100) * (margin / 100);
+  const ev = (bind / 100) * marginDollars;
+  const combined = LEAD.lossRatio + EXPENSE_RATIO;
+  const verdict = adequate && triageOf(LEAD) !== "decline";
 
   const toggleNp = (id) => setNonprice((c) => c.includes(id) ? c.filter((x) => x !== id) : [...c, id]);
   const toggleCh = (id) => setChannels((c) => c.includes(id) ? c.filter((x) => x !== id) : [...c, id]);
@@ -530,7 +634,7 @@ function LeadWizard({ onBack, uploaded = [] }) {
       <header className="ci-head">
         <div>
           <h1>New Lead Simulation · {LEAD.account}</h1>
-          <p><button className="ci-linkback" onClick={onBack}>← Renewal book</button> · Small Commercial · guided decision flow · {LEAD.leadIn}</p>
+          <p><button className="ci-linkback" onClick={onBack}>← New-business book</button> · Small Commercial · guided decision flow · {LEAD.leadIn}</p>
         </div>
         <Steps step={step} setStep={setStep} />
       </header>
@@ -690,14 +794,25 @@ function LeadWizard({ onBack, uploaded = [] }) {
               </div>
             </section>
             <section className="ci-panel">
-              <h3>Guardrails · always enforced</h3>
-              <p className="ci-sub">Hard constraints the simulation cannot violate</p>
-              <ul className="sr-guards">
-                <li><span className="sr-g-dot" />Rate-adequacy floor · quote ≥ −3% vs filed (indicated +{LEAD.indicated}%)</li>
-                <li><span className="sr-g-dot" />Loss-ratio limit · new business must hold target LR</li>
-                <li><span className="sr-g-dot" />Appetite fit · within class / state appetite</li>
-                <li><span className="sr-g-dot" />Fair-pricing · NAIC Model Bulletin 24-08 consistency</li>
-              </ul>
+              <h3>Guardrails · live</h3>
+              <p className="ci-sub">Checked against your current levers — not just listed</p>
+              {(() => {
+                const flStorm = LEAD.state === "FL";
+                const checks = [
+                  { k: `Rate-adequacy floor · ≥ −3% vs filed`, ...(adequate ? { s: "pass", t: `pass · ${price > 0 ? "+" : ""}${price.toFixed(1)}%` } : { s: "breach", t: `breach · ${price.toFixed(1)}%` }) },
+                  { k: "Loss-ratio limit · hold target LR", ...(LEAD.lossRatio < 75 ? { s: "pass", t: `pass · ${LEAD.lossRatio}%` } : { s: "breach", t: `over · ${LEAD.lossRatio}%` }) },
+                  { k: "Appetite fit · class / state", ...(LEAD.leadScore >= 0.55 ? { s: "pass", t: "pass" } : { s: "breach", t: "boundary" }) },
+                  ...(flStorm ? [{ k: "Min deductible · FL named-storm", ...(ded >= 10 ? { s: "pass", t: `pass · $${ded}K` } : { s: "warn", t: "raise to $10K" }) }] : []),
+                  { k: "Fair-pricing · NAIC 24-08", s: "pass", t: "pass" },
+                ];
+                return (
+                  <div>
+                    {checks.map((c) => (
+                      <div key={c.k} className="sr-guard"><span>{c.k}</span><span className={"sr-gflag " + c.s}>{c.t}</span></div>
+                    ))}
+                  </div>
+                );
+              })()}
             </section>
           </div>
 
@@ -765,16 +880,22 @@ function LeadWizard({ onBack, uploaded = [] }) {
       {/* STEP 3 · QUOTE & INTELLIGENCE — results + recommendation + quote/price */}
       {!running && step === 3 && (
         <>
+          <div className={"sr-verdict " + (verdict ? "ok" : "no")}>
+            <span className="sr-verdict-pill">{verdict ? "Bind-ready" : "No-bid"}</span>
+            <b>{verdict
+              ? `Priced within adequacy — quote ${price >= 0 ? "+" : ""}${price.toFixed(1)}% vs filed, bind ${bind.toFixed(0)}%.`
+              : `Below rate-adequacy or appetite-boundary — recommend refer / decline rather than bind.`}</b>
+          </div>
           <div className="ci-grid2">
             <section className="ci-panel">
               <h3>Simulation results</h3>
               <div className="sr-metrics">
                 <div><span>Bind probability</span><b>{bind.toFixed(0)}%</b></div>
-                <div><span>NWP won</span><b>{money(nwpWon)}</b></div>
+                <div><span>Expected value</span><b className="ok">{money(Math.round(ev))}</b></div>
                 <div><span>Margin</span><b>{margin.toFixed(1)}%</b></div>
+                <div><span>Combined ratio</span><b className={combined < 96 ? "ok" : "bad"}>{combined.toFixed(1)}%</b></div>
+                <div><span>NWP won</span><b>{money(nwpWon)}</b></div>
                 <div><span>Rate adequacy</span><b className={adequate ? "ok" : "bad"}>{adequate ? "adequate" : "under"}</b></div>
-                <div><span>Loss-ratio impact</span><b className="ok">{adequate ? "held / ↓" : "↑ risk"}</b></div>
-                <div><span>Lines per account</span><b>{linesPer.toFixed(1)}</b></div>
               </div>
             </section>
             <section className="ci-panel">
@@ -810,9 +931,41 @@ function LeadWizard({ onBack, uploaded = [] }) {
             </div>
           </section>
 
+          <section className="ci-panel">
+            <h3>Per-lever contribution to bind</h3>
+            <p className="ci-sub">how each configured lever moved bind probability, base → final</p>
+            {(() => {
+              const base = interp(BIND_ANCHORS, price);
+              const parts = [
+                { k: `Price position (${price >= 0 ? "+" : ""}${price.toFixed(1)}%)`, v: base, base: true },
+                { k: "Offer structure", v: offerBoost },
+                { k: "Non-price value", v: npBoost },
+                { k: "Coverage / packaging", v: pkgBoost },
+                { k: "Turnaround", v: turnBoost },
+              ].filter((p) => p.base || p.v !== 0);
+              const maxV = Math.max(base, 8);
+              return (
+                <div className="sr-levbars">
+                  {parts.map((p) => (
+                    <div key={p.k} className="sr-levbar">
+                      <span className="k">{p.k}</span>
+                      <span className="track"><i style={{ width: `${(p.v / maxV) * 100}%`, background: p.base ? "var(--acq)" : "var(--green)" }} /></span>
+                      <span className="v" style={{ color: p.base ? "var(--ink)" : "var(--green)" }}>{p.base ? p.v.toFixed(0) : "+" + p.v}</span>
+                    </div>
+                  ))}
+                  <div className="sr-levbar" style={{ borderTop: "1px solid var(--hair)", paddingTop: 8, marginTop: 4 }}>
+                    <span className="k" style={{ fontWeight: 700 }}>Final bind</span>
+                    <span className="track"><i style={{ width: `${(bind / 100) * 100}%`, background: "var(--acc)" }} /></span>
+                    <span className="v" style={{ color: "var(--acc)", fontWeight: 700 }}>{bind.toFixed(0)}%</span>
+                  </div>
+                </div>
+              );
+            })()}
+          </section>
+
           <div className="ci-embed">
             <h3 className="ci-embed-h">Quote &amp; Price workbench</h3>
-            <QuoteView acc={ciAcc} nav={nav} embedded />
+            <QuoteView acc={leadAcc} nav={nav} embedded />
           </div>
 
           <div className="ci-cta">
@@ -838,7 +991,7 @@ function LeadWizard({ onBack, uploaded = [] }) {
 
           <div className="ci-embed">
             <h3 className="ci-embed-h">Negotiation workbench</h3>
-            <NegotiationView acc={ciAcc} nav={nav} embedded />
+            <NegotiationView acc={leadAcc} nav={nav} embedded />
           </div>
 
           <div className="ci-cta">
@@ -889,26 +1042,25 @@ function BookCockpit({ onOpen, onUpload }) {
   const segs = ["All", ...Array.from(new Set(LEADS.map((l) => l.segment)))];
   const rows = LEADS.filter((l) =>
     (seg === "All" || l.segment === seg) &&
-    (q === "" || l.account.toLowerCase().includes(q.toLowerCase())));
-  const maxLR = 100;
+    (q === "" || l.account.toLowerCase().includes(q.toLowerCase())))
+    .sort((a, b) => leadEV(b) - leadEV(a));     // rank by expected value
   return (
     <div className="ci-ws">
       <header className="ci-head">
         <div>
-          <h1>Renewal Strategy Cockpit</h1>
-          <p>Small Commercial · book-level view of renewal & new-business cases and negotiation readiness</p>
+          <h1>New-Business Cockpit</h1>
+          <p>Small Commercial · work the submission book by expected value — triage before you quote</p>
         </div>
         <div style={{ display: "flex", gap: 8 }}>
           <label className="ci-btn ghost ci-upload">
             ⬆ Upload lead / RFP
             <input type="file" accept=".pdf,.doc,.docx,.csv,.xlsx,.acord,.json,.txt" onChange={onUpload} hidden />
           </label>
-          <button className="ci-btn">⚡ Run prediction model</button>
         </div>
       </header>
 
       <div className="ci-kpis ci-kpis-4">
-        {[["Cases in book", "142", "↑ 8%"], ["Avg. rate ask", "+6.4%", "↑ 1.2%"], ["Avg. win / retention", "63%", "↓ 2%"], ["At-risk cases", "18", "↑ 5%"]].map(([l, v, d]) => (
+        {[["New submissions", "142", "↑ 8%"], ["Bind rate vs plan", "34%", "target 38%"], ["Blended combined", "90.3%", "target < 96%"], ["Open pipeline EV", "$2.14M", "win% × margin$"]].map(([l, v, d]) => (
           <div key={l} className="ci-kpi">
             <div className="ci-kpi-h"><span>{l}</span><em>{d}</em></div>
             <div className="ci-kpi-v">{v}</div>
@@ -918,11 +1070,11 @@ function BookCockpit({ onOpen, onUpload }) {
 
       <div className="ci-grid2 sr-cockpit-grid">
         <section className="ci-panel sr-alert">
-          <div className="sr-alert-h">⚠ Predictive risk alert</div>
-          <p>TwinX flags <b>3 cases</b> with rising loss ratios (&gt; 75%) and heavy competitor pressure.</p>
+          <div className="sr-alert-h">⚠ Triage &amp; risk</div>
+          <p>TwinX flags <b>{LEADS.filter((l) => triageOf(l) === "decline").length} case(s)</b> to <b>decline</b> — sub-adequate loss ratio or appetite-boundary. Bidding them costs the book.</p>
           <div className="sr-alert-bar"><span>Portfolio churn risk</span><b>Elevated</b></div>
           <div className="sr-alert-track"><i style={{ width: "72%" }} /></div>
-          <p className="ci-sub" style={{ marginTop: 10 }}>Select a case to run its guided simulation.</p>
+          <p className="ci-sub" style={{ marginTop: 10 }}>Select a case to run its guided simulation — or leave the decline cases alone.</p>
         </section>
         <section className="ci-panel">
           <div className="sr-book-tools">
@@ -933,22 +1085,25 @@ function BookCockpit({ onOpen, onUpload }) {
           </div>
           <div className="sr-book-scroll">
           <table className="sr-book">
-            <thead><tr><th>Case</th><th>Est. premium</th><th>Rate ask</th><th>Loss ratio</th><th>Win prob.</th><th>Status</th></tr></thead>
+            <thead><tr><th>Case</th><th>Est. premium</th><th>Exp. value</th><th>Loss ratio</th><th>Win prob.</th><th>Triage</th></tr></thead>
             <tbody>
-              {rows.map((l) => (
+              {rows.map((l) => {
+                const tri = triageOf(l);
+                return (
                 <tr key={l.id} onClick={() => onOpen(l.id)}>
                   <td><b>{l.account}</b><div className="sr-book-seg">{l.segment}</div></td>
                   <td>{money(l.estPremium)}</td>
-                  <td><span className="sr-ask">+{l.indicated}%</span></td>
-                  <td>{l.lossRatio}%</td>
+                  <td style={{ color: "var(--green)", fontWeight: 700 }}>{money(Math.round(leadEV(l)))}</td>
+                  <td style={{ color: l.lossRatio >= 75 ? "var(--red)" : "var(--ink)" }}>{l.lossRatio}%</td>
                   <td>
                     <div className="sr-winbar"><i style={{ width: Math.round(l.leadScore * 100) + "%",
                       background: l.leadScore >= 0.65 ? "var(--green)" : l.leadScore >= 0.5 ? "var(--ret)" : "var(--red)" }} /></div>
                     <span className="sr-winpct">{Math.round(l.leadScore * 100)}%</span>
                   </td>
-                  <td><span className={statusCls(l.status)}>{STATUS_LABEL[l.status]}</span></td>
+                  <td><span className={"sr-status sr-triage-" + tri}>{TRIAGE_LABEL[tri]}</span></td>
                 </tr>
-              ))}
+                );
+              })}
             </tbody>
           </table>
           </div>
@@ -956,19 +1111,40 @@ function BookCockpit({ onOpen, onUpload }) {
       </div>
 
       <section className="ci-panel">
-        <h3>Loss ratio vs win probability</h3>
-        <div className="sr-lrbars">
-          {LEADS.map((l) => (
-            <div key={l.id} className="sr-lrbar">
-              <div className="sr-lrbar-cols">
-                <i className="lr" style={{ height: (l.lossRatio / maxLR * 100) + "%" }} title={"LR " + l.lossRatio + "%"} />
-                <i className="win" style={{ height: (l.leadScore * 100) + "%" }} title={"Win " + Math.round(l.leadScore * 100) + "%"} />
-              </div>
-              <span>{l.account.split(" ")[0]}</span>
-            </div>
-          ))}
+        <h3>Loss ratio × win probability</h3>
+        <p className="ci-sub">sized by premium · shaded band is in-appetite &amp; rate-adequate · bottom-right is where <em>not</em> to bid</p>
+        <div className="sr-scatterwrap">
+          <svg viewBox="0 0 640 260" className="sr-scatter" role="img" aria-label="Loss ratio versus win probability by lead">
+            {/* axes */}
+            <rect x="60" y="16" width="560" height="200" fill="var(--green)" opacity="0" />
+            <rect x="60" y="16" width="336" height="150" fill="var(--green)" opacity="0.08" />
+            <line x1="60" y1="216" x2="620" y2="216" stroke="var(--ink-4)" />
+            <line x1="60" y1="16" x2="60" y2="216" stroke="var(--ink-4)" />
+            {[40, 60, 80].map((g) => {
+              const y = 216 - ((g - 30) / 60) * 200;
+              return <g key={g}><line x1="60" y1={y} x2="620" y2={y} stroke="var(--hair)" /><text x="52" y={y + 3} fontSize="9" fill="var(--ink-3)" textAnchor="end">{g}</text></g>;
+            })}
+            {[55, 65, 75, 85].map((g) => {
+              const x = 60 + ((g - 50) / 40) * 560;
+              return <text key={g} x={x} y="232" fontSize="9" fill="var(--ink-3)" textAnchor="middle">{g}%</text>;
+            })}
+            <text x="10" y="14" fontSize="9.5" fill="var(--ink-3)">win %</text>
+            <text x="560" y="248" fontSize="9.5" fill="var(--ink-3)">loss ratio →</text>
+            {LEADS.map((l) => {
+              const x = 60 + ((l.lossRatio - 50) / 40) * 560;
+              const y = 216 - ((l.leadScore * 100 - 30) / 60) * 200;
+              const r = 7 + (l.estPremium / 168000) * 8;
+              const tri = triageOf(l);
+              const c = tri === "decline" ? "var(--red)" : tri === "refer" ? "var(--ret)" : "var(--acq)";
+              return (
+                <g key={l.id}>
+                  <circle cx={x} cy={y} r={r} fill={c} opacity="0.82" />
+                  <text x={x} y={y - r - 4} fontSize="8.5" fill={tri === "decline" ? "var(--red)" : "var(--ink-3)"} textAnchor="middle">{l.account.split(" ")[0]}</text>
+                </g>
+              );
+            })}
+          </svg>
         </div>
-        <div className="sr-lrlegend"><span><i className="lr" /> Loss ratio</span><span><i className="win" /> Win prob.</span></div>
       </section>
     </div>
   );
